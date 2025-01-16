@@ -1,0 +1,29 @@
+import Foundation
+
+public let MESSAGES_DIRECTORY = "messages"
+public let ENVELOPE_FILENAME = "envelope"
+public let PAYLOAD_FILENAME = "payload"
+public let CONTENT_HEADERS_FILENAME = "headers"
+
+public let HEADER_PREFIX = "message-"
+
+public let HEADER_MESSAGE_ID = "message-id"
+public let HEADER_MESSAGE_STREAM = "message-stream"
+public let HEADER_MESSAGE_ACCESS = "message-access"
+public let HEADER_MESSAGE_HEADERS = "message-headers"
+public let HEADER_MESSAGE_ENVELOPE_CHECKSUM = "message-checksum"
+public let HEADER_MESSAGE_ENVELOPE_SIGNATURE = "message-signature"
+public let HEADER_MESSAGE_ENCRYPTION = "message-encryption"
+
+public let HEADER_CONTENT_MESSAGE_ID = "id"
+public let HEADER_CONTENT_AUTHOR = "author"
+public let HEADER_CONTENT_DATE = "date"
+public let HEADER_CONTENT_SIZE = "size"
+public let HEADER_CONTENT_CHECKSUM = "checksum"
+public let HEADER_CONTENT_FILE = "file"
+public let HEADER_CONTENT_SUBJECT = "subject"
+public let HEADER_CONTENT_SUBJECT_ID = "subject-id"
+public let HEADER_CONTENT_PARENT_ID = "parent-id"
+public let HEADER_CONTENT_FILES = "files"
+public let HEADER_CONTENT_CATEGORY = "category"
+public let HEADER_CONTENT_READERS = "readers"

@@ -1,0 +1,342 @@
+import SwiftUI
+import OpenEmailCore
+import Logging
+
+struct ProfileView: View {
+    @Bindable private var viewModel: ProfileViewModel
+    @AppStorage(UserDefaultsKeys.registeredEmailAddress) var registeredEmailAddress: String?
+    @Environment(\.openWindow) private var openWindow
+
+    private let showActionButtons: Bool
+    private let isContactRequest: Bool
+    private let verticalLayout: Bool
+    private let profileImageSize: CGFloat?
+    @State private var showRemoveContactConfirmationAlert = false
+
+    private let onClose: (() -> Void)?
+
+    init(
+        viewModel: ProfileViewModel,
+        showActionButtons: Bool = true,
+        isContactRequest: Bool = false,
+        verticalLayout: Bool = false,
+        profileImageSize: CGFloat? = nil,
+        onClose: (() -> Void)? = nil
+    ) {
+        self.showActionButtons = showActionButtons
+        self.isContactRequest = isContactRequest
+        self.verticalLayout = verticalLayout
+        self.onClose = onClose
+        self.profileImageSize = profileImageSize
+        self.viewModel = viewModel
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: .Spacing.large) {
+            if verticalLayout, let onClose {
+                HStack {
+                    Spacer()
+                    Button {
+                        onClose()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .frame(width: 24, height: 24)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.themeSecondary)
+                    .help("Close")
+                }
+                .padding(.vertical, -.Spacing.xSmall)
+            }
+
+            if !viewModel.isLoadingProfile && viewModel.profile != nil {
+                if !viewModel.isSelf, showActionButtons {
+                    header
+                }
+
+                let layout = verticalLayout ? AnyLayout(VStackLayout(spacing: .Spacing.default)) : AnyLayout(HStackLayout(alignment: .top, spacing: .Spacing.large))
+                layout {
+                    ProfileImageView(
+                        emailAddress: viewModel.emailAddress.address,
+                        shape: .roundedRectangle(cornerRadius: .CornerRadii.default),
+                        size: profileImageSize ?? 288
+                    )
+
+                    VStack(alignment: .leading, spacing: .Spacing.default) {
+                        awayMessage
+
+                        let canEditReceiveBroadcasts = !viewModel.isSelf && viewModel.isInContacts
+                        ProfileAttributesView(
+                            profile: $viewModel.profile,
+                            receiveBroadcasts: canEditReceiveBroadcasts ? $viewModel.receiveBroadcasts : nil,
+                            isEditable: false,
+                            hidesEmptyFields: true
+                        )
+                    }
+                }
+            } else {
+                VStack {
+                    if viewModel.isLoadingProfile {
+                        ProgressView()
+                    } else {
+                        errorView
+                    }
+                }
+                .padding(.Spacing.default)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .padding(.Spacing.default)
+        .padding(.top, .Spacing.xSmall)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background{
+            Color.themeViewBackground
+                .if(verticalLayout) {
+                    $0.shadow(color: .black.opacity(0.1), radius: 12, x: -4)
+                }
+        }
+    }
+
+    private var header: some View {
+        HStack(spacing: .Spacing.xSmall) {
+            if viewModel.isInContacts {
+                AsyncButton {
+                    await viewModel.fetchMessages()
+                } label: {
+                    HStack(spacing: .Spacing.xxSmall) {
+                        Image(.downloadMessages)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 18, height: 18)
+
+                        Text("Fetch messages")
+                    }
+                }
+            }
+
+            Button {
+                viewModel.refreshProfile()
+            } label: {
+                HStack(spacing: .Spacing.xxSmall) {
+                    Image(.reload)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 18, height: 18)
+
+                    Text("Refresh")
+                }
+            }
+
+            if viewModel.isInContacts {
+                Button {
+                    showRemoveContactConfirmationAlert = true
+                } label: {
+                    Image(.delete)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                }
+                .buttonStyle(ActionButtonStyle(isImageOnly: true, height: 32))
+                .help("Remove from contacts")
+                .alert("Are you sure you want to remove this contact?", isPresented: $showRemoveContactConfirmationAlert) {
+                    Button("Cancel", role: .cancel) {}
+                    AsyncButton("Remove", role: .destructive) {
+                        await removeUser()
+                    }
+                } message: {
+                    Text("This action cannot be undone.")
+                }
+            }
+
+            Spacer()
+
+            if viewModel.isInContacts {
+                Button {
+                    guard let registeredEmailAddress else { return }
+                    openWindow(id: WindowIDs.compose, value: ComposeAction.newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: viewModel.emailAddress.address))
+                } label: {
+                    HStack(spacing: .Spacing.xxSmall) {
+                        Image(.createMessage)
+                        Text("Create message")
+                    }
+                }
+                .buttonStyle(ActionButtonStyle(height: 32, isProminent: true))
+            } else if !viewModel.isSelf {
+                AsyncButton(actionOptions: [.disableButton]) {
+                    await addToContacts()
+                } label: {
+                    HStack(spacing: .Spacing.xxSmall) {
+                        Image(.addToContacts)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 18, height: 18)
+
+                        Text("Add to Contacts")
+                    }
+                }
+            }
+        }
+        .buttonStyle(ActionButtonStyle(height: 32))
+    }
+
+    private var errorView: some View {
+        VStack(spacing: .Spacing.default) {
+            HStack(spacing: .Spacing.xxxSmall) {
+                WarningIcon()
+                Text(viewModel.errorText)
+                    .foregroundStyle(.secondary)
+            }
+
+            HStack {
+                Button("Retry") {
+                    viewModel.refreshProfile()
+                }
+                if viewModel.isInContacts && !viewModel.isSelf {
+                    AsyncButton("Remove User", role: .destructive) {
+                        await removeUser()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.red)
+                }
+            }
+            .controlSize(.small)
+        }
+    }
+
+    @ViewBuilder
+    private var awayMessage: some View {
+        if viewModel.profile?[boolean: .away] == true {
+            HStack(alignment: .firstTextBaseline, spacing: .Spacing.xSmall) {
+                Text("away")
+                    .textCase(.uppercase)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.white)
+                    .padding(.vertical, 2)
+                    .padding(.horizontal, 4)
+                    .background {
+                        RoundedRectangle(cornerRadius: .CornerRadii.small)
+                            .foregroundStyle(.themeBlue)
+                    }
+
+                if let awayWarning = viewModel.profile?[.awayWarning] {
+                    Text(awayWarning)
+                        .multilineTextAlignment(.leading)
+                        .lineLimit(2)
+                }
+            }
+            .padding(.vertical, .Spacing.xSmall)
+            .padding(.horizontal, .Spacing.xSmall)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background {
+                RoundedRectangle(cornerRadius: .CornerRadii.default)
+                    .fill(.themeBackground)
+            }
+        }
+    }
+
+    private func removeUser() async {
+        do {
+            try await viewModel.removeFromContacts()
+        } catch {
+            // TODO: show error
+            Log.error("Could not remove contact:", context: error)
+        }
+    }
+
+    private func addToContacts() async {
+        do {
+            try await viewModel.addToContacts()
+        } catch {
+            // TODO: show error
+            Log.error("Could not add contact:", context: error)
+        }
+    }
+}
+
+#if DEBUG
+
+#Preview("full profile") {
+    let client = EmailClientMock()
+    client.stubFetchedProfile = .makeFake()
+    InjectedValues[\.client] = client
+
+    return ProfileView(
+        viewModel: ProfileViewModel(emailAddress: .init("mickey@mouse.com")!),
+        showActionButtons: true,
+        isContactRequest: false
+    )
+    .frame(width: 700, height: 500)
+}
+
+#Preview("full profile, vertical") {
+    let client = EmailClientMock()
+    client.stubFetchedProfile = .makeFake()
+    InjectedValues[\.client] = client
+
+    return ProfileView(
+        viewModel: ProfileViewModel(emailAddress: .init("mickey@mouse.com")!),
+        showActionButtons: false,
+        isContactRequest: false,
+        verticalLayout: true,
+        onClose: {}
+    )
+    .frame(height: 600)
+    .fixedSize()
+}
+
+
+#Preview("away") {
+    let client = EmailClientMock()
+    client.stubFetchedProfile = .makeFake(awayWarning: "Gone for vacation 🌴")
+    InjectedValues[\.client] = client
+
+    return ProfileView(
+        viewModel: ProfileViewModel(emailAddress: .init("mickey@mouse.com")!),
+        showActionButtons: true,
+        isContactRequest: false
+    )
+    .frame(width: 700, height: 500)
+}
+
+#Preview("no name") {
+    let client = EmailClientMock()
+    client.stubFetchedProfile = .makeFake(name: nil)
+    InjectedValues[\.client] = client
+
+    return ProfileView(
+        viewModel: ProfileViewModel(emailAddress: .init("mickey@mouse.com")!),
+        showActionButtons: true,
+        isContactRequest: false
+    )
+    .frame(width: 700, height: 500)
+}
+
+#Preview("no action buttons") {
+    let client = EmailClientMock()
+    client.stubFetchedProfile = .makeFake()
+    InjectedValues[\.client] = client
+
+    return ProfileView(
+        viewModel: ProfileViewModel(emailAddress: .init("mickey@mouse.com")!),
+        showActionButtons: false,
+        isContactRequest: false
+    )
+    .frame(width: 700, height: 500)
+}
+
+#Preview("contact request") {
+    let client = EmailClientMock()
+    client.stubFetchedProfile = .makeFake()
+    InjectedValues[\.client] = client
+
+    return ProfileView(
+        viewModel: ProfileViewModel(emailAddress: .init("mickey@mouse.com")!),
+        showActionButtons: true,
+        isContactRequest: true
+    )
+    .frame(width: 700, height: 500)
+}
+
+#endif
