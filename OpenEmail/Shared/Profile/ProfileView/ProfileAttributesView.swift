@@ -122,8 +122,10 @@ struct ProfileAttributesView<FooterSection: View>: View {
 
                 footerSection()
             }
-            .inspect { nsTableView in
-                nsTableView.floatsGroupRows = false
+            .inspect { tableView in
+                #if os(macOS)
+                tableView.floatsGroupRows = false
+                #endif
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
