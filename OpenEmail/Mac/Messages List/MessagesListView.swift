@@ -20,18 +20,20 @@ struct MessagesListView: View {
 
             Divider()
 
-            Text(navigationState.selectedScope.displayName)
-                .font(.title)
-                .fontWeight(.semibold)
-                .foregroundStyle(.primary)
-                .padding(.Spacing.default)
-
             List(selection: $navigationState.selectedMessageIDs) {
-                ForEach(viewModel.messages) { message in
-                    MessageListItemView(
-                        message: message,
-                        scope: navigationState.selectedScope
-                    )
+                Section {
+                    ForEach(viewModel.messages) { message in
+                        MessageListItemView(
+                            message: message,
+                            scope: navigationState.selectedScope
+                        )
+                    }
+                } header: {
+                    Text(navigationState.selectedScope.displayName)
+                        .font(.title)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.primary)
+                        .padding(.Spacing.default)
                 }
             }
             .listStyle(.plain)
@@ -116,7 +118,7 @@ struct MessagesListView: View {
 #if DEBUG
 #Preview {
     MessagesListView()
-        .frame(width: 400, height: 800)
+        .frame(width: 400, height: 500)
         .environment(NavigationState())
 }
 
