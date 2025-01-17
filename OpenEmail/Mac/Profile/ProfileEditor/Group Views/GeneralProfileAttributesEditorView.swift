@@ -57,8 +57,12 @@ struct GeneralProfileAttributesEditorView: View {
             profileImageView
 
             VStack(alignment: .leading, spacing: .Spacing.small) {
-                TextField("Name", text: $profile.name, prompt: Text("Name"))
-                    .textFieldStyle(.openEmail)
+                VStack(alignment: .leading, spacing: .Spacing.xSmall) {
+                    OpenEmailTextFieldLabel("Name")
+
+                    TextField("Name", text: $profile.name, prompt: Text("Name"))
+                        .textFieldStyle(.openEmail)
+                }
 
                 Text(profile.address.address)
                     .font(.title3)
@@ -110,21 +114,14 @@ struct GeneralProfileAttributesEditorView: View {
             .padding(.bottom, .Spacing.xSmall)
 
         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-            Text("Status")
-                .font(.callout)
-                .textCase(.uppercase)
-                .fontWeight(.medium)
-
+            OpenEmailTextFieldLabel("Status")
             TextField("Share your mood, plans etc.", text: $profile.status)
                 .textFieldStyle(.openEmail)
         }
 
         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
             HStack {
-                Text(ProfileAttribute.about.displayTitle)
-                    .font(.callout)
-                    .textCase(.uppercase)
-                    .fontWeight(.medium)
+                OpenEmailTextFieldLabel(ProfileAttribute.about.displayTitle)
 
                 if let info = ProfileAttribute.about.info {
                     InfoButton(text: info)

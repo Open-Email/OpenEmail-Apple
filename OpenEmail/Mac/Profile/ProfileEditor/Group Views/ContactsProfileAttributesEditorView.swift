@@ -13,21 +13,13 @@ struct ContactsProfileAttributesEditorView: View {
                 Grid(horizontalSpacing: .Spacing.large, verticalSpacing: .Spacing.large) {
                     GridRow {
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                            Text(ProfileAttribute.website.displayTitle)
-                                .font(.callout)
-                                .textCase(.uppercase)
-                                .fontWeight(.medium)
-
+                            OpenEmailTextFieldLabel(ProfileAttribute.website.displayTitle)
                             TextField("Enter your website", text: $profile.website)
                                 .textFieldStyle(.openEmail)
                         }
 
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                            Text(ProfileAttribute.location.displayTitle)
-                                .font(.callout)
-                                .textCase(.uppercase)
-                                .fontWeight(.medium)
-
+                            OpenEmailTextFieldLabel(ProfileAttribute.location.displayTitle)
                             TextField("Enter your location", text: $profile.location)
                                 .textFieldStyle(.openEmail)
                         }
@@ -35,21 +27,13 @@ struct ContactsProfileAttributesEditorView: View {
 
                     GridRow {
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                            Text(ProfileAttribute.mailingAddress.displayTitle)
-                                .font(.callout)
-                                .textCase(.uppercase)
-                                .fontWeight(.medium)
-
+                            OpenEmailTextFieldLabel(ProfileAttribute.mailingAddress.displayTitle)
                             TextField("Enter your mailing address", text: $profile.mailingAddress)
                                 .textFieldStyle(.openEmail)
                         }
 
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                            Text(ProfileAttribute.phone.displayTitle)
-                                .font(.callout)
-                                .textCase(.uppercase)
-                                .fontWeight(.medium)
-
+                            OpenEmailTextFieldLabel(ProfileAttribute.phone.displayTitle)
                             TextField("Enter your phone number", text: $profile.phone)
                                 .textFieldStyle(.openEmail)
                         }
@@ -57,11 +41,7 @@ struct ContactsProfileAttributesEditorView: View {
 
                     GridRow {
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                            Text(ProfileAttribute.streams.displayTitle)
-                                .font(.callout)
-                                .textCase(.uppercase)
-                                .fontWeight(.medium)
-
+                            OpenEmailTextFieldLabel(ProfileAttribute.streams.displayTitle)
                             TextField("Enter your streams", text: $profile.streams)
                                 .textFieldStyle(.openEmail)
                         }

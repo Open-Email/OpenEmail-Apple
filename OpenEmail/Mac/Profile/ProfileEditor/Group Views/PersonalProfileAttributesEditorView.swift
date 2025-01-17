@@ -13,21 +13,13 @@ struct PersonalProfileAttributesEditorView: View {
                 Grid(horizontalSpacing: .Spacing.large, verticalSpacing: .Spacing.large) {
                     GridRow {
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                            Text(ProfileAttribute.gender.displayTitle)
-                                .font(.callout)
-                                .textCase(.uppercase)
-                                .fontWeight(.medium)
-
+                            OpenEmailTextFieldLabel(ProfileAttribute.gender.displayTitle)
                             TextField("Enter your gender", text: $profile.gender)
                                 .textFieldStyle(.openEmail)
                         }
 
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                            Text(ProfileAttribute.relationshipStatus.displayTitle)
-                                .font(.callout)
-                                .textCase(.uppercase)
-                                .fontWeight(.medium)
-
+                            OpenEmailTextFieldLabel(ProfileAttribute.relationshipStatus.displayTitle)
                             TextField("Single, Married, Divorced, Separated…", text: $profile.relationshipStatus)
                                 .textFieldStyle(.openEmail)
                         }
@@ -35,21 +27,13 @@ struct PersonalProfileAttributesEditorView: View {
 
                     GridRow {
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                            Text(ProfileAttribute.birthday.displayTitle)
-                                .font(.callout)
-                                .textCase(.uppercase)
-                                .fontWeight(.medium)
-
+                            OpenEmailTextFieldLabel(ProfileAttribute.birthday.displayTitle)
                             TextField("Enter birthday", text: $profile.birthday)
                                 .textFieldStyle(.openEmail)
                         }
 
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                            Text(ProfileAttribute.education.displayTitle)
-                                .font(.callout)
-                                .textCase(.uppercase)
-                                .fontWeight(.medium)
-
+                            OpenEmailTextFieldLabel(ProfileAttribute.education.displayTitle)
                             TextField("Enter your education", text: $profile.education)
                                 .textFieldStyle(.openEmail)
                         }
@@ -57,21 +41,13 @@ struct PersonalProfileAttributesEditorView: View {
 
                     GridRow {
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                            Text(ProfileAttribute.languages.displayTitle)
-                                .font(.callout)
-                                .textCase(.uppercase)
-                                .fontWeight(.medium)
-
+                            OpenEmailTextFieldLabel(ProfileAttribute.languages.displayTitle)
                             TextField("Enter languages", text: $profile.languages)
                                 .textFieldStyle(.openEmail)
                         }
 
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                            Text(ProfileAttribute.placesLived.displayTitle)
-                                .font(.callout)
-                                .textCase(.uppercase)
-                                .fontWeight(.medium)
-
+                            OpenEmailTextFieldLabel(ProfileAttribute.placesLived.displayTitle)
                             TextField("Enter places", text: $profile.placesLived)
                                 .textFieldStyle(.openEmail)
                         }
@@ -79,11 +55,7 @@ struct PersonalProfileAttributesEditorView: View {
 
                     GridRow {
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                            Text(ProfileAttribute.notes.displayTitle)
-                                .font(.callout)
-                                .textCase(.uppercase)
-                                .fontWeight(.medium)
-
+                            OpenEmailTextFieldLabel(ProfileAttribute.notes.displayTitle)
                             OpenEmailTextEditor(text: $profile.notes)
                                 .frame(height: 112)
                         }

@@ -27,6 +27,8 @@
 		5B1757BD2BAD9CD600405169 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1757BC2BAD9CD600405169 /* Formatters.swift */; };
 		5B1757BF2BADCB5900405169 /* ProfileAttribute+Info.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1757BE2BADCB5900405169 /* ProfileAttribute+Info.swift */; };
 		5B1757C22BADD5E000405169 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1757C12BADD5E000405169 /* SettingsView.swift */; };
+		5B1C37882D3A5A220017D57D /* OpenEmailTextFieldLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1C37872D3A5A220017D57D /* OpenEmailTextFieldLabel.swift */; };
+		5B1C37892D3A5A220017D57D /* OpenEmailTextFieldLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1C37872D3A5A220017D57D /* OpenEmailTextFieldLabel.swift */; };
 		5B23CBB12B63D57B00578687 /* AsyncButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B23CBB02B63D57B00578687 /* AsyncButton.swift */; };
 		5B2A08CB2C25AC580005B075 /* GeneralSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2A08CA2C25AC580005B075 /* GeneralSettingsView.swift */; };
 		5B2A08CD2C25ADB40005B075 /* TrustedDomainsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2A08CC2C25ADB40005B075 /* TrustedDomainsSettingsView.swift */; };
@@ -235,6 +237,7 @@
 		5B1757BC2BAD9CD600405169 /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
 		5B1757BE2BADCB5900405169 /* ProfileAttribute+Info.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProfileAttribute+Info.swift"; sourceTree = "<group>"; };
 		5B1757C12BADD5E000405169 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		5B1C37872D3A5A220017D57D /* OpenEmailTextFieldLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenEmailTextFieldLabel.swift; sourceTree = "<group>"; };
 		5B23CBB02B63D57B00578687 /* AsyncButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncButton.swift; sourceTree = "<group>"; };
 		5B2A08CA2C25AC580005B075 /* GeneralSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsView.swift; sourceTree = "<group>"; };
 		5B2A08CC2C25ADB40005B075 /* TrustedDomainsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrustedDomainsSettingsView.swift; sourceTree = "<group>"; };
@@ -475,15 +478,9 @@
 				5B34FF2D2D15AF1B0033F0C1 /* SendButtonStyle.swift */,
 				5B99FAA32CD5056A00EF58DB /* ActionButtonStyle.swift */,
 				5B44526A2CCBE50C00A2FE5E /* OpenEmailTextFieldStyle.swift */,
+				5B1C37872D3A5A220017D57D /* OpenEmailTextFieldLabel.swift */,
 			);
 			path = Theme;
-			sourceTree = "<group>";
-		};
-		5B4452692CCBE50400A2FE5E /* Shared Views */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = "Shared Views";
 			sourceTree = "<group>";
 		};
 		5B61F71A2CB91B36006C0C92 /* Log */ = {
@@ -647,7 +644,6 @@
 				5BBE54A12C53D961008F25CC /* RemoveAccountUseCase.swift */,
 				5BC6E0A72C2EE88000C5951C /* Dependencies.swift */,
 				5B3046782C6F599E00B33157 /* ProfileImageView.swift */,
-				5B4452692CCBE50400A2FE5E /* Shared Views */,
 				5B7C80DB2AF4FDAB0088E2EA /* Utils */,
 				5B3B30CE2BC9208F009D8471 /* Services */,
 				5BDA2F0E2C5D06D8009FB2BD /* Onboarding */,
@@ -1054,6 +1050,7 @@
 				5B66B4BC2C09CF3B00CA34EE /* PressActions.swift in Sources */,
 				5B61F71C2CB91B49006C0C92 /* LogView.swift in Sources */,
 				5B7C80DD2AF4FDBA0088E2EA /* Alerts.swift in Sources */,
+				5B1C37892D3A5A220017D57D /* OpenEmailTextFieldLabel.swift in Sources */,
 				5BC1DE772D0304FF000A90DD /* ProfileEditorView.swift in Sources */,
 				5B7C80D82AF3E63E0088E2EA /* OnboardingExistingAccountView.swift in Sources */,
 				5B7C807D2AEBF1110088E2EA /* ContentView.swift in Sources */,
@@ -1219,6 +1216,7 @@
 				5B61F7252CB93F8D006C0C92 /* ProfileViewModel.swift in Sources */,
 				5B61F7262CB93F8D006C0C92 /* Profile+Attributes.swift in Sources */,
 				5B61F7272CB93F8D006C0C92 /* ProfileAttributesView.swift in Sources */,
+				5B1C37882D3A5A220017D57D /* OpenEmailTextFieldLabel.swift in Sources */,
 				5BDA2EE22C5CCF48009FB2BD /* ProfileAttribute+Title.swift in Sources */,
 				5B3046C02C7882CB00B33157 /* DeleteContactUseCase.swift in Sources */,
 				5BDA2EC42C5CCF35009FB2BD /* RemoveAccountUseCase.swift in Sources */,

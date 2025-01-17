@@ -37,7 +37,7 @@ struct ProfileEditorView: View {
                         .background(.themeViewBackground)
                     }
                     .frame(maxHeight: .infinity)
-                    .frame(minWidth: 150, maxWidth: 300)
+                    .frame(width: 250)
 
                     Group {
                         switch selectedGroup {

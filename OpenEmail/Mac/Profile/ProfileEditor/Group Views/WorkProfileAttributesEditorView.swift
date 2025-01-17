@@ -13,22 +13,14 @@ struct WorkProfileAttributesEditorView: View {
                 Grid(horizontalSpacing: .Spacing.large, verticalSpacing: .Spacing.large) {
                     GridRow {
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                            Text(ProfileAttribute.work.displayTitle)
-                                .font(.callout)
-                                .textCase(.uppercase)
-                                .fontWeight(.medium)
-
+                            OpenEmailTextFieldLabel(ProfileAttribute.work.displayTitle)
                             TextField("Enter your work", text: $profile.work)
                                 .textFieldStyle(.openEmail)
                         }
 
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
                             HStack {
-                                Text(ProfileAttribute.organization.displayTitle)
-                                    .font(.callout)
-                                    .textCase(.uppercase)
-                                    .fontWeight(.medium)
-
+                                OpenEmailTextFieldLabel(ProfileAttribute.organization.displayTitle)
                                 if let info = ProfileAttribute.organization.info {
                                     InfoButton(text: info)
                                 }
@@ -41,22 +33,15 @@ struct WorkProfileAttributesEditorView: View {
 
                     GridRow {
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                            Text(ProfileAttribute.department.displayTitle)
-                                .font(.callout)
-                                .textCase(.uppercase)
-                                .fontWeight(.medium)
-
+                            OpenEmailTextFieldLabel(ProfileAttribute.department.displayTitle)
                             TextField("Enter your department", text: $profile.department)
                                 .textFieldStyle(.openEmail)
                         }
 
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
                             HStack {
-                                Text(ProfileAttribute.jobTitle.displayTitle)
-                                    .font(.callout)
-                                    .textCase(.uppercase)
-                                    .fontWeight(.medium)
-                                
+                                OpenEmailTextFieldLabel(ProfileAttribute.jobTitle.displayTitle)
+
                                 if let info = ProfileAttribute.organization.info {
                                     InfoButton(text: info)
                                 }

@@ -54,7 +54,7 @@ struct OpenEmailApp: App {
 
         Window("ProfileEditor", id: WindowIDs.profileEditor) {
             ProfileEditorView()
-                .frame(minWidth: 400, maxWidth: 1000)
+                .frame(minWidth: 800, maxWidth: 1000)
         }
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)

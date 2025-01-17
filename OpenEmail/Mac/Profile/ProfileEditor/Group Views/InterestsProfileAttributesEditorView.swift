@@ -13,11 +13,7 @@ struct InterestsProfileAttributesEditorView: View {
                 Grid(horizontalSpacing: .Spacing.large, verticalSpacing: .Spacing.large) {
                     GridRow {
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                            Text(ProfileAttribute.interests.displayTitle)
-                                .font(.callout)
-                                .textCase(.uppercase)
-                                .fontWeight(.medium)
-
+                            OpenEmailTextFieldLabel(ProfileAttribute.interests.displayTitle)
                             TextField("Enter your interests", text: $profile.interests)
                                 .textFieldStyle(.openEmail)
                         }
@@ -26,21 +22,13 @@ struct InterestsProfileAttributesEditorView: View {
 
                     GridRow {
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                            Text(ProfileAttribute.books.displayTitle)
-                                .font(.callout)
-                                .textCase(.uppercase)
-                                .fontWeight(.medium)
-
+                            OpenEmailTextFieldLabel(ProfileAttribute.books.displayTitle)
                             TextField("Enter your favorite books", text: $profile.books)
                                 .textFieldStyle(.openEmail)
                         }
 
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                            Text(ProfileAttribute.movies.displayTitle)
-                                .font(.callout)
-                                .textCase(.uppercase)
-                                .fontWeight(.medium)
-
+                            OpenEmailTextFieldLabel(ProfileAttribute.movies.displayTitle)
                             TextField("Enter your favorite movies", text: $profile.movies)
                                 .textFieldStyle(.openEmail)
                         }
@@ -48,21 +36,13 @@ struct InterestsProfileAttributesEditorView: View {
 
                     GridRow {
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                            Text(ProfileAttribute.music.displayTitle)
-                                .font(.callout)
-                                .textCase(.uppercase)
-                                .fontWeight(.medium)
-
+                            OpenEmailTextFieldLabel(ProfileAttribute.music.displayTitle)
                             TextField("Enter your favorite music", text: $profile.music)
                                 .textFieldStyle(.openEmail)
                         }
 
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                            Text(ProfileAttribute.sports.displayTitle)
-                                .font(.callout)
-                                .textCase(.uppercase)
-                                .fontWeight(.medium)
-
+                            OpenEmailTextFieldLabel(ProfileAttribute.sports.displayTitle)
                             TextField("Enter your favorite kind of sports", text: $profile.sports)
                                 .textFieldStyle(.openEmail)
                         }

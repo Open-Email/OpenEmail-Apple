@@ -37,11 +37,7 @@ struct ConfigurationProfileAttributesEditorView: View {
 
                 VStack(alignment: .leading, spacing: .Spacing.xSmall) {
                     HStack {
-                        Text(ProfileAttribute.addressExpansion.displayTitle)
-                            .font(.callout)
-                            .textCase(.uppercase)
-                            .fontWeight(.medium)
-
+                        OpenEmailTextFieldLabel(ProfileAttribute.addressExpansion.displayTitle)
                         if let info = ProfileAttribute.addressExpansion.info {
                             InfoButton(text: info)
                         }
