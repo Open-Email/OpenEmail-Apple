@@ -4,22 +4,25 @@ import OpenEmailCore
 import Inspect
 
 struct ProfileAttributesView<FooterSection: View>: View {
-    @Binding var profile: Profile?
-    var receiveBroadcasts: Binding<Bool>?
-    let isEditable: Bool
-    var hidesEmptyFields: Bool
-    @ViewBuilder var footerSection: () -> FooterSection
+    @Binding private var profile: Profile?
+    private let receiveBroadcasts: Binding<Bool>?
+    private let isEditable: Bool
+    private let hidesEmptyFields: Bool
+    private let showsProfileImage: Bool
+    @ViewBuilder private var footerSection: () -> FooterSection
 
     init(
         profile: Binding<Profile?>,
         receiveBroadcasts: Binding<Bool>?,
         isEditable: Bool,
-        hidesEmptyFields: Bool = false
+        hidesEmptyFields: Bool = false,
+        showsProfileImage: Bool
     ) where FooterSection == EmptyView {
         _profile = profile
         self.receiveBroadcasts = receiveBroadcasts
         self.isEditable = isEditable
         self.hidesEmptyFields = hidesEmptyFields
+        self.showsProfileImage = showsProfileImage
         self.footerSection = { EmptyView() }
     }
 
@@ -28,12 +31,14 @@ struct ProfileAttributesView<FooterSection: View>: View {
         receiveBroadcasts: Binding<Bool>?,
         isEditable: Bool,
         hidesEmptyFields: Bool = false,
+        showsProfileImage: Bool,
         footerSection: @escaping () -> FooterSection
     ) {
         _profile = profile
         self.receiveBroadcasts = receiveBroadcasts
         self.isEditable = isEditable
         self.hidesEmptyFields = hidesEmptyFields
+        self.showsProfileImage = showsProfileImage
         self.footerSection = footerSection
     }
 
@@ -49,6 +54,19 @@ struct ProfileAttributesView<FooterSection: View>: View {
                 Section {
                     // name and address
                     VStack(alignment: .leading, spacing: .Spacing.xxxSmall) {
+                        if showsProfileImage {
+                            ProfileImageView(
+                                emailAddress: profile.address.address,
+                                shape: .roundedRectangle(cornerRadius: .CornerRadii.default),
+                                size: 288
+                            )
+                            .padding(.top, -.Spacing.xxxSmall)
+                            .padding(.bottom, .Spacing.default)
+                        }
+
+                        awayMessage
+                            .padding(.bottom, .Spacing.default)
+
                         if let name = profile[.name], !name.isEmpty {
                             Text(name).font(.title)
                                 .textSelection(.enabled)
@@ -57,7 +75,7 @@ struct ProfileAttributesView<FooterSection: View>: View {
                             .textSelection(.enabled)
                             .foregroundStyle(.secondary)
                     }
-                    .padding(.vertical, .Spacing.xSmall)
+                    .padding(.bottom, .Spacing.xSmall)
                     .listRowSeparator(.hidden)
                 }
 
@@ -104,8 +122,8 @@ struct ProfileAttributesView<FooterSection: View>: View {
 
                 footerSection()
             }
-            .inspect {
-                $0.floatsGroupRows = false
+            .inspect { nsTableView in
+                nsTableView.floatsGroupRows = false
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
@@ -190,6 +208,38 @@ struct ProfileAttributesView<FooterSection: View>: View {
 
                 Text("\(attribute.displayTitle):")
                     .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var awayMessage: some View {
+        if profile?[boolean: .away] == true {
+            HStack(alignment: .firstTextBaseline, spacing: .Spacing.xSmall) {
+                Text("away")
+                    .textCase(.uppercase)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.white)
+                    .padding(.vertical, 2)
+                    .padding(.horizontal, 4)
+                    .background {
+                        RoundedRectangle(cornerRadius: .CornerRadii.small)
+                            .foregroundStyle(.themeBlue)
+                    }
+
+                if let awayWarning = profile?[.awayWarning] {
+                    Text(awayWarning)
+                        .multilineTextAlignment(.leading)
+                        .lineLimit(2)
+                }
+            }
+            .padding(.vertical, .Spacing.xSmall)
+            .padding(.horizontal, .Spacing.xSmall)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background {
+                RoundedRectangle(cornerRadius: .CornerRadii.default)
+                    .fill(.themeBackground)
             }
         }
     }
@@ -330,11 +380,11 @@ struct InfoButton: View {
 }
 
 #Preview("editable") {
-    ProfileAttributesView(profile: .constant(.makeFake()), receiveBroadcasts: nil, isEditable: true)
+    ProfileAttributesView(profile: .constant(.makeFake()), receiveBroadcasts: nil, isEditable: true, showsProfileImage: false)
 }
 
 #Preview("not editable") {
-    ProfileAttributesView(profile: .constant(.makeFake()), receiveBroadcasts: .constant(false), isEditable: false, hidesEmptyFields: true)
+    ProfileAttributesView(profile: .constant(.makeFake(awayWarning: "Away")), receiveBroadcasts: .constant(false), isEditable: false, hidesEmptyFields: true, showsProfileImage: true)
         .frame(height: 500)
 }
 

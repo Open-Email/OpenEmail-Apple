@@ -33,48 +33,47 @@ struct ProfileView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: .Spacing.large) {
-            if verticalLayout, let onClose {
-                HStack {
-                    Spacer()
-                    Button {
-                        onClose()
-                    } label: {
-                        Image(systemName: "xmark")
-                            .frame(width: 24, height: 24)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .fontWeight(.medium)
-                    .foregroundStyle(.themeSecondary)
-                    .help("Close")
-                }
-                .padding(.vertical, -.Spacing.xSmall)
-            }
+            closeButton
 
             if !viewModel.isLoadingProfile && viewModel.profile != nil {
                 if !viewModel.isSelf, showActionButtons {
-                    header
+                    actionButtons
+                        .padding(.horizontal, .Spacing.default)
+                        .padding(.vertical, .Spacing.xSmall)
                 }
 
-                let layout = verticalLayout ? AnyLayout(VStackLayout(spacing: .Spacing.default)) : AnyLayout(HStackLayout(alignment: .top, spacing: .Spacing.large))
-                layout {
-                    ProfileImageView(
-                        emailAddress: viewModel.emailAddress.address,
-                        shape: .roundedRectangle(cornerRadius: .CornerRadii.default),
-                        size: profileImageSize ?? 288
-                    )
-
+                if verticalLayout {
                     VStack(alignment: .leading, spacing: .Spacing.default) {
-                        awayMessage
-
                         let canEditReceiveBroadcasts = !viewModel.isSelf && viewModel.isInContacts
                         ProfileAttributesView(
                             profile: $viewModel.profile,
                             receiveBroadcasts: canEditReceiveBroadcasts ? $viewModel.receiveBroadcasts : nil,
                             isEditable: false,
-                            hidesEmptyFields: true
+                            hidesEmptyFields: true,
+                            showsProfileImage: true
                         )
                     }
+                } else {
+                    HStack(alignment: .top, spacing: .Spacing.default) {
+                        ProfileImageView(
+                            emailAddress: viewModel.emailAddress.address,
+                            shape: .roundedRectangle(cornerRadius: .CornerRadii.default),
+                            size: profileImageSize ?? 288
+                        )
+
+                        VStack(alignment: .leading, spacing: .Spacing.default) {
+                            let canEditReceiveBroadcasts = !viewModel.isSelf && viewModel.isInContacts
+                            ProfileAttributesView(
+                                profile: $viewModel.profile,
+                                receiveBroadcasts: canEditReceiveBroadcasts ? $viewModel.receiveBroadcasts : nil,
+                                isEditable: false,
+                                hidesEmptyFields: true,
+                                showsProfileImage: false
+                            )
+                        }
+                    }
+                    .padding(.leading, .Spacing.default)
+                    .padding(.top, .Spacing.xSmall)
                 }
             } else {
                 VStack {
@@ -88,7 +87,6 @@ struct ProfileView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .padding(.Spacing.default)
         .padding(.top, .Spacing.xSmall)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background{
@@ -99,7 +97,29 @@ struct ProfileView: View {
         }
     }
 
-    private var header: some View {
+    @ViewBuilder
+    private var closeButton: some View {
+        if verticalLayout, let onClose {
+            HStack {
+                Spacer()
+                Button {
+                    onClose()
+                } label: {
+                    Image(systemName: "xmark")
+                        .frame(width: 24, height: 24)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .fontWeight(.medium)
+                .foregroundStyle(.themeSecondary)
+                .help("Close")
+            }
+            .padding(.bottom, -.Spacing.small)
+            .padding(.horizontal, .Spacing.default)
+        }
+    }
+
+    private var actionButtons: some View {
         HStack(spacing: .Spacing.xSmall) {
             if viewModel.isInContacts {
                 AsyncButton {
@@ -204,38 +224,6 @@ struct ProfileView: View {
         }
     }
 
-    @ViewBuilder
-    private var awayMessage: some View {
-        if viewModel.profile?[boolean: .away] == true {
-            HStack(alignment: .firstTextBaseline, spacing: .Spacing.xSmall) {
-                Text("away")
-                    .textCase(.uppercase)
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.white)
-                    .padding(.vertical, 2)
-                    .padding(.horizontal, 4)
-                    .background {
-                        RoundedRectangle(cornerRadius: .CornerRadii.small)
-                            .foregroundStyle(.themeBlue)
-                    }
-
-                if let awayWarning = viewModel.profile?[.awayWarning] {
-                    Text(awayWarning)
-                        .multilineTextAlignment(.leading)
-                        .lineLimit(2)
-                }
-            }
-            .padding(.vertical, .Spacing.xSmall)
-            .padding(.horizontal, .Spacing.xSmall)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background {
-                RoundedRectangle(cornerRadius: .CornerRadii.default)
-                    .fill(.themeBackground)
-            }
-        }
-    }
-
     private func removeUser() async {
         do {
             try await viewModel.removeFromContacts()
@@ -282,7 +270,7 @@ struct ProfileView: View {
         verticalLayout: true,
         onClose: {}
     )
-    .frame(height: 600)
+    .frame(width: 330, height: 600)
     .fixedSize()
 }
 
