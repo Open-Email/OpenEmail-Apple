@@ -140,7 +140,7 @@ struct ProfileImageView: View {
                 .frame(width: size, height: size)
         } else {
             Text(placeholderText)
-                .foregroundStyle(.primary)
+                .foregroundStyle(.themePrimary)
                 .font(.system(size: 14))
                 .fontWeight(.semibold)
         }
