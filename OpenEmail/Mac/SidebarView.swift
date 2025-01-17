@@ -85,7 +85,8 @@ private struct SidebarItemView: View {
                 .frame(width: iconSize, height: iconSize)
 
             VStack(alignment: .leading, spacing: 0) {
-                Text(title).bold()
+                Text(title)
+                    .fontWeight(.medium)
 
                 if let subtitle {
                     Text(subtitle)
