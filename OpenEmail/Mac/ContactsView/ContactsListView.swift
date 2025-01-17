@@ -34,63 +34,65 @@ struct ContactsListView: View {
 
             Divider()
 
-            HStack {
-                Text(SidebarScope.contacts.displayName)
-                    .font(.title)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.primary)
-
-                Spacer()
-
-                Button {
-                    showAddContactView = true
-                } label: {
-                    HStack(spacing: .Spacing.xxxSmall) {
-                        Image(.addContact)
-                        Text("Add Contact")
-                    }
-                    .fontWeight(.semibold)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-            }
-            .padding(.Spacing.default)
-
             List(selection: $selectedContactListItem) {
-                let hasContactRequests = !viewModel.contactRequestItems.isEmpty
-
-                if hasContactRequests {
-                    Text("Contact Requests (\(viewModel.contactRequestItems.count))")
-                        .fontWeight(.semibold)
-                        .listRowSeparator(.hidden)
-                        .padding(.horizontal, .Spacing.xSmall)
-
-                    ForEach(viewModel.contactRequestItems) { item in
-                        ContactListItemView(item: item).tag(item)
+                Section {
+                    if viewModel.contactRequestItems.isEmpty && viewModel.contactsCount == 0 && searchText.isEmpty {
+                        EmptyListView(
+                            icon: SidebarScope.contacts.imageResource,
+                            text: "Your contact list is empty."
+                        )
                     }
-                }
-
-                if viewModel.contactsCount > 0 {
+                    
+                    let hasContactRequests = !viewModel.contactRequestItems.isEmpty
+                    
                     if hasContactRequests {
-                        Divider()
-                            .padding(.horizontal, -.Spacing.xxSmall)
+                        Text("Contact Requests (\(viewModel.contactRequestItems.count))")
+                            .fontWeight(.semibold)
                             .listRowSeparator(.hidden)
+                            .padding(.horizontal, .Spacing.xSmall)
+                        
+                        ForEach(viewModel.contactRequestItems) { item in
+                            ContactListItemView(item: item).tag(item)
+                        }
                     }
+                    
+                    if viewModel.contactsCount > 0 {
+                        if hasContactRequests {
+                            Divider()
+                                .padding(.horizontal, -.Spacing.xxSmall)
+                                .listRowSeparator(.hidden)
+                        }
+                        
+                        ForEach(viewModel.contactItems) { item in
+                            ContactListItemView(item: item).tag(item)
+                        }
+                    }
+                } header: {
+                    HStack {
+                        Text(SidebarScope.contacts.displayName)
+                            .font(.title)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.primary)
 
-                    ForEach(viewModel.contactItems) { item in
-                        ContactListItemView(item: item).tag(item)
+                        Spacer()
+
+                        Button {
+                            showAddContactView = true
+                        } label: {
+                            HStack(spacing: .Spacing.xxxSmall) {
+                                Image(.addContact)
+                                Text("Add Contact")
+                            }
+                            .fontWeight(.semibold)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
                     }
+                    .padding(.Spacing.default)
                 }
             }
             .listStyle(.plain)
-            .overlay(alignment: .top) {
-                if viewModel.contactRequestItems.isEmpty && viewModel.contactsCount == 0 && searchText.isEmpty {
-                    EmptyListView(
-                        icon: SidebarScope.contacts.imageResource,
-                        text: "Your contact list is empty."
-                    )
-                }
-            }
+            .scrollBounceBehavior(.basedOnSize)
         }
         .background(Color(nsColor: .controlBackgroundColor))
         .onChange(of: searchText) {

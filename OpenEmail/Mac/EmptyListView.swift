@@ -28,6 +28,6 @@ struct EmptyListView: View {
             RoundedRectangle(cornerRadius: .CornerRadii.default)
                 .fill(.themeBackground)
         }
-        .padding(.horizontal, .Spacing.default)
+        .padding(.Spacing.default)
     }
 }

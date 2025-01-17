@@ -22,6 +22,13 @@ struct MessagesListView: View {
 
             List(selection: $navigationState.selectedMessageIDs) {
                 Section {
+                    if viewModel.messages.isEmpty && searchText.isEmpty {
+                        EmptyListView(
+                            icon: navigationState.selectedScope.imageResource,
+                            text: "Your \(navigationState.selectedScope.displayName) message list is empty."
+                        )
+                    }
+
                     ForEach(viewModel.messages) { message in
                         MessageListItemView(
                             message: message,
@@ -37,6 +44,7 @@ struct MessagesListView: View {
                 }
             }
             .listStyle(.plain)
+            .scrollBounceBehavior(.basedOnSize)
             .contextMenu(forSelectionType: String.self) { messageIDs in
                 if !messageIDs.isEmpty {
                     let allMessages = viewModel.messages
@@ -56,14 +64,6 @@ struct MessagesListView: View {
                             }
                         }
                     }
-                }
-            }
-            .overlay(alignment: .top) {
-                if viewModel.messages.isEmpty && searchText.isEmpty {
-                    EmptyListView(
-                        icon: navigationState.selectedScope.imageResource,
-                        text: "Your \(navigationState.selectedScope.displayName) message list is empty."
-                    )
                 }
             }
         }
