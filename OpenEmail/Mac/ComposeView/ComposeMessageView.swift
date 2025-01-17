@@ -43,31 +43,36 @@ struct ComposeMessageView: View {
 
             Divider()
 
-            VStack(alignment: .leading) {
-                TextEditor(text: $viewModel.fullText)
-                    .inspect { nsTextView in
-                        nsTextView.textContainerInset = .init(width: -5, height: 10)
-                    }
-                    .focused($isTextEditorFocused)
-                    .font(.body)
-                    .lineSpacing(5)
-                    .frame(minHeight: 100)
-                    .padding(.trailing, -.Spacing.default)
-                    .padding(.top, -.Spacing.default)
-                    .padding(.bottom, -.Spacing.default)
+            ScrollView {
+                VStack(alignment: .leading) {
+                    TextEditor(text: $viewModel.fullText)
+                        .inspect { nsTextView in
+                            nsTextView.textContainerInset = .init(width: -5, height: 0)
+                        }
+                        .scrollDisabled(true)
+                        .focused($isTextEditorFocused)
+                        .font(.body)
+                        .lineSpacing(5)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.trailing, .Spacing.default)
 
-                if !viewModel.attachedFileItems.isEmpty {
-                    ScrollView {
-                        HFlow(alignment: .top, itemSpacing: .Spacing.small, rowSpacing: .Spacing.small) {
+                    if !viewModel.attachedFileItems.isEmpty {
+                        Spacer()
+
+                        HFlow(alignment: .bottom, itemSpacing: .Spacing.small, rowSpacing: .Spacing.small) {
                             ForEach(viewModel.attachedFileItems) { item in
                                 fileItemView(item: item)
                             }
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.vertical, .Spacing.default)
+                        .fixedSize(horizontal: false, vertical: true)
                     }
-                    .frame(maxHeight: 150)
                 }
             }
+            .frame(maxWidth: .infinity)
+            .scrollBounceBehavior(.basedOnSize)
+            .padding(.trailing, -.Spacing.default)
+            .padding(.bottom, -.Spacing.default)
             .overlay {
                 RoundedRectangle(cornerRadius: .CornerRadii.default) // use invisible rectangle as drop target
                     .fill(.clear)
@@ -300,7 +305,17 @@ struct ComposeMessageView: View {
 }
 
 #Preview {
-    ComposeMessageView(viewModel: ComposeMessageViewModel(action: .newMessage(id: UUID(), authorAddress: "mickey@mouse.com", readerAddress: nil)))
+    let viewModel = ComposeMessageViewModel(action: .newMessage(id: UUID(), authorAddress: "mickey@mouse.com", readerAddress: nil))
+    viewModel.appendAttachedFiles(
+        urls: [
+            URL(fileURLWithPath: "/path/to/file.jpg"),
+            URL(fileURLWithPath: "/path/to/file2.jpg"),
+            URL(fileURLWithPath: "/path/to/file3.jpg"),
+            URL(fileURLWithPath: "/path/to/file4.jpg"),
+            URL(fileURLWithPath: "/path/to/file5.jpg"),
+        ]
+    )
+    return ComposeMessageView(viewModel: viewModel)
 }
 
 #Preview("sending") {
