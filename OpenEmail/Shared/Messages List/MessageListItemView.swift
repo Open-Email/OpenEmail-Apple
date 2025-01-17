@@ -94,10 +94,14 @@ struct MessageListItemView: View {
                     .lineLimit(2)
                     .truncationMode(.tail)
 
-                if message.hasFiles {
+                if message.hasFiles || !message.draftAttachmentUrls.isEmpty {
                     HStack(spacing: .Spacing.xxxSmall) {
                         Image(.attachment)
-                        Text("^[\(message.attachments.count) attached files](inflect: true)")
+
+                        let count: Int = {
+                            message.isDraft ? message.draftAttachmentUrls.count : message.attachments.count
+                        }()
+                        Text("^[\(count) attached files](inflect: true)")
                     }
                     .foregroundStyle(.secondary)
                     .padding(.top, .Spacing.default)
