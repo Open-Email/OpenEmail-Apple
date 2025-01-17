@@ -45,10 +45,16 @@ struct ComposeMessageView: View {
 
             VStack(alignment: .leading) {
                 TextEditor(text: $viewModel.fullText)
+                    .inspect { nsTextView in
+                        nsTextView.textContainerInset = .init(width: -5, height: 10)
+                    }
                     .focused($isTextEditorFocused)
                     .font(.body)
                     .lineSpacing(5)
                     .frame(minHeight: 100)
+                    .padding(.trailing, -.Spacing.default)
+                    .padding(.top, -.Spacing.default)
+                    .padding(.bottom, -.Spacing.default)
 
                 if !viewModel.attachedFileItems.isEmpty {
                     ScrollView {
