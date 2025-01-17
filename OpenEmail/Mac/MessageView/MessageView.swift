@@ -422,8 +422,6 @@ struct MessageView: View {
         }
         .buttonStyle(ActionButtonStyle(isImageOnly: true))
         .help("Undelete message")
-
-        Divider()
     }
 
     @ViewBuilder
