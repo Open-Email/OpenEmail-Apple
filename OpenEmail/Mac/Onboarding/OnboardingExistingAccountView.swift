@@ -17,8 +17,11 @@ struct OnboardingExistingAccountView: View {
                 .padding(.bottom, .Spacing.xSmall)
 
             VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                Text(emailAddress)
-                    .font(.title)
+                HStack {
+                    ProfileImageView(emailAddress: emailAddress)
+                    Text(emailAddress)
+                        .font(.title)
+                }
 
                 Text("Enter your private keys")
                     .foregroundStyle(.secondary)
