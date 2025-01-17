@@ -150,8 +150,8 @@ class ComposeMessageViewModel {
 
         switch action {
         case .newMessage(_, _, let readerAddress):
-            if let readerAddress {
-                Log.debug("new message to: \(readerAddress)")
+            if let email = EmailAddress(readerAddress) {
+                addReader(email)
             }
 
         case .forward(_, let localUserAddress, let messageId):
