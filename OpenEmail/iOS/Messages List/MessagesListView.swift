@@ -20,81 +20,83 @@ struct MessagesListView: View {
     @Injected(\.messagesStore) private var messagesStore
 
     var body: some View {
-        List(selection: _selectedMessageID) {
-            ForEach(viewModel.messages) { message in
-                MessageListItemView(message: message, scope: selectedScope, isSelected: false)
-                    .swipeActions(edge: .trailing) {
-                        trailingSwipeActionButtons(message: message)
-                    }
-                    .swipeActions(edge: .leading) {
-                        leadingSwipeActionButtons(message: message)
-                    }
-            }
-        }
-        .listStyle(.plain)
-        .searchable(text: $searchText)
-        .refreshable {
-            await syncService.synchronize()
-        }
-        .animation(.default, value: viewModel.messages)
-        .toolbar {
-            if syncService.isSyncing {
-                ToolbarItem {
-                    SyncProgressView()
-                }
-            }
-
-            ToolbarItem {
-                Button {
-                    showsComposeView = true
-                } label: {
-                    Image(systemName: "square.and.pencil")
-                }
-            }
-        }
-        .toolbarTitleDisplayMode(.inlineLarge)
-        .alert("Are you sure you want to delete this message?", isPresented: $showsDeleteConfirmationAlert) {
-            Button("Cancel", role: .cancel) {}
-            AsyncButton("Delete", role: .destructive) {
-                do {
-                    try await messageToDelete?.permentlyDelete(messageStore: messagesStore)
-                    messageToDelete = nil
-                } catch {
-                    Log.error("Could not permanently delete message: \(error)")
-                }
-            }
-        } message: {
-            Text("This action cannot be undone.")
-        }
-        .overlay {
-            if viewModel.messages.isEmpty && searchText.isEmpty {
-                makeEmptyView()
-            }
-        }
-        .sheet(isPresented: $showsComposeView) {
-            ComposeMessageView(action: .newMessage(id: UUID(), authorAddress: registeredEmailAddress!, readerAddress: nil))
-                .interactiveDismissDisabled()
-        }
-        .onChange(of: selectedMessageID) {
-            if let selectedMessageID {
-                // Only if not read already, mark as read
-                viewModel.markAsRead(messageIDs: [selectedMessageID])
-
-                Log.debug("selected message id: \(selectedMessageID)")
-            }
-        }
-        .onChange(of: searchText) {
-            reloadMessages()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .didSynchronizeMessages)) { _ in
-            reloadMessages()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .didUpdateMessages)) { _ in
-            reloadMessages()
-        }
-        .onAppear {
-            reloadMessages()
-        }
+        // TODO
+        Text("Messages list: TODO")
+//        List(selection: _selectedMessageID) {
+//            ForEach(viewModel.messages) { message in
+//                MessageListItemView(message: message, scope: selectedScope, isSelected: false)
+//                    .swipeActions(edge: .trailing) {
+//                        trailingSwipeActionButtons(message: message)
+//                    }
+//                    .swipeActions(edge: .leading) {
+//                        leadingSwipeActionButtons(message: message)
+//                    }
+//            }
+//        }
+//        .listStyle(.plain)
+//        .searchable(text: $searchText)
+//        .refreshable {
+//            await syncService.synchronize()
+//        }
+//        .animation(.default, value: viewModel.messages)
+//        .toolbar {
+//            if syncService.isSyncing {
+//                ToolbarItem {
+//                    SyncProgressView()
+//                }
+//            }
+//
+//            ToolbarItem {
+//                Button {
+//                    showsComposeView = true
+//                } label: {
+//                    Image(systemName: "square.and.pencil")
+//                }
+//            }
+//        }
+//        .toolbarTitleDisplayMode(.inlineLarge)
+//        .alert("Are you sure you want to delete this message?", isPresented: $showsDeleteConfirmationAlert) {
+//            Button("Cancel", role: .cancel) {}
+//            AsyncButton("Delete", role: .destructive) {
+//                do {
+//                    try await messageToDelete?.permentlyDelete(messageStore: messagesStore)
+//                    messageToDelete = nil
+//                } catch {
+//                    Log.error("Could not permanently delete message: \(error)")
+//                }
+//            }
+//        } message: {
+//            Text("This action cannot be undone.")
+//        }
+//        .overlay {
+//            if viewModel.messages.isEmpty && searchText.isEmpty {
+//                makeEmptyView()
+//            }
+//        }
+//        .sheet(isPresented: $showsComposeView) {
+//            ComposeMessageView(action: .newMessage(id: UUID(), authorAddress: registeredEmailAddress!, readerAddress: nil))
+//                .interactiveDismissDisabled()
+//        }
+//        .onChange(of: selectedMessageID) {
+//            if let selectedMessageID {
+//                // Only if not read already, mark as read
+//                viewModel.markAsRead(messageIDs: [selectedMessageID])
+//
+//                Log.debug("selected message id: \(selectedMessageID)")
+//            }
+//        }
+//        .onChange(of: searchText) {
+//            reloadMessages()
+//        }
+//        .onReceive(NotificationCenter.default.publisher(for: .didSynchronizeMessages)) { _ in
+//            reloadMessages()
+//        }
+//        .onReceive(NotificationCenter.default.publisher(for: .didUpdateMessages)) { _ in
+//            reloadMessages()
+//        }
+//        .onAppear {
+//            reloadMessages()
+//        }
     }
 
     private func reloadMessages() {

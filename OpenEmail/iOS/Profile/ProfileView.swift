@@ -37,6 +37,7 @@ struct ProfileView: View {
                         receiveBroadcasts: canEditReceiveBroadcasts ? $viewModel.receiveBroadcasts : nil,
                         isEditable: false,
                         hidesEmptyFields: true,
+                        showsProfileImage: false,
                         footerSection: actionButtons
                     )
                 }
@@ -193,24 +194,27 @@ struct ProfileView: View {
 
     @ViewBuilder
     private var headerText: some View {
-        if let headerText = viewModel.headerText {
-            if isContactRequest {
-                contactRequestHeaderBar(text: headerText)
-            } else {
-                HStack(spacing: 4) {
-                    Spacer()
-                    Image(systemName: "info.circle.fill")
-                        .resizable()
-                        .symbolRenderingMode(.palette)
-                        .foregroundStyle(.white, .blue)
-                        .frame(width: 16, height: 16)
-                    Text(headerText)
-                    Spacer()
-                }
-                .padding(.vertical, 10)
-                .background(.quinary)
-            }
-        }
+        // TODO
+        EmptyView()
+
+//        if let headerText = viewModel.headerText {
+//            if isContactRequest {
+//                contactRequestHeaderBar(text: headerText)
+//            } else {
+//                HStack(spacing: 4) {
+//                    Spacer()
+//                    Image(systemName: "info.circle.fill")
+//                        .resizable()
+//                        .symbolRenderingMode(.palette)
+//                        .foregroundStyle(.white, .blue)
+//                        .frame(width: 16, height: 16)
+//                    Text(headerText)
+//                    Spacer()
+//                }
+//                .padding(.vertical, 10)
+//                .background(.quinary)
+//            }
+//        }
     }
 
     @ViewBuilder

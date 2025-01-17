@@ -3,7 +3,7 @@ import OpenEmailModel
 import OpenEmailCore
 import OpenEmailPersistence
 import Logging
-import SwiftUIIntrospect
+import Inspect
 
 @MainActor
 struct MessageView: View {
@@ -366,7 +366,7 @@ private struct StaticTextEditorView: View {
                 })
 
             TextEditor(text: $string)
-                .introspect(.textEditor, on: .iOS(.v17)) {
+                .inspect {
                     $0.isEditable = false
                     $0.textContainerInset = .zero
                     $0.contentInset = .init(top: 0, left: -5, bottom: 0, right: -5)

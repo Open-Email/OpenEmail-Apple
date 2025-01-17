@@ -146,9 +146,6 @@ struct ComposeMessageView: View {
                     Text("Underlying error: \(String(describing: error))")
                 }
             })
-            .alert("Missing Content", isPresented: $viewModel.showsMissingDataError, actions: {}, message: {
-                Text("The message is missing a subject or message body. Please complete all fields before sending.")
-            })
             .overlay {
                 if viewModel.isSending {
                     Color(uiColor: .systemBackground).opacity(0.7)

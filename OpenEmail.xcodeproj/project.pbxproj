@@ -29,6 +29,7 @@
 		5B1757C22BADD5E000405169 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1757C12BADD5E000405169 /* SettingsView.swift */; };
 		5B1C37882D3A5A220017D57D /* OpenEmailTextFieldLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1C37872D3A5A220017D57D /* OpenEmailTextFieldLabel.swift */; };
 		5B1C37892D3A5A220017D57D /* OpenEmailTextFieldLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1C37872D3A5A220017D57D /* OpenEmailTextFieldLabel.swift */; };
+		5B1C378B2D3AAE050017D57D /* Inspect in Frameworks */ = {isa = PBXBuildFile; productRef = 5B1C378A2D3AAE050017D57D /* Inspect */; };
 		5B23CBB12B63D57B00578687 /* AsyncButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B23CBB02B63D57B00578687 /* AsyncButton.swift */; };
 		5B2A08CB2C25AC580005B075 /* GeneralSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2A08CA2C25AC580005B075 /* GeneralSettingsView.swift */; };
 		5B2A08CD2C25ADB40005B075 /* TrustedDomainsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2A08CC2C25ADB40005B075 /* TrustedDomainsSettingsView.swift */; };
@@ -383,6 +384,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5B1C378B2D3AAE050017D57D /* Inspect in Frameworks */,
 				5BDA2EEE2C5CD23F009FB2BD /* KeychainAccess in Frameworks */,
 				5BDA2EEC2C5CCF6A009FB2BD /* Utils in Frameworks */,
 				5BDA2EEA2C5CCF6A009FB2BD /* Logging in Frameworks */,
@@ -953,6 +955,7 @@
 				5B61F72B2CB940F6006C0C92 /* OpenEmailModel */,
 				5B61F7322CB942A1006C0C92 /* OpenEmailPersistence */,
 				5B61F73D2CB94356006C0C92 /* OpenEmailCore */,
+				5B1C378A2D3AAE050017D57D /* Inspect */,
 			);
 			productName = ping.works;
 			productReference = 5BBE54AC2C5CCD3C008F25CC /* OpenEmail.app */;
@@ -1593,6 +1596,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		5B1C378A2D3AAE050017D57D /* Inspect */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5B43DD702D3148C3002CC7B0 /* XCRemoteSwiftPackageReference "SwiftUI-Inspect" */;
+			productName = Inspect;
+		};
 		5B30467E2C6F68E700B33157 /* Flow */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 5B4E7DFC2B109D9E00E92A75 /* XCRemoteSwiftPackageReference "SwiftUI-Flow" */;

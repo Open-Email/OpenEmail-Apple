@@ -8,28 +8,30 @@ struct SidebarView: View {
     @Injected(\.syncService) private var syncService
 
     var body: some View {
-        List(SidebarScope.allCases, selection: $selectedScope) { scope in
-            NavigationLink(value: scope) {
-                Image(scope.imageResource)
-                    .foregroundStyle(.accent)
-
-                HStack {
-                    Text(scope.displayName)
-
-                    let count = scope == .drafts ? viewModel.draftsCount : viewModel.currentUnreadCounts[scope] ?? 0
-                    if count > 0 {
-                        Spacer()
-                        Text("\(count)")
-                            .foregroundStyle(.secondary)
-                            .monospacedDigit()
-                    }
-                }
-            }
-        }
-        .listStyle(.insetGrouped)
-        .refreshable {
-            await syncService.synchronize()
-        }
+        // TODO
+        Text("Sidebar: TODO")
+//        List(SidebarScope.allCases, selection: $selectedScope) { scope in
+//            NavigationLink(value: scope) {
+//                Image(scope.imageResource)
+//                    .foregroundStyle(.accent)
+//
+//                HStack {
+//                    Text(scope.displayName)
+//
+//                    let count = scope == .drafts ? viewModel.draftsCount : viewModel.currentUnreadCounts[scope] ?? 0
+//                    if count > 0 {
+//                        Spacer()
+//                        Text("\(count)")
+//                            .foregroundStyle(.secondary)
+//                            .monospacedDigit()
+//                    }
+//                }
+//            }
+//        }
+//        .listStyle(.insetGrouped)
+//        .refreshable {
+//            await syncService.synchronize()
+//        }
         .navigationTitle("Folders")
     }
 }
