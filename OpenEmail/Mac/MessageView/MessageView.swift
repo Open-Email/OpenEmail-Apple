@@ -75,6 +75,11 @@ struct MessageView: View {
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                 }
+                .onTapGesture {
+                    if selectedMessageProfileAddress != nil {
+                        selectedMessageProfileAddress = nil
+                    }
+                }
                 .blur(radius: viewModel.showProgress ? 4 : 0)
                 .overlay {
                     if viewModel.showProgress {
