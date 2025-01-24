@@ -119,7 +119,7 @@ struct ContentView: View {
 
         ToolbarItem {
             HStack(spacing: 2) {
-                AsyncButton(actionOptions: [.disableButton]) {
+                AsyncButton {
                     await triggerSync()
                 } label: {
                     SyncProgressView()

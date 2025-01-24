@@ -99,7 +99,7 @@ struct ProfileView: View {
                     Text("This action cannot be undone.")
                 }
             } else {
-                AsyncButton(actionOptions: [.disableButton]) {
+                AsyncButton {
                     await addToContacts()
                 } label: {
                     HStack {

@@ -213,6 +213,7 @@
 		5BE74D8B2C9D794D003997D6 /* ComposeMessageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1698E1E02B98EA71009CB634 /* ComposeMessageViewModel.swift */; };
 		5BE74D8D2C9D7B8A003997D6 /* ComposeMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE74D8C2C9D7B8A003997D6 /* ComposeMessageView.swift */; };
 		5BECC7C42B922C6500143BD6 /* ProfileAttribute+Title.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BECC7C32B922C6500143BD6 /* ProfileAttribute+Title.swift */; };
+		5BFDAF492D43CD2900335189 /* OpenEmailTextFieldLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1C37872D3A5A220017D57D /* OpenEmailTextFieldLabel.swift */; };
 		5BFDDAEA2B51731C009DDCDA /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = 5BFDDAE92B51731C009DDCDA /* Logging */; };
 		5BFDDAED2B51A408009DDCDA /* MultipleMessagesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BFDDAEC2B51A408009DDCDA /* MultipleMessagesView.swift */; };
 /* End PBXBuildFile section */
@@ -481,6 +482,7 @@
 				5BA2D6592CC26D38004783B7 /* Spacings.swift */,
 				5B34FF2D2D15AF1B0033F0C1 /* SendButtonStyle.swift */,
 				5B99FAA32CD5056A00EF58DB /* ActionButtonStyle.swift */,
+				5B1C37872D3A5A220017D57D /* OpenEmailTextFieldLabel.swift */,
 			);
 			path = Theme;
 			sourceTree = "<group>";
@@ -732,7 +734,6 @@
 		5BD144D82D43867C00BAAA3A /* Theme */ = {
 			isa = PBXGroup;
 			children = (
-				5B1C37872D3A5A220017D57D /* OpenEmailTextFieldLabel.swift */,
 				5B44526A2CCBE50C00A2FE5E /* OpenEmailTextFieldStyle.swift */,
 				5B4452662CCBB4A300A2FE5E /* OpenEmailButtonStyle.swift */,
 			);
@@ -1246,6 +1247,7 @@
 				5B3046C02C7882CB00B33157 /* DeleteContactUseCase.swift in Sources */,
 				5BDA2EC42C5CCF35009FB2BD /* RemoveAccountUseCase.swift in Sources */,
 				5BDA2EBD2C5CCD91009FB2BD /* ContentView.swift in Sources */,
+				5BFDAF492D43CD2900335189 /* OpenEmailTextFieldLabel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -36,7 +36,7 @@ struct OnboardingInitialView: View {
                                 .disabled(viewModel.isCheckingEmailAddress)
                                 .focused($keyboardShown)
 
-                            AsyncButton {
+                            AsyncButton(actionOptions: [.showProgressView]) {
                                 if await viewModel.registerExistingEmailAddress(emailAddress) {
                                     presentedPages.append(.existingAccount)
                                 }
@@ -81,6 +81,7 @@ struct OnboardingInitialView: View {
             }
             .scrollBounceBehavior(.basedOnSize)
             .ignoresSafeArea(edges: .top)
+            .navigationTitle("")
         }
     }
 }

@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct OnboardingHeaderView: View {
-    var height: CGFloat = 300
+    var height: CGFloat = 250
 
     var body: some View {
         GeometryReader { geometry in

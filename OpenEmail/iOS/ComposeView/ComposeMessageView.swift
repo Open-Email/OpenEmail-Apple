@@ -111,7 +111,7 @@ struct ComposeMessageView: View {
                 }
 
                 ToolbarItem(placement: .automatic) {
-                    AsyncButton(actionOptions: [.disableButton]) {
+                    AsyncButton {
                         do {
                             try await viewModel.send()
                             dismiss()

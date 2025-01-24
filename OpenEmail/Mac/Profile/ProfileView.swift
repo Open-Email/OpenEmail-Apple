@@ -183,7 +183,7 @@ struct ProfileView: View {
                 }
                 .buttonStyle(ActionButtonStyle(height: 32, isProminent: true))
             } else if !viewModel.isSelf {
-                AsyncButton(actionOptions: [.disableButton]) {
+                AsyncButton {
                     await addToContacts()
                 } label: {
                     HStack(spacing: .Spacing.xxSmall) {

@@ -9,71 +9,66 @@ struct OnboardingExistingAccountView: View {
     @State private var isPresentingScanner = false
 
     var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "lock.circle.fill")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .foregroundStyle(.white, .accent)
-                .frame(height: 50)
+        ScrollView {
+            VStack(spacing: 0) {
+                OnboardingHeaderView()
 
-            Text(emailAddress)
-                .font(.title)
+                VStack(alignment: .leading, spacing: .Spacing.default) {
+                    Text("Enter your private keys")
+                        .font(.title2)
 
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
-                    Text("Enter your private keys:")
-                    Spacer()
-                    Button {
-                        isPresentingScanner = true
-                    } label: {
-                        Image(systemName: "qrcode")
+                    VStack(alignment: .leading, spacing: .Spacing.small) {
+                        Text("Your account")
+                            .foregroundStyle(.secondary)
+
+                        HStack(spacing: .Spacing.small) {
+                            ProfileImageView(emailAddress: emailAddress, size: .Spacing.xxxLarge)
+                            Text(emailAddress)
+                                .font(.title3)
+                        }
                     }
-                }
 
-                GroupBox {
-                    VStack(spacing: 20) {
+                    VStack(alignment: .leading, spacing: .Spacing.large) {
                         VStack(alignment: .leading) {
-                            Label("Private Encryption Key", systemImage: "key.horizontal")
+                            OpenEmailTextFieldLabel("Private Encryption Key")
                             keyTextEditor(text: $viewModel.privateEncryptionKey)
                         }
 
                         VStack(alignment: .leading) {
-                            Label("Private Signing Key", systemImage: "pencil")
+                            OpenEmailTextFieldLabel("Private Signing Key")
                             keyTextEditor(text: $viewModel.privateSigningKey)
                         }
                     }
-                }
+                    .padding(.top, .Spacing.default)
+                    .disabled(viewModel.isAuthorizing)
 
-                HStack {
-                    AsyncButton {
-                        await viewModel.authenticate(emailAddress: emailAddress)
-                    } label: {
-                        Text("Authenticate")
-                            .padding(.horizontal)
+                    VStack(spacing: .Spacing.default) {
+                        AsyncButton(actionOptions: [.showProgressView]) {
+                            await viewModel.authenticate(emailAddress: emailAddress)
+                        } label: {
+                            Text("Authenticate")
+                                .padding(.horizontal)
+                        }
+                        .buttonStyle(OpenEmailButtonStyle(style: .primary))
+                        .keyboardShortcut(.defaultAction)
+                        .disabled(!viewModel.hasBothKeys)
+
+                        Button {
+                            isPresentingScanner = true
+                        } label: {
+                            Text("Scan QR-code")
+                        }
+                        .buttonStyle(OpenEmailButtonStyle(style: .secondary))
                     }
-                    .buttonStyle(.borderedProminent)
-                    .keyboardShortcut(.defaultAction)
-                    .controlSize(.large)
-                    .disabled(!viewModel.hasBothKeys)
-                    .padding()
+                    .padding(.vertical, .Spacing.xLarge)
+                    .disabled(viewModel.isAuthorizing)
                 }
-                .frame(maxWidth: .infinity)
+                .padding([.leading, .trailing, .bottom], .Spacing.default)
             }
-
-            Spacer()
+            .frame(maxHeight: .infinity, alignment: .top)
         }
-        .padding(.top, 50)
-        .padding(.bottom, 20)
-        .padding(.horizontal)
-        .frame(maxHeight: .infinity)
-        .blur(radius: viewModel.isAuthorizing ? 3 : 0)
-        .overlay {
-            if viewModel.isAuthorizing {
-                ProgressView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(.background.opacity(0.75))
-            }
-        }
+        .scrollBounceBehavior(.basedOnSize)
+        .ignoresSafeArea(edges: .top)
         .alert($viewModel.alertConfiguration)
         .sheet(isPresented: $isPresentingScanner) {
             CodeScannerView(
@@ -106,15 +101,21 @@ struct OnboardingExistingAccountView: View {
 
     @ViewBuilder
     private func keyTextEditor(text: Binding<String>) -> some View {
-        // TODO: figure out how to wrap by character and not by word
+        HStack(alignment: .top, spacing: .Spacing.xxxSmall) {
+            Image(.key)
+                .foregroundStyle(.secondary)
 
-        TextField("", text: text, axis: .vertical)
-            .textFieldStyle(.plain)
-            .lineLimit(3, reservesSpace: true)
-            .autocorrectionDisabled()
-            .textInputAutocapitalization(.never)
-            .background(.quinary)
-            .fontDesign(.monospaced)
+            TextField("", text: text, prompt: Text("cJGp...QPtkA=="), axis: .vertical)
+                .textFieldStyle(.plain)
+                .monospaced()
+                .lineLimit(3)
+                .autocorrectionDisabled()
+                .padding(.top, 2)
+        }
+        .padding(.horizontal, .Spacing.small)
+        .padding(.vertical, .Spacing.small)
+        .background(.themeBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 25))
     }
 }
 
