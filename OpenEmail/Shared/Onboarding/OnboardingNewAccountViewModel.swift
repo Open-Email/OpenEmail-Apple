@@ -30,10 +30,13 @@ class OnboardingNewAccountViewModel {
         var imageName: String = ""
         var text: String = ""
         var color: Color = .primary
+
+        var isEmpty: Bool {
+            text.isEmpty
+        }
     }
 
     let availableDomains = [
-//        "email-v2.org",
         "open.email"
     ]
 
@@ -58,12 +61,6 @@ class OnboardingNewAccountViewModel {
     private var emailAvailabilityCheckSubject = PassthroughSubject<Void, Never>()
 
     private var subscriptions = Set<AnyCancellable>()
-
-    // TODO: where do those names come from?
-    private let excludedNames = [
-        "aaa",
-        "xxx"
-    ]
 
     var emailAddressInput: String {
         "\(localPart.lowercased())@\(availableDomains[selectedDomainIndex])"
@@ -136,7 +133,6 @@ class OnboardingNewAccountViewModel {
         }
 
         guard
-            !excludedNames.contains(localPart),
             EmailAddress.isValid(emailAddressInput)
         else {
             emailAvailabilityMessage = EmailAvailabilityMessage(

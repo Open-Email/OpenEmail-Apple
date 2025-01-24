@@ -3,88 +3,94 @@ import OpenEmailCore
 
 struct OnboardingNewAccountView: View {
     @Bindable private var viewModel = OnboardingNewAccountViewModel()
+    @FocusState private var keyboardShown: Bool
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
-                Image(systemName: "person.circle.fill")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .foregroundStyle(.white, .accent)
-                    .frame(height: 50)
+            VStack(spacing: 0) {
+                OnboardingHeaderView()
 
-                Text("Up & Running in Seconds")
-                    .multilineTextAlignment(.center)
-                    .font(.title)
+                VStack(alignment: .leading, spacing: .Spacing.large) {
+                    VStack(alignment: .leading, spacing: .Spacing.xSmall) {
+                        Text("Up & Running in Seconds")
+                            .font(.title2)
+                        Text("Get a free email address on one of our domains")
+                            .foregroundStyle(.secondary)
+                    }
 
-                VStack(alignment: .leading) {
-                    Text("Get a free email address on one of our domains:")
-                        .multilineTextAlignment(.leading)
-                        .padding(.vertical)
+                    VStack(alignment: .leading, spacing: .Spacing.large) {
+                        VStack(alignment: .leading, spacing: 0) {
+                            HStack(spacing: .Spacing.default) {
+                                TextField("user name", text: $viewModel.localPart, prompt: Text("User name"))
+                                    .textFieldStyle(.openEmail)
+                                    .textContentType(.username)
+                                    .textInputAutocapitalization(.never)
+                                    .labelsHidden()
+                                    .focused($keyboardShown)
 
-                    HStack {
-                        TextField("user name", text: $viewModel.localPart, prompt: Text("user.name"))
-                            .textFieldStyle(.roundedBorder)
-                            .textContentType(.username)
-                            .textInputAutocapitalization(.never)
-                            .controlSize(.large)
-                            .multilineTextAlignment(.trailing)
-                            .labelsHidden()
-
-                        Text("@")
-
-                        Picker(selection: $viewModel.selectedDomainIndex) {
-                            ForEach(0..<viewModel.availableDomains.count, id: \.self) { index in
-                                Text(viewModel.availableDomains[index])
+                                ZStack {
+                                    Capsule()
+                                        .fill(.themeBackground)
+                                    Picker(selection: $viewModel.selectedDomainIndex) {
+                                        ForEach(0..<viewModel.availableDomains.count, id: \.self) { index in
+                                            Text(viewModel.availableDomains[index])
+                                        }
+                                    } label: {
+                                    }
+                                }
+                                .frame(height: .Spacing.xxxLarge)
                             }
-                        } label: {
+
+                            nameAvailabilityMessage()
+                        }
+
+                        VStack(alignment: .leading, spacing: 0) {
+                            TextField("Full name", text: $viewModel.fullName)
+                                .textFieldStyle(.openEmail)
+                                .textContentType(.name)
+                                .focused($keyboardShown)
+
+                            Text("*You can complete it later")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .padding(.leading, .Spacing.default)
+
+                            fullNameValidationMessage()
                         }
                     }
 
-                    nameAvailabilityMessage()
+                    AsyncButton {
+                        await viewModel.register()
+                    } label: {
+                        Text("Sign Up")
+                            .padding(.horizontal)
+                    }
+                    .buttonStyle(OpenEmailButtonStyle(style: .primary))
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(!viewModel.isValidEmail)
+                    .padding(.vertical, .Spacing.xLarge)
 
-                    // TODO:
-                    // this could be extracted into a separate onboarding step where the user
-                    // can enter basic profile data like name and profile image
-                    TextField("Full name", text: $viewModel.fullName)
-                        .textFieldStyle(.roundedBorder)
-                        .textContentType(.name)
-                        .controlSize(.large)
-
-                    fullNameValidationMessage()
-
-                    Text("You can complete your profile later.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: .Spacing.xSmall) {
+                        Text("By continuing you agree to the Terms of Service").bold()
+                        Text("Users are prohibited from engaging in abusive behavior or any illegal activities while using our service, because while we're all for freedom, we draw the line at breaking the law or being a jerk.")
+                    }
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
                 }
-
-                AsyncButton {
-                    await viewModel.register()
-                } label: {
-                    Text("Register")
-                        .padding(.horizontal)
-                }
-                .buttonStyle(.borderedProminent)
-                .keyboardShortcut(.defaultAction)
-                .controlSize(.large)
-                .disabled(!viewModel.isValidEmail)
-
-                VStack {
-                    Text("Terms of Service")
-                    Text("Users are prohibited from engaging in abusive behavior or any illegal activities while using our service, because while we're all for freedom, we draw the line at breaking the law or being a jerk.")
-                        .multilineTextAlignment(.center)
-                        .foregroundStyle(.secondary)
-                }
-                .font(.footnote)
+                .padding([.leading, .trailing, .bottom], .Spacing.default)
+                .contentShape(Rectangle())
+                .onTapGesture(count: keyboardShown ? 1 : .max, perform: { // if keyboard shown use single tap to close it, otherwise set .max to not interfere with other stuff
+                    keyboardShown = false
+                })
             }
-            .padding()
+            .frame(maxHeight: .infinity, alignment: .top)
         }
         .scrollBounceBehavior(.basedOnSize)
-        .frame(maxHeight: .infinity, alignment: .top)
+        .ignoresSafeArea(edges: .top)
         .blur(radius: viewModel.showProgressIndicator ? 3 : 0)
         .overlay {
             if viewModel.showProgressIndicator {
-                VStack(spacing: 10) {
+                VStack(spacing: .Spacing.default) {
                     ProgressView()
                     Text(viewModel.registrationStatus.statusText)
                 }
@@ -99,23 +105,30 @@ struct OnboardingNewAccountView: View {
     @ViewBuilder
     private func nameAvailabilityMessage() -> some View {
         let emailAvailabilityMessage = viewModel.emailAvailabilityMessage
-        HStack(spacing: 4) {
-            Image(systemName: emailAvailabilityMessage.imageName)
-            Text(emailAvailabilityMessage.text)
+
+        if !emailAvailabilityMessage.isEmpty {
+            HStack(spacing: 4) {
+                Image(systemName: emailAvailabilityMessage.imageName)
+                Text(emailAvailabilityMessage.text)
+            }
+            .foregroundStyle(emailAvailabilityMessage.color)
+            .font(.caption)
+            .padding(.leading, .Spacing.default)
+            .padding(.vertical, .Spacing.xxxSmall)
         }
-        .foregroundStyle(emailAvailabilityMessage.color)
-        .font(.caption)
     }
 
     @ViewBuilder
     private func fullNameValidationMessage() -> some View {
         if !viewModel.isValidName {
-            HStack(spacing: 4) {
+            HStack(spacing: .Spacing.xxxSmall) {
                 Image(systemName: "x.circle.fill")
-                Text("Name must be at least 6 characters long.")
+                Text("Name must be at least 1 character long")
             }
             .foregroundStyle(.red)
             .font(.caption)
+            .padding(.leading, .Spacing.default)
+            .padding(.vertical, .Spacing.xxxSmall)
         }
     }
 }
