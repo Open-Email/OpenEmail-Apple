@@ -58,7 +58,7 @@ struct OnboardingNewAccountView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                AsyncButton(actionOptions: [.disableButton]) {
+                AsyncButton {
                     await viewModel.register()
                 } label: {
                     Text("Register")

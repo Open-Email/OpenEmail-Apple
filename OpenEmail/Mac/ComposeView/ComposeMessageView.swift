@@ -161,7 +161,7 @@ struct ComposeMessageView: View {
             .buttonStyle(.plain)
             .help("Add files to the message")
 
-            AsyncButton(actionOptions: [.disableButton]) {
+            AsyncButton {
                 do {
                     try await viewModel.send()
                     dismiss()

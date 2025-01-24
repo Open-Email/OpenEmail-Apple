@@ -81,7 +81,7 @@ struct OnboardingNewAccountView: View {
 
             // buttons
             VStack(spacing: .Spacing.default) {
-                AsyncButton(actionOptions: [.disableButton]) {
+                AsyncButton {
                     navigationState.selectedMessageIDs.removeAll()
                     await viewModel.register()
                 } label: {
