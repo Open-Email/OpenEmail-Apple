@@ -17,6 +17,11 @@ struct OnboardingInitialView: View {
             ScrollView {
                 VStack(spacing: 0) {
                     OnboardingHeaderView()
+                    #if DEBUG
+                        .onTapGesture(count: 3) {
+                            emailAddress = "martin1@open.email"
+                        }
+                    #endif
 
                     VStack(alignment: .leading, spacing: .Spacing.large) {
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {

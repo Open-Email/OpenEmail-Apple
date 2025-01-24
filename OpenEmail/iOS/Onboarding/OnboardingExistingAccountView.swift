@@ -85,6 +85,35 @@ struct OnboardingExistingAccountView: View {
                     Log.error("Could not scan QR code: \(error)")
                 }
             }
+            .overlay(alignment: .top) {
+                VStack(spacing: .Spacing.default) {
+                    VStack(spacing: .Spacing.default) {
+                        Image(.logo)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(height: .Spacing.large)
+
+                        HStack(spacing: .Spacing.small) {
+                            ProfileImageView(emailAddress: emailAddress, size: .Spacing.xLarge)
+                            Text(emailAddress)
+                                .font(.callout)
+                        }
+                    }
+                    .padding(.Spacing.default)
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(.CornerRadii.small)
+
+                    Spacer()
+
+                    Button("Enter keys manually") {
+                        isPresentingScanner = false
+                    }
+                    .buttonStyle(.bordered)
+                    .foregroundStyle(.white)
+                }
+                .padding(.Spacing.large)
+            }
+            .preferredColorScheme(.dark)
         }
     }
 
