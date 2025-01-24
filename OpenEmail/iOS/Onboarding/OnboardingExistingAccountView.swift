@@ -7,6 +7,7 @@ struct OnboardingExistingAccountView: View {
 
     @State private var viewModel = OnboardingExistingAccountViewModel()
     @State private var isPresentingScanner = false
+    @FocusState private var keyboardShown: Bool
 
     var body: some View {
         ScrollView {
@@ -64,6 +65,10 @@ struct OnboardingExistingAccountView: View {
                     .disabled(viewModel.isAuthorizing)
                 }
                 .padding([.leading, .trailing, .bottom], .Spacing.default)
+                .contentShape(Rectangle())
+                .onTapGesture(count: keyboardShown ? 1 : .max, perform: { // if keyboard shown use single tap to close it, otherwise set .max to not interfere with other stuff
+                    keyboardShown = false
+                })
             }
             .frame(maxHeight: .infinity, alignment: .top)
         }
@@ -140,6 +145,7 @@ struct OnboardingExistingAccountView: View {
                 .lineLimit(3)
                 .autocorrectionDisabled()
                 .padding(.top, 2)
+                .focused($keyboardShown)
         }
         .padding(.horizontal, .Spacing.small)
         .padding(.vertical, .Spacing.small)
