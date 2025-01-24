@@ -1,9 +1,20 @@
 import Foundation
 
 extension CGFloat {
+    #if os(macOS)
     static let sidebarWidth: CGFloat = 150
+    #endif
 
     enum Spacing {
+        /// 64px
+        static let xxxxLarge: CGFloat = 64
+
+        /// 56px
+        static let xxxLarge: CGFloat = 56
+
+        /// 48px
+        static let xxLarge: CGFloat = 48
+
         /// 32px
         static let xLarge: CGFloat = 32
 

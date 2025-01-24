@@ -27,7 +27,6 @@
 		5B1757BD2BAD9CD600405169 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1757BC2BAD9CD600405169 /* Formatters.swift */; };
 		5B1757BF2BADCB5900405169 /* ProfileAttribute+Info.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1757BE2BADCB5900405169 /* ProfileAttribute+Info.swift */; };
 		5B1757C22BADD5E000405169 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1757C12BADD5E000405169 /* SettingsView.swift */; };
-		5B1C37882D3A5A220017D57D /* OpenEmailTextFieldLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1C37872D3A5A220017D57D /* OpenEmailTextFieldLabel.swift */; };
 		5B1C37892D3A5A220017D57D /* OpenEmailTextFieldLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1C37872D3A5A220017D57D /* OpenEmailTextFieldLabel.swift */; };
 		5B1C378B2D3AAE050017D57D /* Inspect in Frameworks */ = {isa = PBXBuildFile; productRef = 5B1C378A2D3AAE050017D57D /* Inspect */; };
 		5B23CBB12B63D57B00578687 /* AsyncButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B23CBB02B63D57B00578687 /* AsyncButton.swift */; };
@@ -68,9 +67,7 @@
 		5B43DD722D3148C3002CC7B0 /* Inspect in Frameworks */ = {isa = PBXBuildFile; productRef = 5B43DD712D3148C3002CC7B0 /* Inspect */; };
 		5B43DD742D314F5E002CC7B0 /* NSTextView+Background.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B43DD732D314F5E002CC7B0 /* NSTextView+Background.swift */; };
 		5B4452672CCBB4A300A2FE5E /* OpenEmailButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B4452662CCBB4A300A2FE5E /* OpenEmailButtonStyle.swift */; };
-		5B4452682CCBB4A300A2FE5E /* OpenEmailButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B4452662CCBB4A300A2FE5E /* OpenEmailButtonStyle.swift */; };
 		5B44526B2CCBE50C00A2FE5E /* OpenEmailTextFieldStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B44526A2CCBE50C00A2FE5E /* OpenEmailTextFieldStyle.swift */; };
-		5B44526C2CCBE50C00A2FE5E /* OpenEmailTextFieldStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B44526A2CCBE50C00A2FE5E /* OpenEmailTextFieldStyle.swift */; };
 		5B4E7DFB2B10994E00E92A75 /* ReadersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B4E7DFA2B10994E00E92A75 /* ReadersView.swift */; };
 		5B4E7DFE2B109D9E00E92A75 /* Flow in Frameworks */ = {isa = PBXBuildFile; productRef = 5B4E7DFD2B109D9E00E92A75 /* Flow */; };
 		5B4E7E072B10B6AA00E92A75 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B4E7E062B10B6AA00E92A75 /* ProfileView.swift */; };
@@ -142,6 +139,9 @@
 		5BC893462C1C7F2B008C943B /* SearchField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC893452C1C7F2B008C943B /* SearchField.swift */; };
 		5BCF438C2B762B4000D19A51 /* KeyCodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BCF438B2B762B4000D19A51 /* KeyCodes.swift */; };
 		5BCF438E2B76482600D19A51 /* ProfileTagView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BCF438D2B76482600D19A51 /* ProfileTagView.swift */; };
+		5BD144DB2D43870C00BAAA3A /* OpenEmailButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BD144DA2D43870C00BAAA3A /* OpenEmailButtonStyle.swift */; };
+		5BD144DD2D438EAD00BAAA3A /* OpenEmailTextFieldStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BD144DC2D438EAD00BAAA3A /* OpenEmailTextFieldStyle.swift */; };
+		5BD144DF2D43A10400BAAA3A /* OnboardingHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BD144DE2D43A10400BAAA3A /* OnboardingHeaderView.swift */; };
 		5BD1FA382C63A92500DE4B5D /* SidebarScope+Display.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BD1FA372C63A92500DE4B5D /* SidebarScope+Display.swift */; };
 		5BD1FA392C63A92500DE4B5D /* SidebarScope+Display.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BD1FA372C63A92500DE4B5D /* SidebarScope+Display.swift */; };
 		5BD1FA3F2C63AA7300DE4B5D /* ScopesSidebarViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BD1FA3E2C63AA7300DE4B5D /* ScopesSidebarViewModel.swift */; };
@@ -332,6 +332,9 @@
 		5BC893452C1C7F2B008C943B /* SearchField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchField.swift; sourceTree = "<group>"; };
 		5BCF438B2B762B4000D19A51 /* KeyCodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyCodes.swift; sourceTree = "<group>"; };
 		5BCF438D2B76482600D19A51 /* ProfileTagView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileTagView.swift; sourceTree = "<group>"; };
+		5BD144DA2D43870C00BAAA3A /* OpenEmailButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenEmailButtonStyle.swift; sourceTree = "<group>"; };
+		5BD144DC2D438EAD00BAAA3A /* OpenEmailTextFieldStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenEmailTextFieldStyle.swift; sourceTree = "<group>"; };
+		5BD144DE2D43A10400BAAA3A /* OnboardingHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingHeaderView.swift; sourceTree = "<group>"; };
 		5BD1FA372C63A92500DE4B5D /* SidebarScope+Display.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SidebarScope+Display.swift"; sourceTree = "<group>"; };
 		5BD1FA3E2C63AA7300DE4B5D /* ScopesSidebarViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScopesSidebarViewModel.swift; sourceTree = "<group>"; };
 		5BD1FA412C63AE4500DE4B5D /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
@@ -476,11 +479,8 @@
 			children = (
 				5B7C80802AEBF1120088E2EA /* Colors.xcassets */,
 				5BA2D6592CC26D38004783B7 /* Spacings.swift */,
-				5B4452662CCBB4A300A2FE5E /* OpenEmailButtonStyle.swift */,
 				5B34FF2D2D15AF1B0033F0C1 /* SendButtonStyle.swift */,
 				5B99FAA32CD5056A00EF58DB /* ActionButtonStyle.swift */,
-				5B44526A2CCBE50C00A2FE5E /* OpenEmailTextFieldStyle.swift */,
-				5B1C37872D3A5A220017D57D /* OpenEmailTextFieldLabel.swift */,
 			);
 			path = Theme;
 			sourceTree = "<group>";
@@ -682,6 +682,7 @@
 				5BA3D0272CDE42D000D969BD /* EmptyListView.swift */,
 				5B8C60E52D0365E400FEF5F1 /* OpenEmailTextEditor.swift */,
 				5B43DD732D314F5E002CC7B0 /* NSTextView+Background.swift */,
+				5BD144D82D43867C00BAAA3A /* Theme */,
 				5B61F71A2CB91B36006C0C92 /* Log */,
 				5BBE54A62C5CCA31008F25CC /* Utils */,
 				5B1757C02BADD5D400405169 /* Settings */,
@@ -726,6 +727,25 @@
 				5BC6E0AB2C2F0B7B00C5951C /* SyncServiceMock.swift */,
 			);
 			path = Mocks;
+			sourceTree = "<group>";
+		};
+		5BD144D82D43867C00BAAA3A /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				5B1C37872D3A5A220017D57D /* OpenEmailTextFieldLabel.swift */,
+				5B44526A2CCBE50C00A2FE5E /* OpenEmailTextFieldStyle.swift */,
+				5B4452662CCBB4A300A2FE5E /* OpenEmailButtonStyle.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		5BD144D92D43870300BAAA3A /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				5BD144DC2D438EAD00BAAA3A /* OpenEmailTextFieldStyle.swift */,
+				5BD144DA2D43870C00BAAA3A /* OpenEmailButtonStyle.swift */,
+			);
+			path = Theme;
 			sourceTree = "<group>";
 		};
 		5BD1FA3D2C63AA5300DE4B5D /* Folders Sidebar */ = {
@@ -819,6 +839,7 @@
 				5BD1FA642C663DC400DE4B5D /* MessagesTabView.swift */,
 				5BD1FA412C63AE4500DE4B5D /* SidebarView.swift */,
 				5B3046732C6F4CA000B33157 /* ButtonStyles.swift */,
+				5BD144D92D43870300BAAA3A /* Theme */,
 				5BD1FA6F2C6787A500DE4B5D /* Utils */,
 				5BDA2EF92C5CD991009FB2BD /* Onboarding */,
 				5BD1FA5C2C66042200DE4B5D /* Messages List */,
@@ -833,6 +854,7 @@
 		5BDA2EF92C5CD991009FB2BD /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
+				5BD144DE2D43A10400BAAA3A /* OnboardingHeaderView.swift */,
 				5BDA2EFA2C5CD9A2009FB2BD /* OnboardingInitialView.swift */,
 				5BDA2EFC2C5CE1BC009FB2BD /* OnboardingExistingAccountView.swift */,
 				5BDA2F162C5D0FF8009FB2BD /* OnboardingNewAccountView.swift */,
@@ -1158,7 +1180,6 @@
 				5B3046772C6F599000B33157 /* MessageViewModel.swift in Sources */,
 				5BD1FA6E2C67873900DE4B5D /* KeysSettingsView.swift in Sources */,
 				5BDA2EC82C5CCF48009FB2BD /* Messages+Filtering.swift in Sources */,
-				5B4452682CCBB4A300A2FE5E /* OpenEmailButtonStyle.swift in Sources */,
 				5BE74D8B2C9D794D003997D6 /* ComposeMessageViewModel.swift in Sources */,
 				5BD1FA402C63AA7300DE4B5D /* ScopesSidebarViewModel.swift in Sources */,
 				5BD1FA712C6787BE00DE4B5D /* UIImageToImage.swift in Sources */,
@@ -1191,21 +1212,23 @@
 				5B30466F2C6F2AD000B33157 /* ProfileView.swift in Sources */,
 				5BDA2ED72C5CCF48009FB2BD /* NotificationStoreMock.swift in Sources */,
 				5B34FF2F2D15AF1B0033F0C1 /* SendButtonStyle.swift in Sources */,
-				5B44526C2CCBE50C00A2FE5E /* OpenEmailTextFieldStyle.swift in Sources */,
 				5B43DD6E2D3143CB002CC7B0 /* String+Cleaning.swift in Sources */,
 				5BDA2ED82C5CCF48009FB2BD /* Icons.swift in Sources */,
 				5BDD1D362CA69A9B004AF1D5 /* TokenTextField.swift in Sources */,
 				5BDD1D372CA69A9B004AF1D5 /* TokenLayout.swift in Sources */,
+				5BD144DF2D43A10400BAAA3A /* OnboardingHeaderView.swift in Sources */,
 				5BDD1D382CA69A9B004AF1D5 /* ReaderToken.swift in Sources */,
 				5B3046862C6FA82A00B33157 /* ActivityView.swift in Sources */,
 				5B3046842C6F8AB000B33157 /* AttachmentsListView.swift in Sources */,
 				5BDA2ED92C5CCF48009FB2BD /* Date+Extension.swift in Sources */,
 				5B30467A2C6F599E00B33157 /* ProfileImageView.swift in Sources */,
+				5BD144DD2D438EAD00BAAA3A /* OpenEmailTextFieldStyle.swift in Sources */,
 				5BDA2EDA2C5CCF48009FB2BD /* Message+Deleting.swift in Sources */,
 				5BDA2EDB2C5CCF48009FB2BD /* Message+Random.swift in Sources */,
 				5BE74D8D2C9D7B8A003997D6 /* ComposeMessageView.swift in Sources */,
 				5B9DBEA92CB0167F009B37F1 /* ComposeAttachmentsListViewModel.swift in Sources */,
 				5B3046742C6F4CA000B33157 /* ButtonStyles.swift in Sources */,
+				5BD144DB2D43870C00BAAA3A /* OpenEmailButtonStyle.swift in Sources */,
 				5BD1FA602C6606E600DE4B5D /* MessagesListView.swift in Sources */,
 				5B99FAA42CD5056A00EF58DB /* ActionButtonStyle.swift in Sources */,
 				5BDA2F172C5D0FF8009FB2BD /* OnboardingNewAccountView.swift in Sources */,
@@ -1219,7 +1242,6 @@
 				5B61F7252CB93F8D006C0C92 /* ProfileViewModel.swift in Sources */,
 				5B61F7262CB93F8D006C0C92 /* Profile+Attributes.swift in Sources */,
 				5B61F7272CB93F8D006C0C92 /* ProfileAttributesView.swift in Sources */,
-				5B1C37882D3A5A220017D57D /* OpenEmailTextFieldLabel.swift in Sources */,
 				5BDA2EE22C5CCF48009FB2BD /* ProfileAttribute+Title.swift in Sources */,
 				5B3046C02C7882CB00B33157 /* DeleteContactUseCase.swift in Sources */,
 				5BDA2EC42C5CCF35009FB2BD /* RemoveAccountUseCase.swift in Sources */,
@@ -1463,7 +1485,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColorMobile;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"OpenEmail/Preview Content\"";
@@ -1476,8 +1498,8 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1497,7 +1519,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColorMobile;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"OpenEmail/Preview Content\"";
@@ -1510,8 +1532,8 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
