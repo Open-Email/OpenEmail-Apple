@@ -19,13 +19,13 @@ struct ContentView: View {
         TabView {
             MessagesTabView()
                 .tabItem {
-                    Image(systemName: "dot.radiowaves.left.and.right")
+                    Image(systemName: "envelope")
                     Text("Messages")
                 }
 
             Text("Contacts")
                 .tabItem {
-                    Image(systemName: "person.2.fill")
+                    Image(.scopeContacts)
                     Text("Contacts")
                 }
 
@@ -37,7 +37,7 @@ struct ContentView: View {
 
             SettingsView()
                 .tabItem {
-                    Image(systemName: "switch.2")
+                    Image(.settings)
                     Text("Settings")
                 }
         }

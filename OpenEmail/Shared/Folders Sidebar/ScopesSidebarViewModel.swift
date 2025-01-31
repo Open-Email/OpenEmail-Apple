@@ -5,7 +5,7 @@ import OpenEmailCore
 import OpenEmailPersistence
 import OpenEmailModel
 
-struct ScopeSidebarItem: Identifiable {
+struct ScopeSidebarItem: Identifiable, Hashable {
     var id: String { scope.rawValue }
     let scope: SidebarScope
     let unreadCount: Int
@@ -51,8 +51,13 @@ class ScopesSidebarViewModel {
     func reloadItems(isInitialUpdate: Bool) async {
         await updateCounts(isInitialUpdate: isInitialUpdate)
 
-        items = SidebarScope.allCases.map {
-            ScopeSidebarItem(
+        items = SidebarScope.allCases.compactMap {
+            #if os(iOS)
+            // Contacts is a separate tab on iOS
+            if $0 == .contacts { return nil }
+            #endif
+
+            return ScopeSidebarItem(
                 scope: $0,
                 unreadCount: unreadCount(for: $0),
                 shouldShowNewMessageIndicator: shouldShowNewMessageIndicator(for: $0)
