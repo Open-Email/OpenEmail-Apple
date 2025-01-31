@@ -8,28 +8,18 @@ struct ReaderToken: TokenTextFieldToken {
     var isSelected: Bool = false
     var convertedToToken = true
     var isValid: Bool?
+    var isMe: Bool
     var isInMyContacts = false
-    var isInOtherContacts: Bool?
 
-    static func empty(isSelected: Bool) -> Self {
-        ReaderToken(value: "", isSelected: isSelected, convertedToToken: false)
+    var icon: ImageResource? {
+        if isMe || isInMyContacts {
+            .readerInContacts
+        } else {
+            .readerNotInContacts
+        }
     }
 
-    var color: Color {
-        if isValid == false {
-            return .red
-        }
-
-        if value.lowercased() == UserDefaults.standard.registeredEmailAddress {
-            return .green
-        }
-
-        if isInMyContacts {
-            if isInOtherContacts == true {
-                return .accentColor
-            }
-        }
-
-        return .gray
+    static func empty(isSelected: Bool) -> Self {
+        ReaderToken(value: "", isSelected: isSelected, convertedToToken: false, isMe: false)
     }
 }

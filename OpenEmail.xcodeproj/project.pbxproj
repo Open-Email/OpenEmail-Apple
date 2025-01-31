@@ -209,6 +209,10 @@
 		5BDD1D362CA69A9B004AF1D5 /* TokenTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDD1D352CA69A9B004AF1D5 /* TokenTextField.swift */; };
 		5BDD1D372CA69A9B004AF1D5 /* TokenLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDD1D332CA69A9B004AF1D5 /* TokenLayout.swift */; };
 		5BDD1D382CA69A9B004AF1D5 /* ReaderToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDD1D342CA69A9B004AF1D5 /* ReaderToken.swift */; };
+		5BE2CF9D2D4CDBA600E9DB1A /* MessageTypeBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE2CF9C2D4CDBA600E9DB1A /* MessageTypeBadge.swift */; };
+		5BE2CF9E2D4CDBA600E9DB1A /* MessageTypeBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE2CF9C2D4CDBA600E9DB1A /* MessageTypeBadge.swift */; };
+		5BE2CFA02D4D0E9800E9DB1A /* Modify.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE2CF9F2D4D0E9800E9DB1A /* Modify.swift */; };
+		5BE2CFA12D4D0E9800E9DB1A /* Modify.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE2CF9F2D4D0E9800E9DB1A /* Modify.swift */; };
 		5BE74D892C9D711E003997D6 /* SyncProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE74D882C9D711E003997D6 /* SyncProgressView.swift */; };
 		5BE74D8B2C9D794D003997D6 /* ComposeMessageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1698E1E02B98EA71009CB634 /* ComposeMessageViewModel.swift */; };
 		5BE74D8D2C9D7B8A003997D6 /* ComposeMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE74D8C2C9D7B8A003997D6 /* ComposeMessageView.swift */; };
@@ -361,6 +365,8 @@
 		5BDD1D332CA69A9B004AF1D5 /* TokenLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenLayout.swift; sourceTree = "<group>"; };
 		5BDD1D342CA69A9B004AF1D5 /* ReaderToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderToken.swift; sourceTree = "<group>"; };
 		5BDD1D352CA69A9B004AF1D5 /* TokenTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenTextField.swift; sourceTree = "<group>"; };
+		5BE2CF9C2D4CDBA600E9DB1A /* MessageTypeBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageTypeBadge.swift; sourceTree = "<group>"; };
+		5BE2CF9F2D4D0E9800E9DB1A /* Modify.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Modify.swift; sourceTree = "<group>"; };
 		5BE74D882C9D711E003997D6 /* SyncProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncProgressView.swift; sourceTree = "<group>"; };
 		5BE74D8C2C9D7B8A003997D6 /* ComposeMessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeMessageView.swift; sourceTree = "<group>"; };
 		5BECC7C32B922C6500143BD6 /* ProfileAttribute+Title.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProfileAttribute+Title.swift"; sourceTree = "<group>"; };
@@ -634,6 +640,7 @@
 				5B141C252C13260100597F70 /* Icons.swift */,
 				5BE74D882C9D711E003997D6 /* SyncProgressView.swift */,
 				5BB910502CF9E80B00D2D8A5 /* ConditionalModifier.swift */,
+				5BE2CF9F2D4D0E9800E9DB1A /* Modify.swift */,
 			);
 			path = SwiftUI;
 			sourceTree = "<group>";
@@ -816,6 +823,7 @@
 			isa = PBXGroup;
 			children = (
 				5B3046752C6F599000B33157 /* MessageViewModel.swift */,
+				5BE2CF9C2D4CDBA600E9DB1A /* MessageTypeBadge.swift */,
 			);
 			path = MessageView;
 			sourceTree = "<group>";
@@ -1066,6 +1074,7 @@
 				5B61F7242CB93F8D006C0C92 /* ProfileAttributesView.swift in Sources */,
 				5B0F25972AFE959E00226455 /* Date+Extension.swift in Sources */,
 				5B0F25872AFE786000226455 /* RandomWordGenerator.swift in Sources */,
+				5BE2CF9E2D4CDBA600E9DB1A /* MessageTypeBadge.swift in Sources */,
 				5B0F25962AFE959E00226455 /* DateFormatter+Shared.swift in Sources */,
 				5B80C84A2B35E45A00F882F8 /* Message+Deleting.swift in Sources */,
 				5B34FF2A2D157C5E0033F0C1 /* ConfigurationProfileAttributesEditorView.swift in Sources */,
@@ -1135,6 +1144,7 @@
 				5B34FF2E2D15AF1B0033F0C1 /* SendButtonStyle.swift in Sources */,
 				5BFDDAED2B51A408009DDCDA /* MultipleMessagesView.swift in Sources */,
 				5B141C2E2C134A4B00597F70 /* TimeInterval+Extension.swift in Sources */,
+				5BE2CFA02D4D0E9800E9DB1A /* Modify.swift in Sources */,
 				5BA2D65A2CC26D38004783B7 /* Spacings.swift in Sources */,
 				5BBE54A22C53D961008F25CC /* RemoveAccountUseCase.swift in Sources */,
 				5B34FF282D1579620033F0C1 /* ContactsProfileAttributesEditorView.swift in Sources */,
@@ -1193,6 +1203,7 @@
 				5BDA2ECC2C5CCF48009FB2BD /* ProfileAttribute+Info.swift in Sources */,
 				5BDA2ECD2C5CCF48009FB2BD /* AsyncButton.swift in Sources */,
 				5BDD1D312CA69590004AF1D5 /* ReadersView.swift in Sources */,
+				5BE2CF9D2D4CDBA600E9DB1A /* MessageTypeBadge.swift in Sources */,
 				5BDA2ECE2C5CCF48009FB2BD /* TimeInterval+Extension.swift in Sources */,
 				5BDA2ECF2C5CCF48009FB2BD /* SnackBar.swift in Sources */,
 				5BDA2ED02C5CCF48009FB2BD /* SyncServiceMock.swift in Sources */,
@@ -1200,6 +1211,7 @@
 				5BD1FA682C664C2A00DE4B5D /* SettingsView.swift in Sources */,
 				5BD1FA632C661CA400DE4B5D /* MessageListItemView.swift in Sources */,
 				5BDA2ED22C5CCF48009FB2BD /* EmailClientMock.swift in Sources */,
+				5BE2CFA12D4D0E9800E9DB1A /* Modify.swift in Sources */,
 				5BDA2ED32C5CCF48009FB2BD /* MessageStoreMock.swift in Sources */,
 				5BD1FA6C2C66551E00DE4B5D /* TrustedDomainsSettingsView.swift in Sources */,
 				5BD1FA652C663DC400DE4B5D /* MessagesTabView.swift in Sources */,

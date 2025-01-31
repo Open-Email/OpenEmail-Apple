@@ -3,6 +3,7 @@ import SwiftUI
 struct MessagesTabView: View {
     @State private var selectedScope: SidebarScope? = .inbox
     @State private var selectedMessageID: String?
+    @State var tabBarVisibility: Visibility = .visible
 
     var body: some View {
         NavigationSplitView(
@@ -24,12 +25,20 @@ struct MessagesTabView: View {
                     selectedScope: selectedScope,
                     selectedMessageID: $selectedMessageID
                 )
+                .onAppear {
+                    tabBarVisibility = .hidden
+                }
+                .onDisappear {
+                    tabBarVisibility = .visible
+                }
             } else {
                 Text("No selection")
                     .bold()
                     .foregroundStyle(.tertiary)
             }
         }
+        .toolbar(tabBarVisibility, for: .tabBar)
+        .animation(.default, value: tabBarVisibility)
     }
 
     @ViewBuilder
