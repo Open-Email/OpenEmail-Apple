@@ -123,6 +123,7 @@
 		5BA3D0282CDE42D000D969BD /* EmptyListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA3D0272CDE42D000D969BD /* EmptyListView.swift */; };
 		5BA3D02A2CDE4FF400D969BD /* ContactListItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA3D0292CDE4FF400D969BD /* ContactListItemView.swift */; };
 		5BB3A3F52B177DE70025E50A /* ContactsListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB3A3F42B177DE70025E50A /* ContactsListViewModel.swift */; };
+		5BB882012D4D22BE003A76F3 /* AttachmentItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB882002D4D22BD003A76F3 /* AttachmentItemView.swift */; };
 		5BB910512CF9E80B00D2D8A5 /* ConditionalModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB910502CF9E80B00D2D8A5 /* ConditionalModifier.swift */; };
 		5BB910522CF9E80B00D2D8A5 /* ConditionalModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB910502CF9E80B00D2D8A5 /* ConditionalModifier.swift */; };
 		5BBE54A22C53D961008F25CC /* RemoveAccountUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BBE54A12C53D961008F25CC /* RemoveAccountUseCase.swift */; };
@@ -321,6 +322,7 @@
 		5BA3D0272CDE42D000D969BD /* EmptyListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyListView.swift; sourceTree = "<group>"; };
 		5BA3D0292CDE4FF400D969BD /* ContactListItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactListItemView.swift; sourceTree = "<group>"; };
 		5BB3A3F42B177DE70025E50A /* ContactsListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsListViewModel.swift; sourceTree = "<group>"; };
+		5BB882002D4D22BD003A76F3 /* AttachmentItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentItemView.swift; sourceTree = "<group>"; };
 		5BB910502CF9E80B00D2D8A5 /* ConditionalModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConditionalModifier.swift; sourceTree = "<group>"; };
 		5BBE54A12C53D961008F25CC /* RemoveAccountUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoveAccountUseCase.swift; sourceTree = "<group>"; };
 		5BBE54AC2C5CCD3C008F25CC /* OpenEmail.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpenEmail.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -815,6 +817,7 @@
 				5BD1FA752C6A3F8600DE4B5D /* MessageView.swift */,
 				5B3046802C6F863000B33157 /* AttachmentsListView.swift */,
 				5B3046812C6F863000B33157 /* AttachmentsListViewModel.swift */,
+				5BB882002D4D22BD003A76F3 /* AttachmentItemView.swift */,
 			);
 			path = MessageView;
 			sourceTree = "<group>";
@@ -1245,6 +1248,7 @@
 				5BD1FA602C6606E600DE4B5D /* MessagesListView.swift in Sources */,
 				5B99FAA42CD5056A00EF58DB /* ActionButtonStyle.swift in Sources */,
 				5BDA2F172C5D0FF8009FB2BD /* OnboardingNewAccountView.swift in Sources */,
+				5BB882012D4D22BE003A76F3 /* AttachmentItemView.swift in Sources */,
 				5BDA2EDC2C5CCF48009FB2BD /* RandomWordGenerator.swift in Sources */,
 				5BDA2EDD2C5CCF48009FB2BD /* String+Truncating.swift in Sources */,
 				5BDA2EDE2C5CCF48009FB2BD /* Formatters.swift in Sources */,

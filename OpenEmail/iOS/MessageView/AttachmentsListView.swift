@@ -3,8 +3,8 @@ import OpenEmailModel
 import OpenEmailCore
 import QuickLook
 import CoreTransferable
+import Flow
 
-@MainActor
 struct AttachmentsListView: View {
     var viewModel: AttachmentsListViewModel
 
@@ -22,30 +22,39 @@ struct AttachmentsListView: View {
     var body: some View {
         @Bindable var viewModel = viewModel
 
-        List(selection: $selection) {
-            ForEach(viewModel.items) { item in
-                attachmentItemView(item: item)
-            }
-        }
-        .contextMenu(forSelectionType: AttachmentItem.ID.self) { itemIDs in
-            messageFileContextMenuItems(itemIDs: itemIDs)
-        } primaryAction: { itemIDs in
-            if 
-                let itemID = itemIDs.first,
-                let item = viewModel.attachmentItem(withId: itemID),
-                let attachment = item.attachment
-            {
-                if let url = attachmentsManager.fileUrl(for: attachment) {
-                    previewFileUrl = url
-                } else {
-                    if attachment.isBig && networkConnectionMonitor.isOnCellular {
-                        selectedAttachmentItem = item
-                        showDownloadBigFileWarning = true
-                    } else {
-                        attachmentsManager.download(attachment: attachment)
+        VStack(alignment: .leading, spacing: .Spacing.small) {
+            Text("Attachments (\(viewModel.items.count))")
+                .font(.headline)
+
+            HFlow(alignment: .top, itemSpacing: .Spacing.small, rowSpacing: .Spacing.small) {
+                ForEach(viewModel.items) { item in
+                    AttachmentItemView(
+                        item: item,
+                        isDraft: viewModel.isDraft,
+                        isMessageDeleted: viewModel.isMessageDeleted,
+                        onDownload: { attachment in
+                            if attachment.isBig && networkConnectionMonitor.isOnCellular {
+                                selectedAttachmentItem = item
+                                showDownloadBigFileWarning = true
+                            } else {
+                                attachmentsManager.download(attachment: attachment)
+                            }
+                        }
+                    )
+                    .contextMenu {
+                        messageFileContextMenuItems(item: item)
+                    }
+                    .onTapGesture {
+                        if
+                            let attachment = item.attachment,
+                            let url = attachmentsManager.fileUrl(for: attachment)
+                        {
+                            previewFileUrl = url
+                        }
                     }
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .quickLookPreview($previewFileUrl)
         .background(
@@ -96,93 +105,32 @@ struct AttachmentsListView: View {
     }
 
     @ViewBuilder @MainActor
-    private func messageFileContextMenuItems(itemIDs: Set<AttachmentItem.ID>) -> some View {
-        if itemIDs.count == 1 { // only single item supported
-            if 
-                let itemID = itemIDs.first,
-                let attachment = viewModel.attachment(withItemId: itemID),
-                let fileUrl = attachmentsManager.fileUrl(for: attachment)
-            {
-                Button {
-                    previewFileUrl = fileUrl
-                } label: {
-                    Text("Quick Look")
-                    Image(systemName: "eye")
-                }
+    private func messageFileContextMenuItems(item: AttachmentItem) -> some View {
+        if
+            let attachment = item.attachment,
+            let fileUrl = attachmentsManager.fileUrl(for: attachment)
+        {
+            Button {
+                previewFileUrl = fileUrl
+            } label: {
+                Text("Quick Look")
+                Image(systemName: "eye")
+            }
 
-                Button {
-                    savedFileUrl = fileUrl
-                } label: {
-                    Text("Save to Files")
-                    Image(systemName: "folder")
-                }
+            Button {
+                savedFileUrl = fileUrl
+            } label: {
+                Text("Save to Files")
+                Image(systemName: "folder")
+            }
 
-                Button {
-                    sharedFileUrl = fileUrl
-                } label: {
-                    Text("Share")
-                    Image(systemName: "square.and.arrow.up")
-                }
+            Button {
+                sharedFileUrl = fileUrl
+            } label: {
+                Text("Share")
+                Image(systemName: "square.and.arrow.up")
             }
         }
-    }
-
-    @ViewBuilder
-    private func attachmentItemView(item: AttachmentItem) -> some View {
-        HStack {
-            let isMissingDraftFile = viewModel.isDraft && !item.isAvailable
-            let attachmentNotDownloaded = !viewModel.isDraft && !item.isAvailable
-
-            if isMissingDraftFile {
-                WarningIcon()
-            } else {
-                item.icon.swiftUIImage
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(height: 40)
-            }
-
-            VStack(alignment: .leading) {
-                Text(item.displayName)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                    .help(item.displayName)
-
-                if let formattedFileSize = item.formattedFileSize {
-                    Text(formattedFileSize)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .foregroundStyle(isMissingDraftFile ? Color.red : Color.primary)
-
-            if attachmentNotDownloaded, let attachment = item.attachment {
-                Spacer()
-
-                if let downloadInfo = attachmentsManager.downloadInfos[attachment.id], !viewModel.isMessageDeleted {
-                    if let error = downloadInfo.progress.error {
-                        HStack {
-                            ErrorIcon().help(error.localizedDescription)
-                            downloadIcon
-                        }
-                    } else {
-                        ProgressView()
-                            .progressViewStyle(.circular)
-                    }
-                } else {
-                    downloadIcon
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var downloadIcon: some View {
-        Image(systemName: "icloud.and.arrow.down")
-            .resizable()
-            .aspectRatio(contentMode: .fit)
-            .frame(width: 16)
-            .foregroundStyle(.secondary)
     }
 }
 
@@ -209,5 +157,6 @@ private extension Attachment {
 
     let viewModel = AttachmentsListViewModel(localUserAddress: "pera@toons.com", message: messageStore.stubMessages[0], attachments: [attachment1, attachment2, attachment3])
     return AttachmentsListView(viewModel: viewModel)
+        .padding()
 }
 #endif

@@ -40,20 +40,6 @@ struct MessageView: View {
                         } message: {
                             Text("This action cannot be undone.")
                         }
-                        .popover(isPresented: $showFilesPopover) {
-                            if let attachmentsListViewModel {
-                                NavigationView {
-                                    AttachmentsListView(viewModel: attachmentsListViewModel)
-                                        .navigationTitle("Attachments")
-                                        .navigationBarTitleDisplayMode(.inline)
-                                        .toolbar {
-                                            Button("Close", role: .cancel) {
-                                                showFilesPopover = false
-                                            }
-                                        }
-                                }
-                            }
-                        }
                         .navigationBarTitleDisplayMode(.inline)
                 }
             }
@@ -212,6 +198,11 @@ struct MessageView: View {
                 Divider()
 
                 StaticTextEditorView(string: .constant(message.body ?? ""))
+
+                if let attachmentsListViewModel, !attachmentsListViewModel.items.isEmpty {
+                    Divider()
+                    AttachmentsListView(viewModel: attachmentsListViewModel)
+                }
             }
             .padding()
             .frame(maxWidth: .infinity, alignment: .topLeading)
