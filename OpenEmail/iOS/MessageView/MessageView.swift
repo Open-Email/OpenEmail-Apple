@@ -19,6 +19,7 @@ struct MessageView: View {
     @State private var showRecallConfirmationAlert = false
     @State private var showAuthorProfilePopover = false
     @State private var showFilesPopover = false
+    @State private var toolbarBarVisibility: Visibility = .hidden
 
     init(messageID: String, selectedScope: SidebarScope, selectedMessageID: Binding<String?>) {
         viewModel = MessageViewModel(messageID: messageID)
@@ -50,26 +51,6 @@ struct MessageView: View {
                                                 showFilesPopover = false
                                             }
                                         }
-                                }
-                            }
-                        }
-                        .toolbar {
-                            ToolbarItem(placement: .navigationBarTrailing) {
-                                Menu {
-                                    // TODO: draft action buttons
-                                    actionButtons(message: message)
-                                } label: {
-                                    Image(systemName: "ellipsis.circle")
-                                }
-                            }
-
-                            if message.hasFiles {
-                                ToolbarItem {
-                                    Button {
-                                        showFilesPopover = true
-                                    } label: {
-                                        Image(systemName: "paperclip")
-                                    }
                                 }
                             }
                         }
@@ -113,50 +94,45 @@ struct MessageView: View {
         }
     }
 
-    @ViewBuilder
-    private func actionButtons(message: Message) -> some View {
-        Button {
-            guard let registeredEmailAddress else { return }
-            // TODO
-        } label: {
-            Image(systemName: "arrowshape.turn.up.left")
-            Text("Reply")
-        }
+    @ToolbarContentBuilder
+    private func toolbarContent(message: Message) -> some ToolbarContent {
+        ToolbarItemGroup(placement: .bottomBar) {
+            if selectedScope == .outbox {
+                recallButton(message: message)
+            } else {
+                if selectedScope == .trash && message.author != registeredEmailAddress {
+                    undeleteButton
+                    Spacer()
+                    deleteButton(message: message)
+                } else {
+                    deleteButton(message: message)
+                }
+            }
 
-        if message.readers.count > 1 {
-            Button {
+            Spacer()
+            Button("Reply", image: .reply) {
+                guard let registeredEmailAddress else { return }
                 // TODO
-            } label: {
-                Image(systemName: "arrowshape.turn.up.left.2")
-                Text("Reply all")
-            }
-        }
-
-        Button {
-            // TODO
-        } label: {
-            Image(systemName: "arrowshape.forward")
-            Text("Forward")
-        }
-
-        if selectedScope == .outbox {
-            recallButton(message: message)
-        } else {
-            if selectedScope == .trash && message.author != registeredEmailAddress {
-                undeleteButton
             }
 
-            deleteButton(message: message)
+            if message.readers.count > 1 {
+                Spacer()
+                Button("Reply all", image: .replyAll) {
+                    // TODO
+                }
+            }
+
+            Spacer()
+            Button("Forward", image: .forward) {
+                // TODO
+            }
         }
     }
 
     @ViewBuilder
     private func recallButton(message: Message) -> some View {
-        Button {
+        Button("Delete", image: .trash) {
             showRecallConfirmationAlert = true
-        } label: {
-            Image(systemName: "trash")
-            Text("Delete")
         }
         .disabled(!viewModel.syncService.isActiveOutgoingMessageId(message.id))
         .alert(
@@ -199,9 +175,9 @@ struct MessageView: View {
                 Log.error("Could not mark message as undeleted: \(error)")
             }
         } label: {
-            Image(systemName: "trash.slash")
-            Text("Undelete")
+            Image(.undelete)
         }
+        .help("Undelete")
     }
 
     @ViewBuilder
@@ -218,34 +194,63 @@ struct MessageView: View {
                 }
             }
         } label: {
-            Image(systemName: "trash")
-            Text("Delete")
+            Image(.trash)
         }
+        .help("Delete")
     }
 
     @ViewBuilder
     private func messageView(message: Message) -> some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: .Spacing.default) {
                 header(message: message)
 
                 Divider()
 
-                VStack(spacing: 0) {
-                    StaticTextEditorView(string: .constant(message.subject), font: .title2.bold())
-                    StaticTextEditorView(string: .constant(message.body ?? ""))
-                }
+                readers(message: message)
+
+                Divider()
+
+                StaticTextEditorView(string: .constant(message.body ?? ""))
             }
             .padding()
             .frame(maxWidth: .infinity, alignment: .topLeading)
         }
+        .toolbar {
+            toolbarContent(message: message)
+        }
+        .toolbarBackground(.thinMaterial, for: .bottomBar)
+        .toolbar(toolbarBarVisibility, for: .bottomBar)
+        .modify {
+            if #available(iOS 18.0, *) {
+                $0.toolbarBackgroundVisibility(.visible, for: .bottomBar)
+            }
+        }
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                toolbarBarVisibility = .visible
+            }
+        }
+        .animation(.default, value: toolbarBarVisibility)
     }
 
     @ViewBuilder
     private func header(message: Message) -> some View {
-        HStack(alignment: .top) {
-            authorProfileImage(address: message.author)
-            authorAndReadersLine(message: message)
+        VStack(alignment: .leading, spacing: .Spacing.large) {
+            HStack(alignment: .top, spacing: .Spacing.small) {
+                Text(message.subject)
+                    .font(.title2)
+                    .textSelection(.enabled)
+
+                MessageTypeBadge(scope: selectedScope)
+            }
+
+            HStack(alignment: .top) {
+                authorProfileImage(address: message.author)
+                authorInfo(message: message)
+                Spacer()
+                sendDateLine(message: message)
+            }
         }
     }
 
@@ -273,52 +278,24 @@ struct MessageView: View {
     }
 
     @ViewBuilder
-    private func authorAndReadersLine(message: Message) -> some View {
+    private func authorInfo(message: Message) -> some View {
         if message.isBroadcast {
             HStack {
                 HStack(spacing: 2) {
-                    Image(systemName: "dot.radiowaves.left.and.right")
-                    Text("Broadcast".uppercased())
-                        .bold()
-                    Spacer()
-                    sendDateLine(message: message)
+                    Image(.scopeBroadcasts)
+                    Text("Broadcast")
                 }
             }
         } else {
-            VStack(alignment: .leading) {
-                HStack {
+            VStack(alignment: .leading, spacing: 0) {
+                if let profile = viewModel.authorProfile {
+                    Text(profile.name).font(.headline)
                     Text(message.author)
-                        .font(.headline)
-                    Spacer()
-                    sendDateLine(message: message)
+                } else {
+                    Text(message.author).font(.headline)
                 }
-
-                HStack(alignment: .top) {
-                    let readersBinding = Binding<[EmailAddress]>(
-                        get: {
-                            viewModel.message?.readers.compactMap {
-                                EmailAddress($0)
-                            } ?? []
-                        },
-                        set: { _ in /* read only */ }
-                    )
-                    let deliveries = Binding<[String]>(
-                        get: {
-                            viewModel.message?.deliveries ?? []
-                        },
-                        set: { _ in /* read only */ }
-                    )
-
-                    ReadersView(
-                        isEditable: false,
-                        readers: readersBinding,
-                        tickedReaders: deliveries,
-                        hasInvalidReader: .constant(false),
-                        prefixLabel: "To:"
-                    )
-                }
-                .font(.subheadline)
             }
+            .frame(maxHeight: .infinity)
         }
     }
 
@@ -327,6 +304,34 @@ struct MessageView: View {
         Text(message.formattedAuthoredOnDate)
             .font(.subheadline)
             .foregroundStyle(.tertiary)
+    }
+
+    @ViewBuilder
+    private func readers(message: Message) -> some View {
+        VStack(alignment: .leading, spacing: .Spacing.small) {
+            let readersBinding = Binding<[EmailAddress]>(
+                get: {
+                    viewModel.message?.readers.compactMap {
+                        EmailAddress($0)
+                    } ?? []
+                },
+                set: { _ in /* read only */ }
+            )
+            let deliveries = Binding<[String]>(
+                get: {
+                    viewModel.message?.deliveries ?? []
+                },
+                set: { _ in /* read only */ }
+            )
+
+            ReadersView(
+                isEditable: false,
+                readers: readersBinding,
+                tickedReaders: deliveries,
+                hasInvalidReader: .constant(false),
+                prefixLabel: nil
+            )
+        }
     }
 
     private func permanentlyDelete() async {
@@ -354,28 +359,28 @@ private struct StaticTextEditorView: View {
     @State var textEditorHeight: CGFloat = 20
     @State var font: Font = .system(.body)
 
+    private let marginOffset: CGFloat = 5
+
     var body: some View {
         ZStack(alignment: .leading) {
             Text(string)
                 .font(font)
                 .foregroundColor(.clear)
-                .padding(5)
+                .padding(marginOffset)
                 .background(GeometryReader {
-                    Color.clear.preference(key: ViewHeightKey.self,
-                                           value: $0.frame(in: .local).size.height)
+                    Color.clear.preference(key: ViewHeightKey.self, value: $0.frame(in: .local).size.height + 2 * marginOffset)
                 })
 
             TextEditor(text: $string)
                 .inspect {
                     $0.isEditable = false
-                    $0.textContainerInset = .zero
-                    $0.contentInset = .init(top: 0, left: -5, bottom: 0, right: -5)
                 }
                 .font(font)
                 .frame(height: max(0, textEditorHeight))
                 .scrollDisabled(true)
         }
         .onPreferenceChange(ViewHeightKey.self) { textEditorHeight = $0 }
+        .padding(-marginOffset)
     }
 }
 
@@ -409,7 +414,7 @@ struct ViewHeightKey: PreferenceKey {
 #Preview("Short text") {
     let messageStore = MessageStoreMock()
     messageStore.stubMessages = [
-        .makeRandom(id: "1", subject: "This is a long subject that will spread to multiple lines", body: "Hello"),
+        .makeRandom(id: "1", subject: "Hello", body: "Hello"),
     ]
     InjectedValues[\.messagesStore] = messageStore
 

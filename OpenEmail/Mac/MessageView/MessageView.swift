@@ -161,7 +161,7 @@ struct MessageView: View {
                     .bold()
 
                 if let message {
-                    messageTypeBadge(message: message)
+                    MessageTypeBadge(scope: navigationState.selectedScope)
 
                     Spacer()
 
@@ -464,33 +464,6 @@ struct MessageView: View {
                 .lineSpacing(5)
         } else {
             Text("Loading…").italic().disabled(true)
-        }
-    }
-
-    @ViewBuilder
-    private func messageTypeBadge(message: Message) -> some View {
-        let text: String? = {
-            switch navigationState.selectedScope {
-            case .broadcasts: "Broadcast"
-            case .inbox: "Incoming"
-            case .outbox: "Outgoing"
-            case .drafts: "Draft"
-            case .trash: nil
-            case .contacts: nil
-            }
-        }()
-
-        if let text {
-            Text(text)
-                .fontWeight(.semibold)
-                .padding(.horizontal, .Spacing.xSmall)
-                .padding(.vertical, .Spacing.xxSmall)
-                .background {
-                    RoundedRectangle(cornerRadius: .CornerRadii.small)
-                        .fill(.themeBadgeBackground)
-                }
-        } else {
-            EmptyView()
         }
     }
 

@@ -76,9 +76,7 @@ struct ReadersView: View {
                 Text(prefixLabel)
             }
 
-            ForEach(Array(readers.enumerated()), id: \.offset) {
-                index,
-                reader in
+            ForEach(Array(readers.enumerated()), id: \.offset) { index, reader in
                 // don't show reader if it is myself, except when I am the only reader or when composing a message
                 if reader.address != registeredEmailAddress || readers.count == 1 || isEditable {
                     ProfileTagView(
