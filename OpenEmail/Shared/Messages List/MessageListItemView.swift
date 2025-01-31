@@ -112,9 +112,10 @@ struct MessageListItemView: View {
             Text(message.formattedAuthoredOnDate)
                 .foregroundStyle(.secondary)
                 .monospacedDigit()
+            #if os(iOS)
+                .font(.subheadline)
+            #endif
         }
-        .padding(.Spacing.default)
-        .listRowSeparator(.hidden)
         .task {
             // fetch cached profile names
             if scope == .outbox {

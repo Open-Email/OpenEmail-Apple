@@ -34,6 +34,8 @@ struct MessagesListView: View {
                             message: message,
                             scope: navigationState.selectedScope
                         )
+                        .padding(.Spacing.default)
+                        .listRowSeparator(.hidden)
                     }
                 } header: {
                     Text(navigationState.selectedScope.displayName)
