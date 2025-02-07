@@ -49,7 +49,7 @@ struct ProfileView: View {
                         receiveBroadcasts: canEditReceiveBroadcasts ? $viewModel.receiveBroadcasts : nil,
                         isEditable: false,
                         hidesEmptyFields: true,
-                        showsProfileImage: true
+                        profileImageStyle: .shape()
                     )
                 } else {
                     HStack(alignment: .top, spacing: .Spacing.default) {
@@ -65,7 +65,7 @@ struct ProfileView: View {
                             receiveBroadcasts: canEditReceiveBroadcasts ? $viewModel.receiveBroadcasts : nil,
                             isEditable: false,
                             hidesEmptyFields: true,
-                            showsProfileImage: false
+                            profileImageStyle: .none
                         )
                     }
                     .padding(.leading, .Spacing.default)

@@ -3,7 +3,7 @@ import OpenEmailModel
 import OpenEmailCore
 import Inspect
 
-struct ProfileAttributesView<FooterSection: View, ActionButtonRow: View>: View {
+struct ProfileAttributesView<ActionButtonRow: View>: View {
     enum ProfileImageStyle {
         case none
         case fullWidthHeader(height: CGFloat)
@@ -25,7 +25,6 @@ struct ProfileAttributesView<FooterSection: View, ActionButtonRow: View>: View {
     private let isEditable: Bool
     private let hidesEmptyFields: Bool
     private let profileImageStyle: ProfileImageStyle
-    @ViewBuilder private var footerSection: () -> FooterSection
     @ViewBuilder private var actionButtonRow: () -> ActionButtonRow
 
     init(
@@ -34,7 +33,6 @@ struct ProfileAttributesView<FooterSection: View, ActionButtonRow: View>: View {
         isEditable: Bool,
         hidesEmptyFields: Bool = false,
         profileImageStyle: ProfileImageStyle,
-        footerSection: @escaping () -> FooterSection = { EmptyView() },
         actionButtonRow: @escaping () -> ActionButtonRow = { EmptyView() }
     ) {
         _profile = profile
@@ -42,7 +40,6 @@ struct ProfileAttributesView<FooterSection: View, ActionButtonRow: View>: View {
         self.isEditable = isEditable
         self.hidesEmptyFields = hidesEmptyFields
         self.profileImageStyle = profileImageStyle
-        self.footerSection = footerSection
         self.actionButtonRow = actionButtonRow
     }
 
@@ -117,8 +114,6 @@ struct ProfileAttributesView<FooterSection: View, ActionButtonRow: View>: View {
                         }
                     }
                 }
-
-                footerSection()
             }
 #if os(macOS)
             .inspect { tableView in
