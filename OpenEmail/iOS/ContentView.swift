@@ -19,7 +19,7 @@ struct ContentView: View {
         TabView {
             MessagesTabView()
                 .tabItem {
-                    Image(systemName: "envelope")
+                    Image(.messagesTab)
                     Text("Messages")
                 }
 
@@ -31,7 +31,7 @@ struct ContentView: View {
 
             Text(registeredEmailAddress ?? "not logged in")
                 .tabItem {
-                    Image(systemName: "person.crop.circle")
+                    Image(.profileTab)
                     Text("Profile")
                 }
 
