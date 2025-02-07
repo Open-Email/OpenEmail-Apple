@@ -9,7 +9,7 @@ struct EmptyListView: View {
             ZStack {
                 Circle()
                     .fill(.themeIconBackground)
-                    .frame(width: 32, height: 32)
+                    .frame(width: .Spacing.xLarge, height: .Spacing.xLarge)
                 Image(icon)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
@@ -22,7 +22,7 @@ struct EmptyListView: View {
                 .font(.system(size: 14, weight: .medium))
         }
         .padding(.horizontal, .Spacing.small)
-        .frame(height: 56)
+        .frame(height: .Spacing.xxxLarge)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background {
             RoundedRectangle(cornerRadius: .CornerRadii.default)
@@ -30,4 +30,8 @@ struct EmptyListView: View {
         }
         .padding(.Spacing.default)
     }
+}
+
+#Preview {
+    EmptyListView(icon: .scopeContacts, text: "Empty List")
 }

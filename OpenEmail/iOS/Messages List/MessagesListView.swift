@@ -68,7 +68,7 @@ struct MessagesListView: View {
         }
         .overlay {
             if viewModel.messages.isEmpty && searchText.isEmpty {
-                makeEmptyView()
+                EmptyListView(icon: selectedScope.imageResource, text: "Your \(selectedScope.displayName) message list is empty.")
             }
         }
         .sheet(isPresented: $showsComposeView) {
@@ -101,20 +101,6 @@ struct MessagesListView: View {
         Task {
             await viewModel.reloadMessagesFromStore(searchText: searchText, scope: selectedScope)
         }
-    }
-
-    @ViewBuilder
-    private func makeEmptyView() -> some View {
-        VStack(spacing: .Spacing.small) {
-            Image(selectedScope.imageResource)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(height: .Spacing.large)
-                .padding(.Spacing.xSmall)
-            Text("Your \(selectedScope.displayName) message list is empty.")
-                .font(.callout)
-        }
-        .foregroundStyle(.secondary)
     }
 
     @ViewBuilder

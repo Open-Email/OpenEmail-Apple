@@ -16,7 +16,7 @@ struct MessagesTabView: View {
                 MessagesListView(selectedScope: selectedScope, selectedMessageID: $selectedMessageID)
                     .navigationTitle(selectedScope.displayName)
             } else {
-                makeEmptyView()
+                EmptyListView(icon: .messagesTab, text: "No folder selected.")
             }
         } detail: {
             if let selectedMessageID, let selectedScope {
@@ -39,19 +39,6 @@ struct MessagesTabView: View {
         }
         .toolbar(tabBarVisibility, for: .tabBar)
         .animation(.default, value: tabBarVisibility)
-    }
-
-    @ViewBuilder
-    private func makeEmptyView() -> some View {
-        VStack {
-            Image(systemName: "envelope.circle")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(height: 30)
-            Text("No folder selected")
-                .bold()
-        }
-        .foregroundStyle(.tertiary)
     }
 }
 
