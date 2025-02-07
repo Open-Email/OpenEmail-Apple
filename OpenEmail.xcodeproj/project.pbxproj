@@ -216,6 +216,7 @@
 		5BE2CFA12D4D0E9800E9DB1A /* Modify.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE2CF9F2D4D0E9800E9DB1A /* Modify.swift */; };
 		5BE491642D561E250036DBBF /* ProfilePopoverToolbarModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE491632D561E250036DBBF /* ProfilePopoverToolbarModifier.swift */; };
 		5BE491672D562BB70036DBBF /* ProfileActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE491652D562A750036DBBF /* ProfileActionButton.swift */; };
+		5BE491722D5660120036DBBF /* EmptyListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA3D0272CDE42D000D969BD /* EmptyListView.swift */; };
 		5BE74D892C9D711E003997D6 /* SyncProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE74D882C9D711E003997D6 /* SyncProgressView.swift */; };
 		5BE74D8B2C9D794D003997D6 /* ComposeMessageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1698E1E02B98EA71009CB634 /* ComposeMessageViewModel.swift */; };
 		5BE74D8D2C9D7B8A003997D6 /* ComposeMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE74D8C2C9D7B8A003997D6 /* ComposeMessageView.swift */; };
@@ -497,6 +498,7 @@
 				5B34FF2D2D15AF1B0033F0C1 /* SendButtonStyle.swift */,
 				5B99FAA32CD5056A00EF58DB /* ActionButtonStyle.swift */,
 				5B1C37872D3A5A220017D57D /* OpenEmailTextFieldLabel.swift */,
+				5BA3D0272CDE42D000D969BD /* EmptyListView.swift */,
 			);
 			path = Theme;
 			sourceTree = "<group>";
@@ -696,7 +698,6 @@
 				5B7C807C2AEBF1110088E2EA /* ContentView.swift */,
 				5B7C81072AF5175F0088E2EA /* NavigationState.swift */,
 				5B66B4B92C09C89A00CA34EE /* SidebarView.swift */,
-				5BA3D0272CDE42D000D969BD /* EmptyListView.swift */,
 				5B8C60E52D0365E400FEF5F1 /* OpenEmailTextEditor.swift */,
 				5B43DD732D314F5E002CC7B0 /* NSTextView+Background.swift */,
 				5BD144D82D43867C00BAAA3A /* Theme */,
@@ -1226,6 +1227,7 @@
 				5BD1FA6C2C66551E00DE4B5D /* TrustedDomainsSettingsView.swift in Sources */,
 				5BD1FA652C663DC400DE4B5D /* MessagesTabView.swift in Sources */,
 				5BE74D892C9D711E003997D6 /* SyncProgressView.swift in Sources */,
+				5BE491722D5660120036DBBF /* EmptyListView.swift in Sources */,
 				5BDA2EFD2C5CE1BC009FB2BD /* OnboardingExistingAccountView.swift in Sources */,
 				5BDA2ED42C5CCF48009FB2BD /* ContactRequestsController.swift in Sources */,
 				5B9DBEA72CAFEFA4009B37F1 /* ComposeAttachmentsListView.swift in Sources */,
