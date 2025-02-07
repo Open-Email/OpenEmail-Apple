@@ -255,13 +255,8 @@ struct MessageView: View {
                 if let emailAddress = EmailAddress(address) {
                     NavigationStack {
                         ProfileView(emailAddress: emailAddress, showActionButtons: false)
-                            .toolbar {
-                                Button(role: .cancel) {
-                                    showAuthorProfilePopover = false
-                                } label: {
-                                    Image(systemName: "xmark")
-                                }
-                                .foregroundStyle(.white)
+                            .profilePopoverToolbar {
+                                showAuthorProfilePopover = false
                             }
                     }
                 }

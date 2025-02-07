@@ -214,6 +214,8 @@
 		5BE2CF9E2D4CDBA600E9DB1A /* MessageTypeBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE2CF9C2D4CDBA600E9DB1A /* MessageTypeBadge.swift */; };
 		5BE2CFA02D4D0E9800E9DB1A /* Modify.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE2CF9F2D4D0E9800E9DB1A /* Modify.swift */; };
 		5BE2CFA12D4D0E9800E9DB1A /* Modify.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE2CF9F2D4D0E9800E9DB1A /* Modify.swift */; };
+		5BE491642D561E250036DBBF /* ProfilePopoverToolbarModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE491632D561E250036DBBF /* ProfilePopoverToolbarModifier.swift */; };
+		5BE491672D562BB70036DBBF /* ProfileActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE491652D562A750036DBBF /* ProfileActionButton.swift */; };
 		5BE74D892C9D711E003997D6 /* SyncProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE74D882C9D711E003997D6 /* SyncProgressView.swift */; };
 		5BE74D8B2C9D794D003997D6 /* ComposeMessageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1698E1E02B98EA71009CB634 /* ComposeMessageViewModel.swift */; };
 		5BE74D8D2C9D7B8A003997D6 /* ComposeMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE74D8C2C9D7B8A003997D6 /* ComposeMessageView.swift */; };
@@ -369,6 +371,8 @@
 		5BDD1D352CA69A9B004AF1D5 /* TokenTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenTextField.swift; sourceTree = "<group>"; };
 		5BE2CF9C2D4CDBA600E9DB1A /* MessageTypeBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageTypeBadge.swift; sourceTree = "<group>"; };
 		5BE2CF9F2D4D0E9800E9DB1A /* Modify.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Modify.swift; sourceTree = "<group>"; };
+		5BE491632D561E250036DBBF /* ProfilePopoverToolbarModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePopoverToolbarModifier.swift; sourceTree = "<group>"; };
+		5BE491652D562A750036DBBF /* ProfileActionButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileActionButton.swift; sourceTree = "<group>"; };
 		5BE74D882C9D711E003997D6 /* SyncProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncProgressView.swift; sourceTree = "<group>"; };
 		5BE74D8C2C9D7B8A003997D6 /* ComposeMessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeMessageView.swift; sourceTree = "<group>"; };
 		5BECC7C32B922C6500143BD6 /* ProfileAttribute+Title.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProfileAttribute+Title.swift"; sourceTree = "<group>"; };
@@ -467,6 +471,8 @@
 				5BDD1D302CA69590004AF1D5 /* ReadersView.swift */,
 				5BDD1D342CA69A9B004AF1D5 /* ReaderToken.swift */,
 				5B30466D2C6F2AD000B33157 /* ProfileView.swift */,
+				5BE491632D561E250036DBBF /* ProfilePopoverToolbarModifier.swift */,
+				5BE491652D562A750036DBBF /* ProfileActionButton.swift */,
 			);
 			path = Profile;
 			sourceTree = "<group>";
@@ -1207,6 +1213,7 @@
 				5BDA2ECD2C5CCF48009FB2BD /* AsyncButton.swift in Sources */,
 				5BDD1D312CA69590004AF1D5 /* ReadersView.swift in Sources */,
 				5BE2CF9D2D4CDBA600E9DB1A /* MessageTypeBadge.swift in Sources */,
+				5BE491672D562BB70036DBBF /* ProfileActionButton.swift in Sources */,
 				5BDA2ECE2C5CCF48009FB2BD /* TimeInterval+Extension.swift in Sources */,
 				5BDA2ECF2C5CCF48009FB2BD /* SnackBar.swift in Sources */,
 				5BDA2ED02C5CCF48009FB2BD /* SyncServiceMock.swift in Sources */,
@@ -1237,6 +1244,7 @@
 				5B3046862C6FA82A00B33157 /* ActivityView.swift in Sources */,
 				5B3046842C6F8AB000B33157 /* AttachmentsListView.swift in Sources */,
 				5BDA2ED92C5CCF48009FB2BD /* Date+Extension.swift in Sources */,
+				5BE491642D561E250036DBBF /* ProfilePopoverToolbarModifier.swift in Sources */,
 				5B30467A2C6F599E00B33157 /* ProfileImageView.swift in Sources */,
 				5BD144DD2D438EAD00BAAA3A /* OpenEmailTextFieldStyle.swift in Sources */,
 				5BDA2EDA2C5CCF48009FB2BD /* Message+Deleting.swift in Sources */,
@@ -1506,7 +1514,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColorMobile;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"OpenEmail/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "OpenEmail/Preview\\ Content";
 				DEVELOPMENT_TEAM = Y4RNS8259T;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1540,7 +1548,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColorMobile;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"OpenEmail/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "OpenEmail/Preview\\ Content";
 				DEVELOPMENT_TEAM = Y4RNS8259T;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;

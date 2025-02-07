@@ -3,43 +3,47 @@ import OpenEmailModel
 import OpenEmailCore
 import Inspect
 
-struct ProfileAttributesView<FooterSection: View>: View {
+struct ProfileAttributesView<FooterSection: View, ActionButtonRow: View>: View {
+    enum ProfileImageStyle {
+        case none
+        case fullWidthHeader(height: CGFloat)
+        case shape(
+            type: ProfileImageShapeType = .roundedRectangle(cornerRadius: .CornerRadii.default),
+            size: CGFloat = 288
+        )
+
+        var shouldIgnoreSafeArea: Bool {
+            switch self {
+            case .fullWidthHeader: true
+            default: false
+            }
+        }
+    }
+
     @Binding private var profile: Profile?
     private let receiveBroadcasts: Binding<Bool>?
     private let isEditable: Bool
     private let hidesEmptyFields: Bool
-    private let showsProfileImage: Bool
+    private let profileImageStyle: ProfileImageStyle
     @ViewBuilder private var footerSection: () -> FooterSection
+    @ViewBuilder private var actionButtonRow: () -> ActionButtonRow
 
     init(
         profile: Binding<Profile?>,
         receiveBroadcasts: Binding<Bool>?,
         isEditable: Bool,
         hidesEmptyFields: Bool = false,
-        showsProfileImage: Bool
-    ) where FooterSection == EmptyView {
-        _profile = profile
-        self.receiveBroadcasts = receiveBroadcasts
-        self.isEditable = isEditable
-        self.hidesEmptyFields = hidesEmptyFields
-        self.showsProfileImage = showsProfileImage
-        self.footerSection = { EmptyView() }
-    }
-
-    init(
-        profile: Binding<Profile?>,
-        receiveBroadcasts: Binding<Bool>?,
-        isEditable: Bool,
-        hidesEmptyFields: Bool = false,
-        showsProfileImage: Bool,
-        footerSection: @escaping () -> FooterSection
+        profileImageStyle: ProfileImageStyle,
+        footerSection: @escaping () -> FooterSection = { EmptyView() },
+        actionButtonRow: @escaping () -> ActionButtonRow = { EmptyView() }
     ) {
         _profile = profile
         self.receiveBroadcasts = receiveBroadcasts
         self.isEditable = isEditable
         self.hidesEmptyFields = hidesEmptyFields
-        self.showsProfileImage = showsProfileImage
+        self.profileImageStyle = profileImageStyle
         self.footerSection = footerSection
+        self.actionButtonRow = actionButtonRow
     }
 
 #if canImport(UIKit)
@@ -52,18 +56,10 @@ struct ProfileAttributesView<FooterSection: View>: View {
         if let profile {
             List {
                 Section {
+                    profileImage(profile: profile)
+
                     // name and address
                     VStack(alignment: .leading, spacing: .Spacing.xxxSmall) {
-                        if showsProfileImage {
-                            ProfileImageView(
-                                emailAddress: profile.address.address,
-                                shape: .roundedRectangle(cornerRadius: .CornerRadii.default),
-                                size: 288
-                            )
-                            .padding(.top, -.Spacing.xxxSmall)
-                            .padding(.bottom, .Spacing.default)
-                        }
-
                         awayMessage
                             .padding(.bottom, .Spacing.default)
 
@@ -97,7 +93,9 @@ struct ProfileAttributesView<FooterSection: View>: View {
                             Divider()
                         }
                         .padding(.vertical, .Spacing.xxxSmall)
+                        #if os(macOS)
                         .listRowInsets(.init())
+                        #endif
                         .listRowSeparator(.hidden)
                     }
                 }
@@ -122,16 +120,61 @@ struct ProfileAttributesView<FooterSection: View>: View {
 
                 footerSection()
             }
+#if os(macOS)
             .inspect { tableView in
-                #if os(macOS)
                 tableView.floatsGroupRows = false
-                #endif
             }
+#endif
             .listStyle(.plain)
+#if os(iOS)
+            .if(profileImageStyle.shouldIgnoreSafeArea) {
+                $0.ignoresSafeArea(.container, edges: .top)
+            }
+#endif
             .scrollContentBackground(.hidden)
             .scrollBounceBehavior(.basedOnSize)
         } else {
             EmptyView()
+        }
+    }
+
+    @ViewBuilder
+    private func profileImage(profile: Profile) -> some View {
+        switch profileImageStyle {
+        case .none:
+            EmptyView()
+        case .fullWidthHeader(let height):
+            ProfileImageView(
+                emailAddress: profile.address.address,
+                shape: .rectangle,
+                size: height,
+                placeholder: {
+                    Text($0)
+                        .foregroundStyle(.white)
+                        .font(.system(size: 30))
+                        .fontWeight(.semibold)
+                }
+            )
+            .background(.accent.gradient)
+            .clipped()
+#if os(iOS)
+            // account for additional padding
+            .padding(.horizontal, -20)
+            .padding(.top, -11)
+            .overlay(alignment: .bottom) {
+                actionButtonRow()
+                    .padding(.Spacing.default)
+            }
+#endif
+
+        case let .shape(type, size):
+            ProfileImageView(
+                emailAddress: profile.address.address,
+                shape: type,
+                size: size
+            )
+            .padding(.top, -.Spacing.xxxSmall)
+            .padding(.bottom, .Spacing.default)
         }
     }
 
@@ -372,22 +415,49 @@ struct InfoButton: View {
         .popover(isPresented: $isShowingPopover) {
             Text(text).padding()
                 .foregroundStyle(.primary)
-            #if canImport(UIKit)
+#if canImport(UIKit)
                 .multilineTextAlignment(.leading)
                 .frame(width: 300)
                 .presentationCompactAdaptation(.popover)
-            #endif
+#endif
         }
     }
 }
 
 #Preview("editable") {
-    ProfileAttributesView(profile: .constant(.makeFake()), receiveBroadcasts: nil, isEditable: true, showsProfileImage: false)
+    ProfileAttributesView(
+        profile: .constant(.makeFake()),
+        receiveBroadcasts: nil,
+        isEditable: true,
+        profileImageStyle: .none
+    )
 }
 
 #Preview("not editable") {
-    ProfileAttributesView(profile: .constant(.makeFake(awayWarning: "Away")), receiveBroadcasts: .constant(false), isEditable: false, hidesEmptyFields: true, showsProfileImage: true)
-        .frame(height: 500)
+    #if os(macOS)
+    ProfileAttributesView(
+        profile: .constant(.makeFake(awayWarning: "Away")),
+        receiveBroadcasts: .constant(false),
+        isEditable: false,
+        hidesEmptyFields: true,
+        profileImageStyle: .shape()
+    )
+    .frame(height: 500)
+    #else
+    ProfileAttributesView(
+        profile: .constant(.makeFake(awayWarning: "Away")),
+        receiveBroadcasts: .constant(false),
+        isEditable: false,
+        hidesEmptyFields: true,
+        profileImageStyle: .fullWidthHeader(height: 300),
+        actionButtonRow: {
+            HStack {
+                ProfileActionButton(title: "Message", icon: .compose, action: {})
+                ProfileActionButton(title: "Refresh", icon: .refresh, action: {})
+            }
+        }
+    )
+    #endif
 }
 
 private struct VerticalLabeledContentStyle: LabeledContentStyle {

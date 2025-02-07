@@ -214,38 +214,33 @@ struct ReadersView: View {
                 ProfileView(emailAddress: emailAddress, showActionButtons: true, onProfileLoaded: { profile, _ in
                     presentedProfile = profile
                 })
-                .toolbar {
-                    Button(role: .cancel) {
-                        closeProfile()
-                    } label: {
-                        Image(systemName: "xmark")
-                    }
-                    .foregroundStyle(.white)
-                }
 
-                if let token = tokens.first(where: { $0.value == emailAddress.address }) {
-                    if isEditable && !token.isInMyContacts {
-                        HStack {
-                            Button("Remove Reader", role: .destructive) {
-                                onRemoveReader(token)
+                if
+                    isEditable,
+                    let token = tokens.first(where: { $0.value == emailAddress.address }),
+                    !token.isInMyContacts
+                {
+                    HStack {
+                        Button("Remove Reader", role: .destructive) {
+                            onRemoveReader(token)
+                            closeProfile()
+                        }
+
+                        if token.value != registeredEmailAddress {
+                            AsyncButton("Add Contact") {
+                                let usecase = AddToContactsUseCase()
+                                try? await usecase.add(emailAddress: emailAddress, cachedName: presentedProfile?[.name])
+                                await checkMyContacts(for: token)
                                 closeProfile()
                             }
-
-                            if token.value != registeredEmailAddress && !token.isInMyContacts {
-                                AsyncButton("Add Contact") {
-                                    let usecase = AddToContactsUseCase()
-                                    try? await usecase.add(emailAddress: emailAddress, cachedName: presentedProfile?[.name])
-                                    await checkMyContacts(for: token)
-                                    closeProfile()
-                                }
-                                .disabled(presentedProfile == nil)
-                            }
+                            .disabled(presentedProfile == nil)
                         }
-                        .buttonStyle(.bordered)
-                        .padding()
                     }
+                    .buttonStyle(.bordered)
+                    .padding()
                 }
             }
+            .profilePopoverToolbar(closeProfile: closeProfile)
         }
     }
 }
