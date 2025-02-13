@@ -8,7 +8,7 @@ struct ContactsProfileAttributesEditorView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: .Spacing.default) {
-                Text("Personal").font(.title2)
+                Text("Contacts").font(.title2)
 
                 Grid(horizontalSpacing: .Spacing.large, verticalSpacing: .Spacing.large) {
                     GridRow {
