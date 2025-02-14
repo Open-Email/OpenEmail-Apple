@@ -3,7 +3,6 @@ import OpenEmailCore
 
 struct ContactsTabView: View {
     @State private var selectedContactListItem: ContactListItem?
-    @Environment(\.dismiss) var dismiss
 
     var body: some View {
         NavigationSplitView {
@@ -15,7 +14,7 @@ struct ContactsTabView: View {
                     .toolbar {
                         ToolbarItem(placement: .topBarLeading) {
                             Button {
-                                dismiss()
+                                selectedContactListItem = nil
                             } label: {
                                 Image(systemName: "chevron.backward")
                             }
