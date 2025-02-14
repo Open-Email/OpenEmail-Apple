@@ -203,15 +203,17 @@ struct ReadersView: View {
 
     private func profilePopover(emailAddress: EmailAddress) -> some View {
         NavigationStack {
-            VStack {
-                ProfileView(emailAddress: emailAddress, showActionButtons: true, onProfileLoaded: { profile, _ in
-                    presentedProfile = profile
-                })
+            VStack(spacing: 0) {
+                ProfileView(
+                    emailAddress: emailAddress,
+                    showActionButtons: false,
+                    onProfileLoaded: { profile, _ in
+                        presentedProfile = profile
+                    })
 
                 if
                     isEditable,
-                    let token = tokens.first(where: { $0.value == emailAddress.address }),
-                    !token.isInMyContacts
+                    let token = tokens.first(where: { $0.value == emailAddress.address })
                 {
                     HStack {
                         Button("Remove Reader", role: .destructive) {
@@ -219,7 +221,7 @@ struct ReadersView: View {
                             closeProfile()
                         }
 
-                        if token.value != registeredEmailAddress {
+                        if token.value != registeredEmailAddress, !token.isInMyContacts {
                             AsyncButton("Add Contact") {
                                 let usecase = AddToContactsUseCase()
                                 try? await usecase.add(emailAddress: emailAddress, cachedName: presentedProfile?[.name])
@@ -231,6 +233,8 @@ struct ReadersView: View {
                     }
                     .buttonStyle(.bordered)
                     .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(.themeBackground)
                 }
             }
             .profilePopoverToolbar(closeProfile: closeProfile)

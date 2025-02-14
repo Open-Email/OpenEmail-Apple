@@ -55,9 +55,7 @@ struct ComposeMessageView: View {
                     TokenTextField(
                         tokens: .constant([AllContactsToken.empty(isSelected: false)]),
                         isEditable: false,
-                        label: {
-                            ReadersLabelView()
-                        }
+                        label: { ReadersLabelView() }
                     )
 
                     Divider()
