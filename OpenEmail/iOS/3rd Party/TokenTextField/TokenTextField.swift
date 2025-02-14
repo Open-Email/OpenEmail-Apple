@@ -417,8 +417,6 @@ private struct PreviewToken: TokenTextFieldToken {
 
     TokenTextField(tokens: $tokens, isEditable: false, label: {
         Text("Tokens:")
-    }, onSelectToken: {
-        print("👀 selected token: \($0.displayName)")
     })
     .padding()
 }
