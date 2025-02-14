@@ -92,7 +92,6 @@ struct ComposeMessageView: View {
                 }
                 .padding(.horizontal)
             }
-            .blur(radius: viewModel.isSending ? 4 : 0)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     // TODO: ask if user wants to delete or save the draft
@@ -100,6 +99,7 @@ struct ComposeMessageView: View {
                         await viewModel.deleteDraft()
                         dismiss()
                     }
+                    .disabled(viewModel.isSending)
                 }
 
                 ToolbarItem(placement: .automatic) {
@@ -118,6 +118,7 @@ struct ComposeMessageView: View {
                             .frame(width: 24)
                     }
                     .help("Add files to the message")
+                    .disabled(viewModel.isSending)
                 }
 
                 ToolbarItem(placement: .primaryAction) {
@@ -138,26 +139,6 @@ struct ComposeMessageView: View {
                     Text("Underlying error: \(String(describing: error))")
                 }
             })
-            .overlay {
-                if viewModel.isSending {
-                    Color(uiColor: .systemBackground).opacity(0.7)
-
-                    VStack(spacing: .Spacing.xSmall) {
-                        ProgressView()
-
-                        if !viewModel.attachedFileItems.isEmpty {
-                            ProgressView(value: viewModel.uploadProgress)
-                                .progressViewStyle(.linear)
-                                .frame(width: 200)
-                                .tint(.white)
-
-                            Button("Cancel") {
-                                viewModel.cancelSending()
-                            }
-                        }
-                    }
-                }
-            }
             .onAppear {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     viewModel.updateIsSendButtonEnabled()
@@ -193,6 +174,27 @@ struct ComposeMessageView: View {
             }
             .onChange(of: photoPickerItems) {
                 Task { await addSelectedPhotoItems() }
+            }
+        }
+        .blur(radius: viewModel.isSending ? 4 : 0)
+        .overlay {
+            if viewModel.isSending {
+                Color(uiColor: .systemBackground).opacity(0.7)
+
+                VStack(spacing: .Spacing.xSmall) {
+                    ProgressView()
+
+                    if !viewModel.attachedFileItems.isEmpty {
+                        ProgressView(value: viewModel.uploadProgress)
+                            .progressViewStyle(.linear)
+                            .frame(width: 200)
+                            .tint(.white)
+
+                        Button("Cancel") {
+                            viewModel.cancelSending()
+                        }
+                    }
+                }
             }
         }
     }
