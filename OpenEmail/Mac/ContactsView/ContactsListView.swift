@@ -201,47 +201,10 @@ struct ContactsListView: View {
 
 #if DEBUG
 
-private final class ContactsListViewModelMock: ContactsListViewModelProtocol {   
-    var contactRequestItems: [ContactListItem]
-    var contactItems: [ContactListItem]
-    var searchText: String
-    var contactsCount: Int {
-        contactItems.count
-    }
-
-    init(
-        contactRequestItems: [ContactListItem] = [],
-        contactItems: [ContactListItem] = [],
-        searchText: String = ""
-    ) {
-        self.contactRequestItems = contactRequestItems
-        self.contactItems = contactItems
-        self.searchText = searchText
-    }
-
-    func hasContact(with emailAddress: String) -> Bool {
-        false
-    }
-
-    func contactListItem(with emailAddress: String) -> ContactListItem? {
-        nil
-    }
-
-    func addContact(address: String) async throws {}
-}
-
 #Preview {
     @Previewable @State var selectedContactListItem: ContactListItem?
 
-    let viewModel = ContactsListViewModelMock(
-        contactItems: [
-            .init(title: "Donald", subtitle: "donald@duck.com", email: "donald@duck.com", isContactRequest: false),
-            .init(title: "Daisy", subtitle: "daisy@duck.com", email: "daisy@duck.com", isContactRequest: false),
-            .init(title: "Goofy", subtitle: "goofy@duck.com", email: "goofy@duck.com", isContactRequest: false),
-            .init(title: "Scrooge", subtitle: "scrooge@duck.com", email: "scrooge@duck.com", isContactRequest: false),
-        ]
-    )
-
+    let viewModel = ContactsListViewModelMock.makeMock()
     ContactsListView(viewModel: viewModel, selectedContactListItem: $selectedContactListItem)
         .frame(width: 300, height: 600)
 }

@@ -8,7 +8,7 @@ struct ContactListItemView: View {
     }
 
     var body: some View {
-        HStack(alignment: .top, spacing: .Spacing.small) {
+        HStack(spacing: .Spacing.small) {
             ProfileImageView(emailAddress: item.email)
 
             VStack(alignment: .leading, spacing: .Spacing.xxxSmall) {
@@ -39,8 +39,10 @@ struct ContactListItemView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        #if os(macOS)
         .padding(.Spacing.default)
         .listRowSeparator(.hidden)
+        #endif
     }
 }
 

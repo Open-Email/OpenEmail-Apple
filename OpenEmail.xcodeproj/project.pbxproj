@@ -108,6 +108,8 @@
 		5B80C8482B35CCDD00F882F8 /* Messages+Filtering.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B80C8472B35CCDD00F882F8 /* Messages+Filtering.swift */; };
 		5B80C84A2B35E45A00F882F8 /* Message+Deleting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B80C8492B35E45A00F882F8 /* Message+Deleting.swift */; };
 		5B81944F2C4A86F1003B4009 /* KeysSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B81944E2C4A86F1003B4009 /* KeysSettingsView.swift */; };
+		5B84654A2D5F3CD3003626E4 /* RoundToolbarButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8465492D5F3CD3003626E4 /* RoundToolbarButtonStyle.swift */; };
+		5B84654C2D5F3F3F003626E4 /* UINavigationController+SwipeBack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B84654B2D5F3F3F003626E4 /* UINavigationController+SwipeBack.swift */; };
 		5B8808B92B88B24A00E6E3B4 /* AttachmentsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8808B82B88B24A00E6E3B4 /* AttachmentsListView.swift */; };
 		5B8808BB2B88B32100E6E3B4 /* AttachmentsListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8808BA2B88B32100E6E3B4 /* AttachmentsListViewModel.swift */; };
 		5B88AF9A2C8B10D900385E03 /* NetworkConnectionMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B88AF992C8B10D900385E03 /* NetworkConnectionMonitor.swift */; };
@@ -151,7 +153,6 @@
 		5BD1FA5F2C66046500DE4B5D /* MessagesListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F25812AFE766600226455 /* MessagesListViewModel.swift */; };
 		5BD1FA602C6606E600DE4B5D /* MessagesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BD1FA5D2C66044000DE4B5D /* MessagesListView.swift */; };
 		5BD1FA632C661CA400DE4B5D /* MessageListItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F258C2AFE818400226455 /* MessageListItemView.swift */; };
-		5BD1FA652C663DC400DE4B5D /* MessagesTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BD1FA642C663DC400DE4B5D /* MessagesTabView.swift */; };
 		5BD1FA682C664C2A00DE4B5D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BD1FA672C664C2A00DE4B5D /* SettingsView.swift */; };
 		5BD1FA692C664E7200DE4B5D /* GeneralSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2A08CA2C25AC580005B075 /* GeneralSettingsView.swift */; };
 		5BD1FA6C2C66551E00DE4B5D /* TrustedDomainsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BD1FA6B2C66551E00DE4B5D /* TrustedDomainsSettingsView.swift */; };
@@ -216,7 +217,14 @@
 		5BE2CFA12D4D0E9800E9DB1A /* Modify.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE2CF9F2D4D0E9800E9DB1A /* Modify.swift */; };
 		5BE491642D561E250036DBBF /* ProfilePopoverToolbarModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE491632D561E250036DBBF /* ProfilePopoverToolbarModifier.swift */; };
 		5BE491672D562BB70036DBBF /* ProfileActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE491652D562A750036DBBF /* ProfileActionButton.swift */; };
+		5BE4916C2D565D770036DBBF /* ContactsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE4916B2D565D770036DBBF /* ContactsTabView.swift */; };
+		5BE491702D565E940036DBBF /* ContactsListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB3A3F42B177DE70025E50A /* ContactsListViewModel.swift */; };
+		5BE491712D565E940036DBBF /* ContactListItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA3D0292CDE4FF400D969BD /* ContactListItemView.swift */; };
 		5BE491722D5660120036DBBF /* EmptyListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA3D0272CDE42D000D969BD /* EmptyListView.swift */; };
+		5BE491742D5661630036DBBF /* MessagesTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE491732D5661630036DBBF /* MessagesTabView.swift */; };
+		5BE491772D5667350036DBBF /* ContactsListViewModelMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE491762D5667350036DBBF /* ContactsListViewModelMock.swift */; };
+		5BE491782D5667350036DBBF /* ContactsListViewModelMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE491762D5667350036DBBF /* ContactsListViewModelMock.swift */; };
+		5BE4917A2D56679D0036DBBF /* ContactsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE491792D56679D0036DBBF /* ContactsListView.swift */; };
 		5BE74D892C9D711E003997D6 /* SyncProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE74D882C9D711E003997D6 /* SyncProgressView.swift */; };
 		5BE74D8B2C9D794D003997D6 /* ComposeMessageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1698E1E02B98EA71009CB634 /* ComposeMessageViewModel.swift */; };
 		5BE74D8D2C9D7B8A003997D6 /* ComposeMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE74D8C2C9D7B8A003997D6 /* ComposeMessageView.swift */; };
@@ -312,6 +320,8 @@
 		5B80C8472B35CCDD00F882F8 /* Messages+Filtering.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Messages+Filtering.swift"; sourceTree = "<group>"; };
 		5B80C8492B35E45A00F882F8 /* Message+Deleting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Message+Deleting.swift"; sourceTree = "<group>"; };
 		5B81944E2C4A86F1003B4009 /* KeysSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeysSettingsView.swift; sourceTree = "<group>"; };
+		5B8465492D5F3CD3003626E4 /* RoundToolbarButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundToolbarButtonStyle.swift; sourceTree = "<group>"; };
+		5B84654B2D5F3F3F003626E4 /* UINavigationController+SwipeBack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UINavigationController+SwipeBack.swift"; sourceTree = "<group>"; };
 		5B8808B82B88B24A00E6E3B4 /* AttachmentsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentsListView.swift; sourceTree = "<group>"; };
 		5B8808BA2B88B32100E6E3B4 /* AttachmentsListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentsListViewModel.swift; sourceTree = "<group>"; };
 		5B88AF992C8B10D900385E03 /* NetworkConnectionMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkConnectionMonitor.swift; sourceTree = "<group>"; };
@@ -349,7 +359,6 @@
 		5BD1FA3E2C63AA7300DE4B5D /* ScopesSidebarViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScopesSidebarViewModel.swift; sourceTree = "<group>"; };
 		5BD1FA412C63AE4500DE4B5D /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
 		5BD1FA5D2C66044000DE4B5D /* MessagesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagesListView.swift; sourceTree = "<group>"; };
-		5BD1FA642C663DC400DE4B5D /* MessagesTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagesTabView.swift; sourceTree = "<group>"; };
 		5BD1FA672C664C2A00DE4B5D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		5BD1FA6B2C66551E00DE4B5D /* TrustedDomainsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrustedDomainsSettingsView.swift; sourceTree = "<group>"; };
 		5BD1FA6D2C67873900DE4B5D /* KeysSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeysSettingsView.swift; sourceTree = "<group>"; };
@@ -374,6 +383,10 @@
 		5BE2CF9F2D4D0E9800E9DB1A /* Modify.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Modify.swift; sourceTree = "<group>"; };
 		5BE491632D561E250036DBBF /* ProfilePopoverToolbarModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePopoverToolbarModifier.swift; sourceTree = "<group>"; };
 		5BE491652D562A750036DBBF /* ProfileActionButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileActionButton.swift; sourceTree = "<group>"; };
+		5BE4916B2D565D770036DBBF /* ContactsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsTabView.swift; sourceTree = "<group>"; };
+		5BE491732D5661630036DBBF /* MessagesTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagesTabView.swift; sourceTree = "<group>"; };
+		5BE491762D5667350036DBBF /* ContactsListViewModelMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsListViewModelMock.swift; sourceTree = "<group>"; };
+		5BE491792D56679D0036DBBF /* ContactsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsListView.swift; sourceTree = "<group>"; };
 		5BE74D882C9D711E003997D6 /* SyncProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncProgressView.swift; sourceTree = "<group>"; };
 		5BE74D8C2C9D7B8A003997D6 /* ComposeMessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeMessageView.swift; sourceTree = "<group>"; };
 		5BECC7C32B922C6500143BD6 /* ProfileAttribute+Title.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProfileAttribute+Title.swift"; sourceTree = "<group>"; };
@@ -420,8 +433,6 @@
 			isa = PBXGroup;
 			children = (
 				5BC018EA2B19D13F00353A8C /* ContactsListView.swift */,
-				5BA3D0292CDE4FF400D969BD /* ContactListItemView.swift */,
-				5BB3A3F42B177DE70025E50A /* ContactsListViewModel.swift */,
 				162A1DA22B13C35A00BCD8BC /* ContactsAddressInputView.swift */,
 			);
 			path = ContactsView;
@@ -674,6 +685,7 @@
 				5BD1FA6A2C6654A300DE4B5D /* Settings */,
 				5BD1FA732C6A3EC300DE4B5D /* MessageView */,
 				5BE74D8A2C9D7746003997D6 /* ComposeView */,
+				5BE491752D5666D40036DBBF /* ContactsView */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -761,6 +773,7 @@
 			children = (
 				5BD144DC2D438EAD00BAAA3A /* OpenEmailTextFieldStyle.swift */,
 				5BD144DA2D43870C00BAAA3A /* OpenEmailButtonStyle.swift */,
+				5B8465492D5F3CD3003626E4 /* RoundToolbarButtonStyle.swift */,
 			);
 			path = Theme;
 			sourceTree = "<group>";
@@ -773,12 +786,14 @@
 			path = "Folders Sidebar";
 			sourceTree = "<group>";
 		};
-		5BD1FA5C2C66042200DE4B5D /* Messages List */ = {
+		5BD1FA5C2C66042200DE4B5D /* Messages */ = {
 			isa = PBXGroup;
 			children = (
 				5BD1FA5D2C66044000DE4B5D /* MessagesListView.swift */,
+				5BE491732D5661630036DBBF /* MessagesTabView.swift */,
+				5BD1FA722C6A3E9800DE4B5D /* MessageView */,
 			);
-			path = "Messages List";
+			path = Messages;
 			sourceTree = "<group>";
 		};
 		5BD1FA5E2C66045000DE4B5D /* Messages List */ = {
@@ -814,6 +829,7 @@
 				5BD1FA702C6787B100DE4B5D /* UIImageToImage.swift */,
 				5B3046852C6FA82A00B33157 /* ActivityView.swift */,
 				5B3046BA2C786CDB00B33157 /* DocumentPicker.swift */,
+				5B84654B2D5F3F3F003626E4 /* UINavigationController+SwipeBack.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -855,16 +871,15 @@
 				5BDA2EB72C5CCD91009FB2BD /* Assets.xcassets */,
 				5BDA2EB92C5CCD91009FB2BD /* OpenEmailApp.swift */,
 				5BDA2EB82C5CCD91009FB2BD /* ContentView.swift */,
-				5BD1FA642C663DC400DE4B5D /* MessagesTabView.swift */,
 				5BD1FA412C63AE4500DE4B5D /* SidebarView.swift */,
 				5B3046732C6F4CA000B33157 /* ButtonStyles.swift */,
 				5BD144D92D43870300BAAA3A /* Theme */,
 				5BD1FA6F2C6787A500DE4B5D /* Utils */,
 				5BDA2EF92C5CD991009FB2BD /* Onboarding */,
-				5BD1FA5C2C66042200DE4B5D /* Messages List */,
+				5BD1FA5C2C66042200DE4B5D /* Messages */,
 				5BD1FA662C664C1C00DE4B5D /* Settings */,
 				5B30466C2C6F2AC100B33157 /* Profile */,
-				5BD1FA722C6A3E9800DE4B5D /* MessageView */,
+				5BE491682D565B280036DBBF /* Contacts */,
 				5BE74D8E2C9D7B8E003997D6 /* ComposeView */,
 			);
 			path = iOS;
@@ -906,6 +921,25 @@
 				5BDD1D352CA69A9B004AF1D5 /* TokenTextField.swift */,
 			);
 			path = TokenTextField;
+			sourceTree = "<group>";
+		};
+		5BE491682D565B280036DBBF /* Contacts */ = {
+			isa = PBXGroup;
+			children = (
+				5BE4916B2D565D770036DBBF /* ContactsTabView.swift */,
+				5BE491792D56679D0036DBBF /* ContactsListView.swift */,
+			);
+			path = Contacts;
+			sourceTree = "<group>";
+		};
+		5BE491752D5666D40036DBBF /* ContactsView */ = {
+			isa = PBXGroup;
+			children = (
+				5BA3D0292CDE4FF400D969BD /* ContactListItemView.swift */,
+				5BB3A3F42B177DE70025E50A /* ContactsListViewModel.swift */,
+				5BE491762D5667350036DBBF /* ContactsListViewModelMock.swift */,
+			);
+			path = ContactsView;
 			sourceTree = "<group>";
 		};
 		5BE74D8A2C9D7746003997D6 /* ComposeView */ = {
@@ -1093,6 +1127,7 @@
 				16468EBC2B90BFCE0096BC0D /* ProfileEditorViewModel.swift in Sources */,
 				5B66B4BA2C09C89A00CA34EE /* SidebarView.swift in Sources */,
 				5B66B4BC2C09CF3B00CA34EE /* PressActions.swift in Sources */,
+				5BE491782D5667350036DBBF /* ContactsListViewModelMock.swift in Sources */,
 				5B61F71C2CB91B49006C0C92 /* LogView.swift in Sources */,
 				5B7C80DD2AF4FDBA0088E2EA /* Alerts.swift in Sources */,
 				5B1C37892D3A5A220017D57D /* OpenEmailTextFieldLabel.swift in Sources */,
@@ -1191,6 +1226,7 @@
 				5BD1FA422C63AE4500DE4B5D /* SidebarView.swift in Sources */,
 				5BDA2EC32C5CCF35009FB2BD /* AddToContactsUseCase.swift in Sources */,
 				5BD1FA5F2C66046500DE4B5D /* MessagesListViewModel.swift in Sources */,
+				5BE4917A2D56679D0036DBBF /* ContactsListView.swift in Sources */,
 				5B3046BB2C786CDB00B33157 /* DocumentPicker.swift in Sources */,
 				5BDA2EC52C5CCF48009FB2BD /* DateFormatter+Shared.swift in Sources */,
 				5BDA2EC62C5CCF48009FB2BD /* Injection.swift in Sources */,
@@ -1202,6 +1238,7 @@
 				5BD1FA6E2C67873900DE4B5D /* KeysSettingsView.swift in Sources */,
 				5BDA2EC82C5CCF48009FB2BD /* Messages+Filtering.swift in Sources */,
 				5BE74D8B2C9D794D003997D6 /* ComposeMessageViewModel.swift in Sources */,
+				5BE4916C2D565D770036DBBF /* ContactsTabView.swift in Sources */,
 				5BD1FA402C63AA7300DE4B5D /* ScopesSidebarViewModel.swift in Sources */,
 				5BD1FA712C6787BE00DE4B5D /* UIImageToImage.swift in Sources */,
 				5BDA2EC92C5CCF48009FB2BD /* TrashPurgingService.swift in Sources */,
@@ -1221,11 +1258,11 @@
 				5B30465A2C6BABC100B33157 /* Message+Display.swift in Sources */,
 				5BD1FA682C664C2A00DE4B5D /* SettingsView.swift in Sources */,
 				5BD1FA632C661CA400DE4B5D /* MessageListItemView.swift in Sources */,
+				5BE491772D5667350036DBBF /* ContactsListViewModelMock.swift in Sources */,
 				5BDA2ED22C5CCF48009FB2BD /* EmailClientMock.swift in Sources */,
 				5BE2CFA12D4D0E9800E9DB1A /* Modify.swift in Sources */,
 				5BDA2ED32C5CCF48009FB2BD /* MessageStoreMock.swift in Sources */,
 				5BD1FA6C2C66551E00DE4B5D /* TrustedDomainsSettingsView.swift in Sources */,
-				5BD1FA652C663DC400DE4B5D /* MessagesTabView.swift in Sources */,
 				5BE74D892C9D711E003997D6 /* SyncProgressView.swift in Sources */,
 				5BE491722D5660120036DBBF /* EmptyListView.swift in Sources */,
 				5BDA2EFD2C5CE1BC009FB2BD /* OnboardingExistingAccountView.swift in Sources */,
@@ -1246,6 +1283,7 @@
 				5B3046862C6FA82A00B33157 /* ActivityView.swift in Sources */,
 				5B3046842C6F8AB000B33157 /* AttachmentsListView.swift in Sources */,
 				5BDA2ED92C5CCF48009FB2BD /* Date+Extension.swift in Sources */,
+				5B84654A2D5F3CD3003626E4 /* RoundToolbarButtonStyle.swift in Sources */,
 				5BE491642D561E250036DBBF /* ProfilePopoverToolbarModifier.swift in Sources */,
 				5B30467A2C6F599E00B33157 /* ProfileImageView.swift in Sources */,
 				5BD144DD2D438EAD00BAAA3A /* OpenEmailTextFieldStyle.swift in Sources */,
@@ -1254,6 +1292,7 @@
 				5BE74D8D2C9D7B8A003997D6 /* ComposeMessageView.swift in Sources */,
 				5B9DBEA92CB0167F009B37F1 /* ComposeAttachmentsListViewModel.swift in Sources */,
 				5B3046742C6F4CA000B33157 /* ButtonStyles.swift in Sources */,
+				5BE491742D5661630036DBBF /* MessagesTabView.swift in Sources */,
 				5BD144DB2D43870C00BAAA3A /* OpenEmailButtonStyle.swift in Sources */,
 				5BD1FA602C6606E600DE4B5D /* MessagesListView.swift in Sources */,
 				5B99FAA42CD5056A00EF58DB /* ActionButtonStyle.swift in Sources */,
@@ -1264,12 +1303,15 @@
 				5BDA2EDE2C5CCF48009FB2BD /* Formatters.swift in Sources */,
 				5BDA2F152C5D0FE7009FB2BD /* OnboardingNewAccountViewModel.swift in Sources */,
 				5BDA2EDF2C5CCF48009FB2BD /* Alerts.swift in Sources */,
+				5B84654C2D5F3F3F003626E4 /* UINavigationController+SwipeBack.swift in Sources */,
 				5BB910522CF9E80B00D2D8A5 /* ConditionalModifier.swift in Sources */,
 				5BDA2EE02C5CCF48009FB2BD /* Profile+Fake.swift in Sources */,
 				5B61F7252CB93F8D006C0C92 /* ProfileViewModel.swift in Sources */,
 				5B61F7262CB93F8D006C0C92 /* Profile+Attributes.swift in Sources */,
 				5B61F7272CB93F8D006C0C92 /* ProfileAttributesView.swift in Sources */,
 				5BDA2EE22C5CCF48009FB2BD /* ProfileAttribute+Title.swift in Sources */,
+				5BE491702D565E940036DBBF /* ContactsListViewModel.swift in Sources */,
+				5BE491712D565E940036DBBF /* ContactListItemView.swift in Sources */,
 				5B3046C02C7882CB00B33157 /* DeleteContactUseCase.swift in Sources */,
 				5BDA2EC42C5CCF35009FB2BD /* RemoveAccountUseCase.swift in Sources */,
 				5BDA2EBD2C5CCD91009FB2BD /* ContentView.swift in Sources */,

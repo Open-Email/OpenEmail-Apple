@@ -23,7 +23,7 @@ struct ContentView: View {
                     Text("Messages")
                 }
 
-            Text("Contacts")
+            ContactsTabView()
                 .tabItem {
                     Image(.scopeContacts)
                     Text("Contacts")
