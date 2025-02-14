@@ -181,6 +181,9 @@ struct ProfileView: View {
     client.stubFetchedProfile = .makeFake()
     InjectedValues[\.client] = client
 
+    let contactsStore = ContactStoreMock()
+    InjectedValues[\.contactsStore] = contactsStore
+
     return ProfileView(
         emailAddress: .init("mickey@mouse.com")!,
         showActionButtons: false,

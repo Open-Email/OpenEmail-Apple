@@ -87,9 +87,11 @@ struct ProfileImageView<Placeholder: View>: View {
                 .blur(radius: isLoading ? 4 : 0)
                 .shadow(color: .themeShadow, radius: 4, y: 2)
             case .rectangle:
-                makeImage()
+                Color.clear
                     .frame(height: size)
-                    .frame(maxWidth: .infinity)
+                    .background {
+                        makeImage()
+                    }
                     .blur(radius: isLoading ? 4 : 0)
             case .roundedRectangle(let cornerRadius):
                 ZStack {
@@ -241,8 +243,10 @@ private extension String {
             name: "Mickey Mouse",
             overrideImage: Image("sample-profile-1"),
             shape: .rectangle,
-            size: 248
+            size: 500
         )
+        .padding()
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+    .ignoresSafeArea(edges: .top)
 }
