@@ -314,8 +314,7 @@ struct MessageView: View {
                 isEditable: false,
                 readers: readersBinding,
                 tickedReaders: deliveries,
-                hasInvalidReader: .constant(false),
-                prefixLabel: nil
+                hasInvalidReader: .constant(false)
             )
         }
     }

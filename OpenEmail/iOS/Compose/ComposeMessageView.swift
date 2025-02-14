@@ -4,7 +4,6 @@ import OpenEmailPersistence
 import OpenEmailModel
 import Logging
 
-@MainActor
 struct ComposeMessageView: View {
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
     @AppStorage(UserDefaultsKeys.profileName) private var profileName: String?
@@ -33,48 +32,46 @@ struct ComposeMessageView: View {
 
     var body: some View {
         NavigationStack {
-            VStack {
+            VStack(alignment: .leading) {
                 if viewModel.canBroadcast {
-                    HStack {
-                        HStack(spacing: 4) {
-                            Text("Broadcast")
-                            Image(systemName: "dot.radiowaves.left.and.right")
-                        }
+                    Toggle("Broadcast", isOn: $viewModel.isBroadcast)
+                        .font(.subheadline)
+                        .tint(Color.accentColor)
                         .foregroundStyle(.secondary)
-
-                        Spacer()
-                        Toggle("", isOn: $viewModel.isBroadcast)
-                            .labelsHidden()
-                    }
-                    .listRowSeparator(.hidden, edges: .top)
+                        .padding(.vertical, .Spacing.xSmall)
+                    Divider()
                 }
-
-                HStack {
-                    Text("From:").foregroundStyle(.secondary)
-                    TextField("", text: .constant(profileName ?? registeredEmailAddress ?? ""))
-                        .disabled(true)
-                }
-
-                Divider()
 
                 if !viewModel.isBroadcast {
-                    HStack(alignment: .firstTextBaseline) {
-                        Text("To:").foregroundStyle(.secondary)
-                        ReadersView(isEditable: true, readers: $viewModel.readers, tickedReaders: .constant([]), hasInvalidReader: $hasInvalidReader, prefixLabel: nil, pendingText: $pendingEmailAddress)
-                            .focused($isReadersFocused)
-                    }
+                    ReadersView(isEditable: true, readers: $viewModel.readers, tickedReaders: .constant([]), hasInvalidReader: $hasInvalidReader, pendingText: $pendingEmailAddress)
+                        .focused($isReadersFocused)
+
                     Divider()
 
                     if showsSuggestions {
                         suggestions
                     }
+                } else {
+                    TokenTextField(
+                        tokens: .constant([AllContactsToken.empty(isSelected: false)]),
+                        isEditable: false,
+                        label: {
+                            ReadersLabelView()
+                        }
+                    )
+
+                    Divider()
                 }
 
                 if !showsSuggestions {
-                    HStack {
-                        Text(viewModel.subjectId.isNilOrEmpty ? "Subject:" : "Reply:").foregroundStyle(.secondary)
+                    HStack(spacing: .Spacing.xSmall) {
+                        Text("Subject:")
+                            .foregroundStyle(.secondary)
+                            .font(.subheadline)
                         TextField("", text: $viewModel.subject)
                     }
+                    .padding(.vertical, .Spacing.xSmall)
+
                     Divider()
 
                     TextEditor(text: $viewModel.fullText)
@@ -110,7 +107,7 @@ struct ComposeMessageView: View {
                     }
                 }
 
-                ToolbarItem(placement: .automatic) {
+                ToolbarItem(placement: .primaryAction) {
                     AsyncButton {
                         do {
                             try await viewModel.send()
@@ -125,16 +122,9 @@ struct ComposeMessageView: View {
                             Log.error("Error sending message: \(error)")
                         }
                     } label: {
-                        Group {
-                            if viewModel.isBroadcast {
-                                Label("Emit", systemImage: "dot.radiowaves.left.and.right")
-                            } else {
-                                Label("Send", systemImage: "paperplane")
-                            }
-                        }
-                        .frame(width: 25)
-                        .frame(maxHeight: .infinity)
+                        Text("Send")
                     }
+                    .buttonStyle(SendButtonStyle())
                     .help("Compose new message")
                     .disabled(hasInvalidReader || !viewModel.isSendButtonEnabled)
                 }
@@ -177,7 +167,6 @@ struct ComposeMessageView: View {
                     }
                 }
             }
-            .animation(.default, value: viewModel.isBroadcast)
             .onChange(of: pendingEmailAddress) {
                 Task {
                     await viewModel.loadContactSuggestions(for: pendingEmailAddress)

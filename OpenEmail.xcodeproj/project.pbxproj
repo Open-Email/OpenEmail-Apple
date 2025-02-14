@@ -115,6 +115,8 @@
 		5B88AF9A2C8B10D900385E03 /* NetworkConnectionMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B88AF992C8B10D900385E03 /* NetworkConnectionMonitor.swift */; };
 		5B88AF9B2C8B129500385E03 /* NetworkConnectionMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B88AF992C8B10D900385E03 /* NetworkConnectionMonitor.swift */; };
 		5B8C60E62D0365E400FEF5F1 /* OpenEmailTextEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8C60E52D0365E400FEF5F1 /* OpenEmailTextEditor.swift */; };
+		5B8DAF612D5F799300229F9E /* ReadersLabelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8DAF602D5F799300229F9E /* ReadersLabelView.swift */; };
+		5B8DAF622D5F799300229F9E /* ReadersLabelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8DAF602D5F799300229F9E /* ReadersLabelView.swift */; };
 		5B99FAA42CD5056A00EF58DB /* ActionButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B99FAA32CD5056A00EF58DB /* ActionButtonStyle.swift */; };
 		5B99FAA52CD5056A00EF58DB /* ActionButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B99FAA32CD5056A00EF58DB /* ActionButtonStyle.swift */; };
 		5B9DBEA72CAFEFA4009B37F1 /* ComposeAttachmentsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B9DBEA62CAFEFA4009B37F1 /* ComposeAttachmentsListView.swift */; };
@@ -326,6 +328,7 @@
 		5B8808BA2B88B32100E6E3B4 /* AttachmentsListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentsListViewModel.swift; sourceTree = "<group>"; };
 		5B88AF992C8B10D900385E03 /* NetworkConnectionMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkConnectionMonitor.swift; sourceTree = "<group>"; };
 		5B8C60E52D0365E400FEF5F1 /* OpenEmailTextEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenEmailTextEditor.swift; sourceTree = "<group>"; };
+		5B8DAF602D5F799300229F9E /* ReadersLabelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadersLabelView.swift; sourceTree = "<group>"; };
 		5B99FAA32CD5056A00EF58DB /* ActionButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionButtonStyle.swift; sourceTree = "<group>"; };
 		5B9DBEA62CAFEFA4009B37F1 /* ComposeAttachmentsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeAttachmentsListView.swift; sourceTree = "<group>"; };
 		5B9DBEA82CB0167F009B37F1 /* ComposeAttachmentsListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeAttachmentsListViewModel.swift; sourceTree = "<group>"; };
@@ -666,6 +669,14 @@
 			path = SwiftUI;
 			sourceTree = "<group>";
 		};
+		5B8DAF5F2D5F796000229F9E /* Shared Views */ = {
+			isa = PBXGroup;
+			children = (
+				5B8DAF602D5F799300229F9E /* ReadersLabelView.swift */,
+			);
+			path = "Shared Views";
+			sourceTree = "<group>";
+		};
 		5BBE54A52C5CC94B008F25CC /* Shared */ = {
 			isa = PBXGroup;
 			children = (
@@ -676,6 +687,7 @@
 				5BBE54A12C53D961008F25CC /* RemoveAccountUseCase.swift */,
 				5BC6E0A72C2EE88000C5951C /* Dependencies.swift */,
 				5B3046782C6F599E00B33157 /* ProfileImageView.swift */,
+				5B8DAF5F2D5F796000229F9E /* Shared Views */,
 				5B7C80DB2AF4FDAB0088E2EA /* Utils */,
 				5B3B30CE2BC9208F009D8471 /* Services */,
 				5BDA2F0E2C5D06D8009FB2BD /* Onboarding */,
@@ -771,6 +783,7 @@
 		5BD144D92D43870300BAAA3A /* Theme */ = {
 			isa = PBXGroup;
 			children = (
+				5B3046732C6F4CA000B33157 /* ButtonStyles.swift */,
 				5BD144DC2D438EAD00BAAA3A /* OpenEmailTextFieldStyle.swift */,
 				5BD144DA2D43870C00BAAA3A /* OpenEmailButtonStyle.swift */,
 				5B8465492D5F3CD3003626E4 /* RoundToolbarButtonStyle.swift */,
@@ -872,7 +885,6 @@
 				5BDA2EB92C5CCD91009FB2BD /* OpenEmailApp.swift */,
 				5BDA2EB82C5CCD91009FB2BD /* ContentView.swift */,
 				5BD1FA412C63AE4500DE4B5D /* SidebarView.swift */,
-				5B3046732C6F4CA000B33157 /* ButtonStyles.swift */,
 				5BD144D92D43870300BAAA3A /* Theme */,
 				5BD1FA6F2C6787A500DE4B5D /* Utils */,
 				5BDA2EF92C5CD991009FB2BD /* Onboarding */,
@@ -880,7 +892,7 @@
 				5BD1FA662C664C1C00DE4B5D /* Settings */,
 				5B30466C2C6F2AC100B33157 /* Profile */,
 				5BE491682D565B280036DBBF /* Contacts */,
-				5BE74D8E2C9D7B8E003997D6 /* ComposeView */,
+				5BE74D8E2C9D7B8E003997D6 /* Compose */,
 			);
 			path = iOS;
 			sourceTree = "<group>";
@@ -950,14 +962,14 @@
 			path = ComposeView;
 			sourceTree = "<group>";
 		};
-		5BE74D8E2C9D7B8E003997D6 /* ComposeView */ = {
+		5BE74D8E2C9D7B8E003997D6 /* Compose */ = {
 			isa = PBXGroup;
 			children = (
 				5BE74D8C2C9D7B8A003997D6 /* ComposeMessageView.swift */,
 				5B9DBEA62CAFEFA4009B37F1 /* ComposeAttachmentsListView.swift */,
 				5B9DBEA82CB0167F009B37F1 /* ComposeAttachmentsListViewModel.swift */,
 			);
-			path = ComposeView;
+			path = Compose;
 			sourceTree = "<group>";
 		};
 		5BFDDAEB2B51A3F3009DDCDA /* MultipleMessagesView */ = {
@@ -1199,6 +1211,7 @@
 				5B1039C82BA43A29009B45FF /* SnackBar.swift in Sources */,
 				5B3C03312BD262E500A8B35B /* LocalUserUpdateService.swift in Sources */,
 				5BC018F12B1A3E2500353A8C /* ContactStoreMock.swift in Sources */,
+				5B8DAF622D5F799300229F9E /* ReadersLabelView.swift in Sources */,
 				5B81944F2C4A86F1003B4009 /* KeysSettingsView.swift in Sources */,
 				5B7C80BE2AEC22780088E2EA /* OnboardingInitialView.swift in Sources */,
 				5B1757BD2BAD9CD600405169 /* Formatters.swift in Sources */,
@@ -1263,6 +1276,7 @@
 				5BE2CFA12D4D0E9800E9DB1A /* Modify.swift in Sources */,
 				5BDA2ED32C5CCF48009FB2BD /* MessageStoreMock.swift in Sources */,
 				5BD1FA6C2C66551E00DE4B5D /* TrustedDomainsSettingsView.swift in Sources */,
+				5B8DAF612D5F799300229F9E /* ReadersLabelView.swift in Sources */,
 				5BE74D892C9D711E003997D6 /* SyncProgressView.swift in Sources */,
 				5BE491722D5660120036DBBF /* EmptyListView.swift in Sources */,
 				5BDA2EFD2C5CE1BC009FB2BD /* OnboardingExistingAccountView.swift in Sources */,
