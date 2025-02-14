@@ -79,13 +79,7 @@ struct ComposeMessageView: View {
                         Divider()
 
                         VStack(alignment: .leading) {
-                            TextEditor(text: $viewModel.fullText)
-                                .scrollDisabled(true)
-                                .focused($isTextEditorFocused)
-                                .font(.body)
-                                .lineSpacing(5)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .padding(.horizontal, -4)
+                            AutoResizingTextEditor(text: $viewModel.fullText)
 
                             if !viewModel.attachedFileItems.isEmpty {
                                 ComposeAttachmentsListView(attachedFileItems: $viewModel.attachedFileItems, onDelete: {
@@ -265,6 +259,39 @@ struct ComposeMessageView: View {
         photoPickerItems = []
     }
 
+}
+
+private struct AutoResizingTextEditor: View {
+    @Binding var text: String
+    @State private var textHeight: CGFloat = 40 // Minimum height
+
+    var body: some View {
+        TextEditor(text: $text)
+            .frame(height: textHeight)
+            .scrollDisabled(true)
+            .font(.body)
+            .padding(.horizontal, -4)
+            .background(GeometryReader { proxy in
+                Color.clear.onAppear {
+                    textHeight = calculateHeight()
+                }
+            })
+            .onChange(of: text) {
+                textHeight = calculateHeight()
+            }
+    }
+
+    private func calculateHeight() -> CGFloat {
+        let newSize = text.boundingRect(
+            with: CGSize(width: UIScreen.main.bounds.width - .Spacing.default * 2, height: .infinity),
+            options: .usesLineFragmentOrigin,
+            attributes: [
+                .font: UIFont.preferredFont(forTextStyle: .body)
+            ],
+            context: nil
+        ).height
+        return max(40, newSize + 20)
+    }
 }
 
 #Preview {
