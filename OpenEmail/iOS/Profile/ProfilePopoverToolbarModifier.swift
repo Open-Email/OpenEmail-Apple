@@ -11,11 +11,8 @@ struct ProfilePopoverToolbarModifier: ViewModifier {
                         closeProfile()
                     } label: {
                         Image(systemName: "xmark")
-                            .foregroundStyle(.themePrimary)
-                            .frame(width: 44, height: 44)
-                            .background(.ultraThinMaterial)
-                            .clipShape(Circle())
                     }
+                    .buttonStyle(RoundToolbarButtonStyle())
                 }
             }
             .toolbarBackground(.hidden, for: .navigationBar)
