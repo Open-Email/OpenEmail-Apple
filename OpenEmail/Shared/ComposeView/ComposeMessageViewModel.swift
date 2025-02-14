@@ -1,4 +1,5 @@
 import Foundation
+import UniformTypeIdentifiers
 import Observation
 import OpenEmailCore
 import Logging
@@ -26,6 +27,11 @@ enum ComposeAction: Codable, Equatable, Hashable {
         default: return false
         }
     }
+}
+
+enum AttachmentsError: Error {
+    case invalidImageData
+    case fileStorageFailed
 }
 
 struct AttachedFileItem: Identifiable, Equatable {
@@ -479,6 +485,8 @@ class ComposeMessageViewModel {
         return result + "\n\n"
     }
 
+    // MARK: - Attachments
+
     func appendAttachedFiles(urls: [URL]) {
         for url in urls {
             if !attachedFileItems.contains(where: { url == $0.url }) {
@@ -490,13 +498,79 @@ class ComposeMessageViewModel {
         updateDraft()
     }
 
+#if os(iOS)
+    private var addedImageCount = 0
+    func addAttachmentItem(from imageData: Data) async throws {
+        guard
+            let image = UIImage(data: imageData)
+        else {
+            Log.error("Could not get image data")
+            throw AttachmentsError.invalidImageData
+        }
+
+        let filename = "image\(addedImageCount)"
+
+        let url: URL
+
+        if
+            let utTypeString = image.cgImage?.utType,
+            let utType = UTType(utTypeString as String)
+        {
+            url = try saveTemporaryImage(data: imageData, utType: utType, filename: filename)
+        } else {
+            // fall back to png
+            Log.warning("Could not determine type of image – falling back to PNG")
+
+            guard let pngData = image.pngData() else {
+                Log.error("Could not get PNG data")
+                throw AttachmentsError.invalidImageData
+            }
+
+            url = try saveTemporaryImage(data: pngData, utType: .png, filename: filename)
+        }
+
+        addedImageCount += 1
+
+        let item = AttachedFileItem(url: url)
+        attachedFileItems.append(item)
+    }
+#endif
+    
     func removeAttachedFileItem(item: AttachedFileItem) {
         if let index = attachedFileItems.firstIndex(where: { item.url == $0.url }) {
+            if item.url.isInTemporaryDirectory {
+                try? FileManager.default.removeItem(atPath: item.url.path())
+            }
             attachedFileItems.remove(at: index)
         }
 
         updateDraft()
     }
+
+    private func saveTemporaryImage(data: Data, utType: UTType, filename: String) throws -> URL {
+        let fm = FileManager.default
+
+        let messageId = draftMessage?.id ?? ""
+
+        let tempUrl = fm.temporaryDirectory
+            .appendingPathComponent("attachments", isDirectory: true)
+            .appendingPathComponent(messageId, isDirectory: true)
+
+        var fileUrl = tempUrl.appendingPathComponent(filename)
+        if let preferredFilenameExtension = utType.preferredFilenameExtension {
+            fileUrl = fileUrl.appendingPathExtension(preferredFilenameExtension)
+        }
+
+        try fm.createDirectory(at: tempUrl, withIntermediateDirectories: true)
+        if fm.createFile(atPath: fileUrl.path(), contents: data) {
+            Log.debug("successfully stored temporary attachment")
+            return fileUrl
+        } else {
+            throw AttachmentsError.fileStorageFailed
+        }
+    }
+
+    // MARK: - Drafts
 
     func notifyNewOutgoingMessageId(_ messageId: String) async {
         await syncService.appendOutgoingMessageId(messageId)
@@ -554,6 +628,12 @@ class ComposeMessageViewModel {
 
             return contact.address.localizedStandardContains(searchString) || (contact.cachedName ?? "").localizedStandardContains(searchString)
         }
+    }
+}
+
+private extension URL {
+    var isInTemporaryDirectory: Bool {
+        path.hasPrefix(FileManager.default.temporaryDirectory.path)
     }
 }
 

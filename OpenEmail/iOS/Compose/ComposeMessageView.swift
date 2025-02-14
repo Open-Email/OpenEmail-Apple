@@ -3,6 +3,7 @@ import OpenEmailCore
 import OpenEmailPersistence
 import OpenEmailModel
 import Logging
+import PhotosUI
 
 struct ComposeMessageView: View {
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
@@ -22,6 +23,10 @@ struct ComposeMessageView: View {
 
     @State private var pendingEmailAddress: String = ""
 
+    @State private var filePickerOpen: Bool = false
+    @State private var photoPickerOpen: Bool = false
+    @State private var photoPickerItems: [PhotosPickerItem] = []
+
     private var showsSuggestions: Bool {
         isReadersFocused && !viewModel.contactSuggestions.isEmpty
     }
@@ -32,55 +37,68 @@ struct ComposeMessageView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading) {
-                if viewModel.canBroadcast {
-                    Toggle("Broadcast", isOn: $viewModel.isBroadcast)
-                        .font(.subheadline)
-                        .tint(Color.accentColor)
-                        .foregroundStyle(.secondary)
-                        .padding(.vertical, .Spacing.xSmall)
-                    Divider()
-                }
-
-                if !viewModel.isBroadcast {
-                    ReadersView(isEditable: true, readers: $viewModel.readers, tickedReaders: .constant([]), hasInvalidReader: $hasInvalidReader, pendingText: $pendingEmailAddress)
-                        .focused($isReadersFocused)
-
-                    Divider()
-
-                    if showsSuggestions {
-                        suggestions
-                    }
-                } else {
-                    TokenTextField(
-                        tokens: .constant([AllContactsToken.empty(isSelected: false)]),
-                        isEditable: false,
-                        label: { ReadersLabelView() }
-                    )
-
-                    Divider()
-                }
-
-                if !showsSuggestions {
-                    HStack(spacing: .Spacing.xSmall) {
-                        Text("Subject:")
-                            .foregroundStyle(.secondary)
+            ScrollView {
+                VStack(alignment: .leading) {
+                    if viewModel.canBroadcast {
+                        Toggle("Broadcast", isOn: $viewModel.isBroadcast)
                             .font(.subheadline)
-                        TextField("", text: $viewModel.subject)
+                            .tint(Color.accentColor)
+                            .foregroundStyle(.secondary)
+                            .padding(.vertical, .Spacing.xSmall)
+                        Divider()
                     }
-                    .padding(.vertical, .Spacing.xSmall)
 
-                    Divider()
+                    if !viewModel.isBroadcast {
+                        ReadersView(isEditable: true, readers: $viewModel.readers, tickedReaders: .constant([]), hasInvalidReader: $hasInvalidReader, pendingText: $pendingEmailAddress)
+                            .focused($isReadersFocused)
 
-                    TextEditor(text: $viewModel.fullText)
-                        .focused($isTextEditorFocused)
-                        .font(.body)
-                        .listRowSeparator(.hidden, edges: .bottom)
-                        .id("body")
-                        .padding(.horizontal, -4)
+                        Divider()
+
+                        if showsSuggestions {
+                            suggestions
+                        }
+                    } else {
+                        TokenTextField(
+                            tokens: .constant([AllContactsToken.empty(isSelected: false)]),
+                            isEditable: false,
+                            label: { ReadersLabelView() }
+                        )
+
+                        Divider()
+                    }
+
+                    if !showsSuggestions {
+                        HStack(spacing: .Spacing.xSmall) {
+                            Text("Subject:")
+                                .foregroundStyle(.secondary)
+                                .font(.subheadline)
+                            TextField("", text: $viewModel.subject)
+                        }
+                        .padding(.vertical, .Spacing.xSmall)
+
+                        Divider()
+
+                        VStack(alignment: .leading) {
+                            TextEditor(text: $viewModel.fullText)
+                                .scrollDisabled(true)
+                                .focused($isTextEditorFocused)
+                                .font(.body)
+                                .lineSpacing(5)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .padding(.horizontal, -4)
+
+                            if !viewModel.attachedFileItems.isEmpty {
+                                ComposeAttachmentsListView(attachedFileItems: $viewModel.attachedFileItems, onDelete: {
+                                    viewModel.removeAttachedFileItem(item: $0)
+                                })
+                                .padding(.top, .Spacing.default)
+                            }
+                        }
+                    }
                 }
+                .padding(.horizontal)
             }
-            .padding(.horizontal)
+            .blur(radius: viewModel.isSending ? 4 : 0)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     // TODO: ask if user wants to delete or save the draft
@@ -91,34 +109,26 @@ struct ComposeMessageView: View {
                 }
 
                 ToolbarItem(placement: .automatic) {
-                    Button {
-                        showsAttachments = true
+                    Menu {
+                        Button("Photo Library", systemImage: "photo.on.rectangle") {
+                            photoPickerOpen = true
+                        }
+
+                        Button("Attach File", systemImage: "document") {
+                            filePickerOpen = true
+                        }
                     } label: {
-                        Image(systemName: "paperclip")
-                    }
-                    .overlay(alignment: .topTrailing) {
-                        attachmentsCountBadge
+                        Image(.attachment)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 24)
                     }
                     .help("Add files to the message")
-                    .popover(isPresented: $showsAttachments) {
-                        ComposeAttachmentsListView(attachedFileItems: $viewModel.attachedFileItems, messageId: viewModel.draftMessage?.id ?? "")
-                    }
                 }
 
                 ToolbarItem(placement: .primaryAction) {
                     AsyncButton {
-                        do {
-                            try await viewModel.send()
-                            dismiss()
-                        } catch {
-                            guard !(error is CancellationError) else {
-                                return
-                            }
-
-                            showsError = true
-                            self.error = error
-                            Log.error("Error sending message: \(error)")
-                        }
+                        await sendMessage()
                     } label: {
                         Text("Send")
                     }
@@ -138,7 +148,7 @@ struct ComposeMessageView: View {
                 if viewModel.isSending {
                     Color(uiColor: .systemBackground).opacity(0.7)
 
-                    VStack(spacing: 8) {
+                    VStack(spacing: .Spacing.xSmall) {
                         ProgressView()
 
                         if !viewModel.attachedFileItems.isEmpty {
@@ -165,6 +175,20 @@ struct ComposeMessageView: View {
                     }
                 }
             }
+            .photosPicker(isPresented: $photoPickerOpen, selection: $photoPickerItems)
+            .fileImporter(
+                isPresented: $filePickerOpen,
+                allowedContentTypes: [.data, .image],
+                allowsMultipleSelection: true
+            ) {
+                do {
+                    let urls = try $0.get()
+                    let attachments = urls.compactMap { AttachedFileItem(url: $0) }
+                    viewModel.attachedFileItems.append(contentsOf: attachments)
+                } catch {
+                    Log.error("error reading files: \(error)")
+                }
+            }
             .onChange(of: pendingEmailAddress) {
                 Task {
                     await viewModel.loadContactSuggestions(for: pendingEmailAddress)
@@ -173,35 +197,14 @@ struct ComposeMessageView: View {
             .onChange(of: viewModel.attachedFileItems) {
                 viewModel.updateDraft()
             }
-        }
-    }
-
-    @ViewBuilder
-    private var attachmentsCountBadge: some View {
-        let count = viewModel.attachedFileItems.count
-
-        if count == 0 {
-            EmptyView()
-        } else {
-
-            HStack(spacing: 0) {
-                Text(min(count, 99), format: .number)
-
-                if count > 99 {
-                    Text("+")
-                }
+            .onChange(of: photoPickerItems) {
+                Task { await addSelectedPhotoItems() }
             }
-            .font(.caption)
-            .foregroundStyle(.white)
-            .padding(.horizontal, 5)
-            .background(
-                RoundedRectangle(cornerRadius: 10).fill(.accent)
-            )
         }
     }
 
     private var suggestions: some View {
-        List {
+        LazyVStack {
             ForEach(viewModel.contactSuggestions) { contact in
                 HStack {
                     ProfileImageView(emailAddress: contact.address, size: 30)
@@ -228,8 +231,40 @@ struct ComposeMessageView: View {
             }
         }
         .listStyle(.plain)
-        .padding(.horizontal, -20)
     }
+
+    private func sendMessage() async {
+        do {
+            try await viewModel.send()
+            dismiss()
+        } catch {
+            guard !(error is CancellationError) else {
+                return
+            }
+
+            showsError = true
+            self.error = error
+            Log.error("Error sending message: \(error)")
+        }
+    }
+
+    private func addSelectedPhotoItems() async {
+        guard !photoPickerItems.isEmpty else { return }
+
+        do {
+            for item in photoPickerItems {
+                guard let imageData = try? await item.loadTransferable(type: Data.self) else {
+                    continue
+                }
+                try await viewModel.addAttachmentItem(from: imageData)
+            }
+        } catch {
+            Log.error("Could not add attachment: \(error)")
+        }
+
+        photoPickerItems = []
+    }
+
 }
 
 #Preview {
