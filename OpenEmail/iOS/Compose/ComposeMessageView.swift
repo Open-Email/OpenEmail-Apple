@@ -94,7 +94,6 @@ struct ComposeMessageView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    // TODO: ask if user wants to delete or save the draft
                     AsyncButton("Cancel") {
                         await viewModel.deleteDraft()
                         dismiss()
