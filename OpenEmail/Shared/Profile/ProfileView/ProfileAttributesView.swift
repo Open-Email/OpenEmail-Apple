@@ -151,14 +151,13 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                 }
             )
             .background(.accent.gradient)
-            .clipped()
 #if os(iOS)
             // account for additional padding
             .padding(.horizontal, -20)
             .padding(.top, -11)
             .overlay(alignment: .bottom) {
                 actionButtonRow()
-                    .padding(.Spacing.default)
+                    .padding(.vertical, .Spacing.default)
             }
 #endif
 
@@ -444,11 +443,13 @@ struct InfoButton: View {
         receiveBroadcasts: .constant(false),
         isEditable: false,
         hidesEmptyFields: true,
-        profileImageStyle: .fullWidthHeader(height: 300),
+        profileImageStyle: .fullWidthHeader(height: 500),
         actionButtonRow: {
             HStack {
-                ProfileActionButton(title: "Message", icon: .compose, action: {})
                 ProfileActionButton(title: "Refresh", icon: .refresh, action: {})
+                ProfileActionButton(title: "Fetch", icon: .downloadMessages, action: {})
+                ProfileActionButton(title: "Message", icon: .compose, action: {})
+                ProfileActionButton(title: "Delete", icon: .delete, role: .destructive, action: {})
             }
         }
     )
