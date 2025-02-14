@@ -23,3 +23,17 @@ struct ReaderToken: TokenTextFieldToken {
         ReaderToken(value: "", isSelected: isSelected, convertedToToken: false, isMe: false)
     }
 }
+
+struct AllContactsToken: TokenTextFieldToken {
+    var id: UUID = UUID()
+    var value: String = ""
+    let displayName: String? = "All contacts"
+    var isSelected = false
+    var convertedToToken = true
+    var isValid: Bool? = true
+    let icon: ImageResource? = nil
+
+    static func empty(isSelected: Bool) -> AllContactsToken {
+        AllContactsToken()
+    }
+}

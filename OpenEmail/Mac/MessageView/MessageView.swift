@@ -215,11 +215,7 @@ struct MessageView: View {
 
                     if message?.isBroadcast == false {
                         HStack(alignment: .firstTextBaseline, spacing: .Spacing.xSmall) {
-                            HStack(spacing: .Spacing.xxxSmall) {
-                                Image(.readers)
-                                Text("Readers:")
-                            }
-                            .foregroundStyle(.secondary)
+                            ReadersLabelView()
 
                             let readersBinding = Binding<[EmailAddress]>(
                                 get: {
@@ -241,7 +237,6 @@ struct MessageView: View {
                                 readers: readersBinding,
                                 tickedReaders: deliveries,
                                 hasInvalidReader: .constant(false),
-                                prefixLabel: nil,
                                 showProfileType: .callback(onShowProfile: { address in
                                     selectedMessageProfileAddress = EmailAddress(address)
                                 })

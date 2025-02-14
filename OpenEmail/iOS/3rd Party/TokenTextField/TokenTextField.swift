@@ -159,7 +159,7 @@ private struct TokenView<T: TokenTextFieldToken>: View {
             )
             .focused($isFocused)
         }
-        .padding(.horizontal, .Spacing.small)
+        .padding(.horizontal, internalIsEditable ? 0 : .Spacing.small)
         .frame(height: .Spacing.xLarge)
         .background {
             if !internalIsEditable {
@@ -168,6 +168,7 @@ private struct TokenView<T: TokenTextFieldToken>: View {
                     .stroke(Color.themeLineGray)
             }
         }
+        .contentShape(Capsule())
         .onChange(of: isFocused) { _, newValue in
             handleFocusChange()
         }
@@ -212,8 +213,8 @@ private struct TokenView<T: TokenTextFieldToken>: View {
         DispatchQueue.main.async {
             if let selectedTokenIndex = allTokens.firstIndex(where: { $0.isSelected }),
                allTokens.count > 0 {
-                if token.value.isEmpty || (token.isSelected && token.convertedToToken) {
-                    allTokens.remove(at: selectedTokenIndex)
+                if token.value.isEmpty && selectedTokenIndex > 0 {
+                    allTokens.remove(at: selectedTokenIndex - 1)
 
                     if !allTokens.isEmpty {
                         allTokens[allTokens.indices.last!].isSelected = true
@@ -416,6 +417,8 @@ private struct PreviewToken: TokenTextFieldToken {
 
     TokenTextField(tokens: $tokens, isEditable: false, label: {
         Text("Tokens:")
+    }, onSelectToken: {
+        print("👀 selected token: \($0.displayName)")
     })
     .padding()
 }

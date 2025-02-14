@@ -14,7 +14,6 @@ struct ReadersView: View {
     @Binding private var hasInvalidReader: Bool
     private var pendingText: Binding<String>?
 
-    private let prefixLabel: String?
     @State private var inputText = ""
     @State private var inputEditingPosition: Int = 0
     @State private var showAlreadyAddedAlert = false
@@ -52,7 +51,6 @@ struct ReadersView: View {
         readers: Binding<[EmailAddress]>,
         tickedReaders: Binding<[String]>,
         hasInvalidReader: Binding<Bool>,
-        prefixLabel: String?,
         pendingText: Binding<String>? = nil
     ) {
         self.isEditable = isEditable
@@ -60,7 +58,6 @@ struct ReadersView: View {
         _tickedReaders = tickedReaders
         _hasInvalidReader = hasInvalidReader
         self.pendingText = pendingText
-        self.prefixLabel = prefixLabel
     }
 
     func validateToken(_ token: String) -> Bool {
@@ -74,11 +71,7 @@ struct ReadersView: View {
             validateToken: validateToken,
             isEditable: isEditable,
             label: {
-                HStack(spacing: .Spacing.xxxSmall) {
-                    Image(.readers)
-                    Text("Readers:").font(.subheadline)
-                }
-                .foregroundStyle(.secondary)
+                ReadersLabelView()
             },
             onSelectToken: { token in
                 guard let address = EmailAddress(token.value) else { return }
@@ -247,7 +240,7 @@ struct ReadersView: View {
 
 #Preview("1 reader") {
     VStack(alignment: .leading) {
-        ReadersView(isEditable: false, readers: .constant([EmailAddress("mickey.mouse@disneymail.com")].compactMap { $0 }), tickedReaders: .constant([]), hasInvalidReader: .constant(false), prefixLabel: nil)
+        ReadersView(isEditable: false, readers: .constant([EmailAddress("mickey.mouse@disneymail.com")].compactMap { $0 }), tickedReaders: .constant([]), hasInvalidReader: .constant(false))
     }
     .padding()
 }
@@ -272,8 +265,7 @@ struct ReadersView: View {
                 "mickey.mouse@disneymail.com",
                 "minnie.mouse@magicmail.com"
             ].compactMap { $0 }),
-            hasInvalidReader: .constant(false),
-            prefixLabel: nil)
+            hasInvalidReader: .constant(false))
     }
     .padding()
 }
@@ -308,7 +300,16 @@ struct ReadersView: View {
                 "mickey.mouse@disneymail.com",
                 "minnie.mouse@magicmail.com"
             ].compactMap { $0 }),
-            hasInvalidReader: .constant(false),
-            prefixLabel: nil)
+            hasInvalidReader: .constant(false))
     }
+}
+
+#Preview("editable") {
+    @Previewable @State var readers: [EmailAddress] = []
+    VStack(alignment: .leading) {
+        Divider()
+        ReadersView(isEditable: true, readers: $readers, tickedReaders: .constant([]), hasInvalidReader: .constant(false))
+        Divider()
+    }
+    .padding()
 }
