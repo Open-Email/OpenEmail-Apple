@@ -29,8 +29,11 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    Button("Remove Account", role: .destructive) {
+                    Button(role: .destructive) {
                         showRemoveAccountConfirmation = true
+                    } label: {
+                        Label("Log Out", image: .logout)
+                            .foregroundStyle(.red)
                     }
                     .alert("Remove Account?", isPresented: $showRemoveAccountConfirmation) {
                         Button("Remove Account", role: .destructive) {
