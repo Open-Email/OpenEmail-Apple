@@ -108,7 +108,16 @@ struct ReadersView: View {
     }
 
     private func updateTokensFromReaders() {
+        let currentReaders = Set(tokens.map { $0.value.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { $0.isNotEmpty })
+        let newReaders = Set(readers.map { $0.address.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { $0.isNotEmpty })
+
+        let removedReaders = currentReaders.subtracting(newReaders)
+        for removedReader in removedReaders {
+            tokens.removeAll { $0.value == removedReader }
+        }
+
         var newTokens = [ReaderToken]()
+
         for reader in readers {
             guard !tokens.contains(where: { $0.value == reader.address }) else {
                 continue
@@ -122,7 +131,7 @@ struct ReadersView: View {
             }
         }
 
-        if !newTokens.isEmpty {
+        if newTokens.isNotEmpty {
             if tokens.last?.convertedToToken == false {
                 tokens.removeLast()
             }

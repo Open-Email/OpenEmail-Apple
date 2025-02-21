@@ -20,6 +20,7 @@ struct MessageView: View {
     @State private var showAuthorProfilePopover = false
     @State private var showFilesPopover = false
     @State private var toolbarBarVisibility: Visibility = .hidden
+    @State private var isEditingDraft = false
 
     init(messageID: String, selectedScope: SidebarScope, selectedMessageID: Binding<String?>) {
         viewModel = MessageViewModel(messageID: messageID)
@@ -81,36 +82,48 @@ struct MessageView: View {
     }
 
     @ToolbarContentBuilder
-    private func toolbarContent(message: Message) -> some ToolbarContent {
-        ToolbarItemGroup(placement: .bottomBar) {
-            if selectedScope == .outbox {
-                recallButton(message: message)
-            } else {
-                if selectedScope == .trash && message.author != registeredEmailAddress {
-                    undeleteButton
-                    Spacer()
-                    deleteButton(message: message)
-                } else {
-                    deleteButton(message: message)
+    private func bottomToolbarContent(message: Message) -> some ToolbarContent {
+        if message.isDraft {
+            ToolbarItemGroup(placement: .bottomBar) {
+                deleteButton(message: message)
+
+                Button {
+                    isEditingDraft = true
+                } label: {
+                    Image(.compose)
                 }
             }
+        } else {
+            ToolbarItemGroup(placement: .bottomBar) {
+                if selectedScope == .outbox {
+                    recallButton(message: message)
+                } else {
+                    if selectedScope == .trash && message.author != registeredEmailAddress {
+                        undeleteButton
+                        Spacer()
+                        deleteButton(message: message)
+                    } else {
+                        deleteButton(message: message)
+                    }
+                }
 
-            Spacer()
-            Button("Reply", image: .reply) {
-                guard let registeredEmailAddress else { return }
-                // TODO
-            }
-
-            if message.readers.count > 1 {
                 Spacer()
-                Button("Reply all", image: .replyAll) {
+                Button("Reply", image: .reply) {
+                    guard let registeredEmailAddress else { return }
                     // TODO
                 }
-            }
 
-            Spacer()
-            Button("Forward", image: .forward) {
-                // TODO
+                if message.readers.count > 1 {
+                    Spacer()
+                    Button("Reply all", image: .replyAll) {
+                        // TODO
+                    }
+                }
+
+                Spacer()
+                Button("Forward", image: .forward) {
+                    // TODO
+                }
             }
         }
     }
@@ -208,7 +221,7 @@ struct MessageView: View {
             .frame(maxWidth: .infinity, alignment: .topLeading)
         }
         .toolbar {
-            toolbarContent(message: message)
+            bottomToolbarContent(message: message)
         }
         .toolbarBackground(.thinMaterial, for: .bottomBar)
         .toolbar(toolbarBarVisibility, for: .bottomBar)
@@ -223,6 +236,14 @@ struct MessageView: View {
             }
         }
         .animation(.default, value: toolbarBarVisibility)
+        .sheet(isPresented: $isEditingDraft) {
+            ComposeMessageView(action: .editDraft(messageId: message.id)) { result in
+                switch result {
+                case .sent: selectedMessageID = nil
+                case .cancel: viewModel.fetchMessage()
+                }
+            }
+        }
     }
 
     @ViewBuilder
@@ -295,25 +316,10 @@ struct MessageView: View {
     @ViewBuilder
     private func readers(message: Message) -> some View {
         VStack(alignment: .leading, spacing: .Spacing.small) {
-            let readersBinding = Binding<[EmailAddress]>(
-                get: {
-                    viewModel.message?.readers.compactMap {
-                        EmailAddress($0)
-                    } ?? []
-                },
-                set: { _ in /* read only */ }
-            )
-            let deliveries = Binding<[String]>(
-                get: {
-                    viewModel.message?.deliveries ?? []
-                },
-                set: { _ in /* read only */ }
-            )
-
             ReadersView(
                 isEditable: false,
-                readers: readersBinding,
-                tickedReaders: deliveries,
+                readers: .constant(viewModel.readersAddresses),
+                tickedReaders: .constant(viewModel.message?.deliveries ?? []),
                 hasInvalidReader: .constant(false)
             )
         }

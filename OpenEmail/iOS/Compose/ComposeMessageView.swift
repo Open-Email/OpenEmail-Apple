@@ -5,6 +5,11 @@ import OpenEmailModel
 import Logging
 import PhotosUI
 
+enum ComposeResult {
+    case cancel
+    case sent
+}
+
 struct ComposeMessageView: View {
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
     @AppStorage(UserDefaultsKeys.profileName) private var profileName: String?
@@ -27,12 +32,15 @@ struct ComposeMessageView: View {
     @State private var photoPickerOpen: Bool = false
     @State private var photoPickerItems: [PhotosPickerItem] = []
 
+    private var onClose: ((ComposeResult) -> Void)?
+
     private var showsSuggestions: Bool {
         isReadersFocused && !viewModel.contactSuggestions.isEmpty
     }
 
-    init(action: ComposeAction) {
+    init(action: ComposeAction, onClose: ((ComposeResult) -> Void)? = nil) {
         viewModel = ComposeMessageViewModel(action: action)
+        self.onClose = onClose
     }
 
     var body: some View {
@@ -94,9 +102,10 @@ struct ComposeMessageView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    AsyncButton("Cancel") {
-                        await viewModel.deleteDraft()
+                    Button("Cancel") {
+                        viewModel.updateDraft()
                         dismiss()
+                        onClose?(.cancel)
                     }
                     .disabled(viewModel.isSending)
                 }
@@ -232,6 +241,7 @@ struct ComposeMessageView: View {
         do {
             try await viewModel.send()
             dismiss()
+            onClose?(.sent)
         } catch {
             guard !(error is CancellationError) else {
                 return

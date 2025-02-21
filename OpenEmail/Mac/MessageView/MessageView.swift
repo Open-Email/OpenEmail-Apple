@@ -144,10 +144,10 @@ struct MessageView: View {
             selectedMessageProfileAddress = nil
         }
         .onReceive(NotificationCenter.default.publisher(for: .didSynchronizeMessages)) { _ in
-            viewModel.doFetchMessage()
+            viewModel.fetchMessage()
         }
         .onReceive(NotificationCenter.default.publisher(for: .didUpdateMessages)) { _ in
-            viewModel.doFetchMessage()
+            viewModel.fetchMessage()
         }
     }
 
