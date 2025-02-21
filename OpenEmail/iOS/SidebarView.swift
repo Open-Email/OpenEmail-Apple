@@ -14,32 +14,33 @@ struct SidebarView: View {
             Section {
                 ForEach(viewModel.items) { item in
                     NavigationLink(value: item.scope) {
-                        Image(item.scope.imageResource)
-                            .foregroundStyle(.accent)
-
                         HStack {
-                            Text(item.scope.displayName)
+                            Image(item.scope.imageResource)
+                            Text(item.scope.displayName).fontWeight(.medium)
                         }
+                    }
+                    .padding(.vertical, .Spacing.xSmall)
+                    .if(item.scope == .broadcasts) {
+                        $0.listRowSeparator(.hidden, edges: .top)
+                    }
+                    .if(item.scope == .trash) {
+                        $0.listRowSeparator(.hidden, edges: .bottom)
                     }
                 }
             } header: {
-            } footer: {
-                VStack {
-                    HStack {
-                        Spacer()
-                        Image(.logo)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(height: 24)
-                        Spacer()
-                    }
-
-                    nextSyncInfo
+                VStack(alignment: .leading) {
+                    Image(.logo)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: .Spacing.xLarge)
                 }
-                .padding()
+                .padding(.vertical, .Spacing.default)
+            } footer: {
+                nextSyncInfo
             }
         }
-        .listStyle(.insetGrouped)
+        .listStyle(.grouped)
+        .scrollContentBackground(.hidden)
         .refreshable {
             await syncService.synchronize()
         }
@@ -69,15 +70,17 @@ struct SidebarView: View {
 
     @ViewBuilder
     private var nextSyncInfo: some View {
-        HStack {
-            Image(systemName: "arrow.triangle.2.circlepath")
+        HStack(spacing: .Spacing.xSmall) {
+            Image(.refresh)
             Group {
                 let syncDate = syncService.nextSyncDate ?? .distantFuture
                 Text("Next sync in ") + Text(syncDate, format: .relative(presentation: .numeric))
             }
             .fontWeight(.medium)
             .monospacedDigit()
+            .foregroundStyle(.primary)
         }
+        .padding(.top, .Spacing.large)
     }
 }
 
