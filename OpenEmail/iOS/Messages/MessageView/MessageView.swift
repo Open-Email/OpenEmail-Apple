@@ -20,7 +20,7 @@ struct MessageView: View {
     @State private var showAuthorProfilePopover = false
     @State private var showFilesPopover = false
     @State private var toolbarBarVisibility: Visibility = .hidden
-    @State private var isEditingDraft = false
+    @State private var composeAction: ComposeAction?
 
     init(messageID: String, selectedScope: SidebarScope, selectedMessageID: Binding<String?>) {
         viewModel = MessageViewModel(messageID: messageID)
@@ -88,7 +88,7 @@ struct MessageView: View {
                 deleteButton(message: message)
 
                 Button {
-                    isEditingDraft = true
+                    composeAction = .editDraft(messageId: message.id)
                 } label: {
                     Image(.compose)
                 }
@@ -110,19 +110,35 @@ struct MessageView: View {
                 Spacer()
                 Button("Reply", image: .reply) {
                     guard let registeredEmailAddress else { return }
-                    // TODO
+                    composeAction = .reply(
+                        id: UUID(),
+                        authorAddress: registeredEmailAddress,
+                        messageId: message.id,
+                        quotedText: message.body
+                    )
                 }
 
                 if message.readers.count > 1 {
                     Spacer()
                     Button("Reply all", image: .replyAll) {
-                        // TODO
+                        guard let registeredEmailAddress else { return }
+                        composeAction = .replyAll(
+                            id: UUID(),
+                            authorAddress: registeredEmailAddress,
+                            messageId: message.id,
+                            quotedText: message.body
+                        )
                     }
                 }
 
                 Spacer()
                 Button("Forward", image: .forward) {
-                    // TODO
+                    guard let registeredEmailAddress else { return }
+                    composeAction = .forward(
+                        id: UUID(),
+                        authorAddress: registeredEmailAddress,
+                        messageId: message.id
+                    )
                 }
             }
         }
@@ -142,10 +158,7 @@ struct MessageView: View {
                     do {
                         if let draftMessage = try await viewModel.convertToDraft() {
                             try await viewModel.recallMessage()
-
-                            selectedMessageID = nil
-
-                            // TODO: open modal with draft editor
+                            composeAction = .editDraft(messageId: draftMessage.id)
                         }
                     } catch {
                         // TODO: show error message
@@ -236,14 +249,39 @@ struct MessageView: View {
             }
         }
         .animation(.default, value: toolbarBarVisibility)
-        .sheet(isPresented: $isEditingDraft) {
-            ComposeMessageView(action: .editDraft(messageId: message.id)) { result in
-                switch result {
-                case .sent: selectedMessageID = nil
-                case .cancel: viewModel.fetchMessage()
+        .sheet(isPresented: composeSheetBinding) {
+            if let composeAction {
+                ComposeMessageView(action: composeAction) { result in
+                    switch composeAction {
+                    case .editDraft: handleCloseDraft(result: result)
+                    default: break
+                    }
                 }
             }
         }
+    }
+
+    private func handleCloseDraft(result: ComposeResult) {
+        switch result {
+        case .sent:
+            // After sending a draft, the draft message is deleted.
+            // Setting selectedMessageID to nil will navigate back to the drafts list.
+            selectedMessageID = nil
+        case .cancel:
+            // A draft may have updated data, so reload the draft message
+            viewModel.fetchMessage()
+        }
+    }
+
+    private var composeSheetBinding: Binding<Bool> {
+        .init(
+            get: { composeAction != nil
+            },
+            set: {
+                if $0 == false {
+                    composeAction = nil
+                }
+            })
     }
 
     @ViewBuilder

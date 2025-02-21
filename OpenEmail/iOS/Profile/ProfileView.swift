@@ -9,6 +9,7 @@ struct ProfileView: View {
     private let showActionButtons: Bool
     private let isContactRequest: Bool
     @State private var showRemoveContactConfirmationAlert = false
+    @State private var showsComposeView = false
 
     init(
         emailAddress: EmailAddress,
@@ -38,6 +39,11 @@ struct ProfileView: View {
                     profileImageStyle: .fullWidthHeader(height: 450),
                     actionButtonRow: actionButtons
                 )
+                .sheet(isPresented: $showsComposeView) {
+                    if let registeredEmailAddress {
+                        ComposeMessageView(action: .newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: viewModel.emailAddress.address))
+                    }
+                }
             } else {
                 errorView
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -62,9 +68,7 @@ struct ProfileView: View {
                     }
 
                     ProfileActionButton(title: "Message", icon: .compose) {
-                        guard let registeredEmailAddress else { return }
-                        // TODO: compose
-                        //                openWindow(id: WindowIDs.compose, value: ComposeAction.newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: viewModel.emailAddress.address))
+                        showsComposeView = true
                     }
 
                     ProfileActionButton(title: "Delete", icon: .trash, role: .destructive) {
