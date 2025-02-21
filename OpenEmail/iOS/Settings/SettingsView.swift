@@ -10,7 +10,6 @@ struct SettingsView: View {
                     NavigationLink {
                         GeneralSettingsView()
                             .navigationTitle("General")
-                            .navigationBarTitleDisplayMode(.inline)
                     } label: {
                         Label("General", systemImage: "gear")
                     }
@@ -44,6 +43,7 @@ struct SettingsView: View {
                     }
                 }
             }
+            .listStyle(.grouped)
             .navigationTitle("Settings")
         }
     }

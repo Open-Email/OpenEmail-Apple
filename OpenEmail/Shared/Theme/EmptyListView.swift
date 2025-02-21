@@ -1,22 +1,25 @@
 import SwiftUI
 
 struct EmptyListView: View {
-    let icon: ImageResource
+    let icon: ImageResource?
     let text: String
 
     var body: some View {
         HStack(spacing: .Spacing.small) {
-            ZStack {
-                Circle()
-                    .fill(.themeIconBackground)
-                    .frame(width: .Spacing.xLarge, height: .Spacing.xLarge)
-                Image(icon)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(height: 20)
-                    .foregroundStyle(.themeSecondary)
+            if let icon {
+                ZStack {
+                    Circle()
+                        .fill(.themeIconBackground)
+                        .frame(width: .Spacing.xLarge, height: .Spacing.xLarge)
+
+                    Image(icon)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: 20)
+                        .foregroundStyle(.themeSecondary)
+                }
+                .shadow(color: .themeShadow, radius: 4, y: 2)
             }
-            .shadow(color: .themeShadow, radius: 4, y: 2)
 
             Text(text)
                 .font(.system(size: 14, weight: .medium))

@@ -11,36 +11,35 @@ struct TrustedDomainsSettingsView: View {
     var body: some View {
         let isInEditingMode = editMode?.wrappedValue.isEditing == true
 
-        Group {
+        List {
             if !isInEditingMode && trustedDomains.isEmpty {
-                emptyView
+                EmptyListView(icon: nil, text: "No trusted domains yet")
+                    .listRowSeparator(.hidden)
             } else {
-                List {
-                    ForEach($trustedDomains, id: \.self) { domain in
-                        if isInEditingMode, domain.wrappedValue == "" {
-                            TextField("", text: $editedDomain, prompt: Text("domain"))
-                                .textInputAutocapitalization(.never)
-                                .textContentType(.URL)
-                                .keyboardType(.URL)
-                                .focused($isNewDomainFocused)
-                        } else {
-                            Text(domain.wrappedValue)
-                        }
-                    }
-                    .onDelete { indexSet in
-                        trustedDomains.remove(atOffsets: indexSet)
-                    }
-
-                    if isInEditingMode {
-                        addButton
+                ForEach($trustedDomains, id: \.self) { domain in
+                    if isInEditingMode, domain.wrappedValue == "" {
+                        TextField("", text: $editedDomain, prompt: Text("domain"))
+                            .textInputAutocapitalization(.never)
+                            .textContentType(.URL)
+                            .keyboardType(.URL)
+                            .focused($isNewDomainFocused)
+                    } else {
+                        Text(domain.wrappedValue)
                     }
                 }
-                .listStyle(.insetGrouped)
-                .animation(.default, value: trustedDomains)
+                .onDelete { indexSet in
+                    trustedDomains.remove(atOffsets: indexSet)
+                }
+
+                if isInEditingMode {
+                    addButton
+                }
             }
         }
+        .listStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .animation(.default, value: trustedDomains)
         .navigationTitle("Trusted Domains")
-        .navigationBarTitleDisplayMode(.inline)
         .toolbar { EditButton() }
         .onChange(of: editMode?.wrappedValue) { old, new in
             if old?.isEditing == true && new?.isEditing == false {
@@ -52,21 +51,14 @@ struct TrustedDomainsSettingsView: View {
     private func endEditingDomain() {
         let cleanedDomain = editedDomain.trimmingCharacters(in: .whitespacesAndNewlines)
         var newDomains = trustedDomains
-        newDomains.remove(at: trustedDomains.endIndex - 1)
 
-        if !cleanedDomain.isEmpty {
+        if cleanedDomain.isNotEmpty {
+            newDomains.removeLast()
             newDomains.append(cleanedDomain)
         }
 
         trustedDomains = newDomains
         editedDomain = ""
-    }
-
-    @ViewBuilder
-    private var emptyView: some View {
-        Text("No trusted domains yet")
-            .foregroundStyle(.secondary)
-            .bold()
     }
 
     @ViewBuilder
