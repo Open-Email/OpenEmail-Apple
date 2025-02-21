@@ -2,14 +2,21 @@ import SwiftUI
 import OpenEmailCore
 import Utils
 
-struct ProfileImageView: View {
+enum ProfileImageShapeType {
+    case circle
+    case rectangle
+    case roundedRectangle(cornerRadius: CGFloat)
+}
+
+struct ProfileImageView<Placeholder: View>: View {
     private let emailAddress: String?
     @State private var name: String?
     @State private var image: Image?
     private let overrideImage: Image?
-    private let type: ShapeType
+    private let type: ProfileImageShapeType
     private let size: CGFloat
     private let multipleUsersCount: Int?
+    @ViewBuilder private var placeholder: (String) -> Placeholder
 
     @State private var isLoading = false
 
@@ -26,11 +33,6 @@ struct ProfileImageView: View {
         }
     }
 
-    enum ShapeType {
-        case circle
-        case roundedRectangle(cornerRadius: CGFloat)
-    }
-    
     /// Initializer
     ///
     /// - Parameters:
@@ -40,13 +42,20 @@ struct ProfileImageView: View {
     ///   - overrideImage: If present, this is used as the image instead of the actual profile image
     ///   - shape: The shape of the profile image (circle or rounded rectangle)
     ///   - size: The bounding box size of the profile image (bounding box is always square)
+    ///   - placeholderModifier: A view modifier that can apply styles to the placeholder text
     init(
         emailAddress: String?,
         multipleUsersCount: Int? = nil,
         name: String? = nil,
         overrideImage: Image? = nil,
-        shape: ShapeType = .circle,
-        size: CGFloat = 40
+        shape: ProfileImageShapeType = .circle,
+        size: CGFloat = 40,
+        @ViewBuilder placeholder: @escaping (String) -> Placeholder = {
+            Text($0)
+                .foregroundStyle(.themePrimary)
+                .font(.system(size: 14))
+                .fontWeight(.semibold)
+        }
     ) {
         self.type = shape
         self.size = size
@@ -54,10 +63,11 @@ struct ProfileImageView: View {
         self.name = name
         self.overrideImage = overrideImage
         self.multipleUsersCount = multipleUsersCount
+        self.placeholder = placeholder
     }
 
     var body: some View {
-        VStack {
+        Group {
             switch type {
             case .circle:
                 ZStack {
@@ -76,6 +86,13 @@ struct ProfileImageView: View {
                 .clipShape(Circle())
                 .blur(radius: isLoading ? 4 : 0)
                 .shadow(color: .themeShadow, radius: 4, y: 2)
+            case .rectangle:
+                Color.clear
+                    .frame(height: size)
+                    .background {
+                        makeImage()
+                    }
+                    .blur(radius: isLoading ? 4 : 0)
             case .roundedRectangle(let cornerRadius):
                 ZStack {
                     RoundedRectangle(cornerRadius: cornerRadius)
@@ -132,17 +149,13 @@ struct ProfileImageView: View {
     }
 
     @ViewBuilder
-    private func makeImage() -> some View {
+    private func makeImage(contentMode: ContentMode = .fill) -> some View {
         if let image = overrideImage ?? image {
             image
                 .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: size, height: size)
+                .aspectRatio(contentMode: contentMode)
         } else {
-            Text(placeholderText)
-                .foregroundStyle(.themePrimary)
-                .font(.system(size: 14))
-                .fontWeight(.semibold)
+            placeholder(placeholderText)
         }
     }
 }
@@ -221,4 +234,19 @@ private extension String {
         size: 288
     )
     .padding()
+}
+
+#Preview("Rect") {
+    VStack {
+        ProfileImageView(
+            emailAddress: "mickey@mouse.com",
+            name: "Mickey Mouse",
+            overrideImage: Image("sample-profile-1"),
+            shape: .rectangle,
+            size: 500
+        )
+        .padding()
+    }
+    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+    .ignoresSafeArea(edges: .top)
 }

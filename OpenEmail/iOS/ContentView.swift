@@ -19,25 +19,25 @@ struct ContentView: View {
         TabView {
             MessagesTabView()
                 .tabItem {
-                    Image(systemName: "dot.radiowaves.left.and.right")
+                    Image(.messagesTab)
                     Text("Messages")
                 }
 
-            Text("Contacts")
+            ContactsTabView()
                 .tabItem {
-                    Image(systemName: "person.2.fill")
+                    Image(.scopeContacts)
                     Text("Contacts")
                 }
 
             Text(registeredEmailAddress ?? "not logged in")
                 .tabItem {
-                    Image(systemName: "person.crop.circle")
+                    Image(.profileTab)
                     Text("Profile")
                 }
 
             SettingsView()
                 .tabItem {
-                    Image(systemName: "switch.2")
+                    Image(.settings)
                     Text("Settings")
                 }
         }

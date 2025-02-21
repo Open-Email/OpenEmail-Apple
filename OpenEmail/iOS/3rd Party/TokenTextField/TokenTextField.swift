@@ -9,19 +9,21 @@ protocol TokenTextFieldToken: Identifiable, Equatable, Hashable {
     var isSelected: Bool { get set }
     var convertedToToken: Bool { get set }
     var isValid: Bool? { get set }
-    var color: Color { get }
     var displayName: String? { get }
+    var icon: ImageResource? { get }
 
     static func empty(isSelected: Bool) -> Self
 }
 
-struct TokenTextField<T: TokenTextFieldToken>: View {
+struct TokenTextField<T: TokenTextFieldToken, Label: View>: View {
     @Binding var tokens: [T]
 
-    var horizontalSpacingBetweenItem: CGFloat = 4
-    var verticalSpacingBetweenItem: CGFloat = 10
+    var horizontalSpacingBetweenItem: CGFloat = .Spacing.xxSmall
+    var verticalSpacingBetweenItem: CGFloat = .Spacing.xxSmall
     var validateToken: TokenValidation?
+    var isEditable: Bool
 
+    @ViewBuilder var label: () -> Label?
     var onSelectToken: (T) -> Void = { _ in }
     var onTokenAdded: (T) -> Void = { _ in }
 
@@ -31,11 +33,15 @@ struct TokenTextField<T: TokenTextFieldToken>: View {
             horizontalSpacingBetweenItem: horizontalSpacingBetweenItem,
             verticalSpacingBetweenItem: verticalSpacingBetweenItem
         ) {
+            if let label = label() {
+                label.frame(height: .Spacing.xLarge)
+            }
             ForEach(tokens.indices, id: \.self) { index in
                 TokenView(
                     token: $tokens[index],
                     allTokens: $tokens,
                     validateToken: validateToken,
+                    isEditable: isEditable,
                     onTap: onSelectToken,
                     onConvertToken: onTokenAdded
                 )
@@ -45,10 +51,12 @@ struct TokenTextField<T: TokenTextFieldToken>: View {
                 .id(tokens[index].id)
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, .Spacing.xxSmall)
         .background()
         .onTapGesture {
-            updateSelectedToken()
+            if isEditable {
+                updateSelectedToken()
+            }
         }
         .onAppear {
             handleInitialToken()
@@ -103,6 +111,8 @@ struct TokenTextField<T: TokenTextFieldToken>: View {
     }
     
     private func appendEmptyToken(isSelected: Bool) {
+        guard isEditable else { return }
+
         DispatchQueue.main.async {
             tokens.indices.forEach { index in
                 if !tokens[index].convertedToToken && !(tokens[index].value.isEmpty) {
@@ -121,41 +131,44 @@ private struct TokenView<T: TokenTextFieldToken>: View {
     @Binding var token: T
     @Binding var allTokens: [T]
     @FocusState private var isFocused: Bool
-    @State private var isEditable: Bool = false
+    @State private var internalIsEditable: Bool = false
 
     var validateToken: TokenValidation?
+    var isEditable: Bool
     var onTap: (T) -> Void
     var onConvertToken: (T) -> Void
 
     private var backgroundColor: Color {
-        if isEditable {
-            return .clear
-        }
-
-        let baseColor = token.color
-
         if isFocused {
-            return baseColor
+            return .themeSecondary.opacity(0.2)
         } else {
-            return baseColor.opacity(0.2)
+            return .clear
         }
     }
 
     var body: some View {
-        BackSpaceListenerTextField(
-            token: $token,
-            onBackPressed: { handleBackspacePressed() },
-            onTap: { handleTokenTap() },
-            isEditable: $isEditable
-        )
-        .focused($isFocused)
-        .padding(.vertical, 3)
-        .padding(.horizontal, 5)
-        .background {
-            RoundedRectangle(cornerRadius: 5)
-                .foregroundColor(backgroundColor)
+        HStack(spacing: .Spacing.xxxSmall) {
+            if !isEditable, let icon = $token.wrappedValue.icon {
+                Image(icon).foregroundStyle(Color.themePrimary)
+            }
+            BackSpaceListenerTextField(
+                token: $token,
+                onBackPressed: { handleBackspacePressed() },
+                onTap: { handleTokenTap() },
+                isEditable: $internalIsEditable
+            )
+            .focused($isFocused)
         }
-        .frame(height: 21)
+        .padding(.horizontal, internalIsEditable ? 0 : .Spacing.small)
+        .frame(height: .Spacing.xLarge)
+        .background {
+            if !internalIsEditable {
+                Capsule()
+                    .fill(backgroundColor)
+                    .stroke(Color.themeLineGray)
+            }
+        }
+        .contentShape(Capsule())
         .onChange(of: isFocused) { _, newValue in
             handleFocusChange()
         }
@@ -163,7 +176,7 @@ private struct TokenView<T: TokenTextFieldToken>: View {
             handleTokenFocusChange(newValue: newValue)
         }
         .onChange(of: token.isSelected) { _, newValue in
-            isEditable = !token.convertedToToken
+            internalIsEditable = isEditable && !token.convertedToToken
         }
         .onChange(of: token.value) {
             token.isValid = validateToken?(token.value)
@@ -175,16 +188,23 @@ private struct TokenView<T: TokenTextFieldToken>: View {
         }
         .onAppear() {
             isFocused = token.isSelected
-            isEditable = !token.convertedToToken
+            internalIsEditable = isEditable && !token.convertedToToken
+        }
+        .onTapGesture {
+            handleTokenTap()
         }
     }
     
     private func handleTokenTap() {
-        allTokens.indices.forEach { allTokens[$0].isSelected = false }
-        token.isSelected = true
-        isFocused = token.isSelected
+        if isEditable {
+            allTokens.indices.forEach { allTokens[$0].isSelected = false }
+            token.isSelected = true
+            isFocused = token.isSelected
 
-        if token.isSelected && token.convertedToToken {
+            if token.isSelected && token.convertedToToken {
+                onTap(token)
+            }
+        } else {
             onTap(token)
         }
     }
@@ -193,8 +213,8 @@ private struct TokenView<T: TokenTextFieldToken>: View {
         DispatchQueue.main.async {
             if let selectedTokenIndex = allTokens.firstIndex(where: { $0.isSelected }),
                allTokens.count > 0 {
-                if token.value.isEmpty || (token.isSelected && token.convertedToToken) {
-                    allTokens.remove(at: selectedTokenIndex)
+                if token.value.isEmpty && selectedTokenIndex > 0 {
+                    allTokens.remove(at: selectedTokenIndex - 1)
 
                     if !allTokens.isEmpty {
                         allTokens[allTokens.indices.last!].isSelected = true
@@ -204,12 +224,14 @@ private struct TokenView<T: TokenTextFieldToken>: View {
 
             if allTokens.isEmpty {
                 appendEmptyToken(isSelected: true)
-                isEditable = true
+                internalIsEditable = isEditable
             }
         }
     }
 
     private func appendEmptyToken(isSelected: Bool) {
+        guard isEditable else { return }
+
         DispatchQueue.main.async {
             allTokens.indices.forEach { index in
                 if !allTokens[index].convertedToToken && !(allTokens[index].value.isEmpty) {
@@ -262,6 +284,11 @@ private struct BackSpaceListenerTextField<T: TokenTextFieldToken>: UIViewReprese
         textField.autocapitalizationType = .none
         textField.backgroundColor = .clear
         textField.addTarget(context.coordinator, action: #selector(Coordinator.textChange(textField:)), for: .editingChanged)
+
+        if !isEditable {
+            // when editable, tapping is handled by the text field delegate
+            textField.addGestureRecognizer(UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.didTap)))
+        }
         return textField
     }
     
@@ -277,13 +304,14 @@ private struct BackSpaceListenerTextField<T: TokenTextFieldToken>: UIViewReprese
 
         if !isEditable {
             uiView.text = text
-            uiView.tintColor = token.isSelected ? .clear : .tintColor
-            uiView.textColor = token.isSelected ? .white : .black
+            uiView.textColor = .themePrimary
         } else {
             uiView.text = text
             uiView.tintColor = .tintColor
             uiView.textColor = .black
         }
+
+        uiView.font = UIFont.preferredFont(forTextStyle: .callout)
     }
     
     func sizeThatFits(_ proposal: ProposedViewSize, uiView: CustomTextField, context: Context) -> CGSize? {
@@ -308,11 +336,19 @@ private struct BackSpaceListenerTextField<T: TokenTextFieldToken>: UIViewReprese
                 self?.text = textField.text ?? ""
             }
         }
-        
+
+        @objc func didTap() {
+            onTap()
+        }
+
         func textFieldShouldReturn(_ textField: UITextField) -> Bool {
             textField.resignFirstResponder()
         }
-        
+
+        func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
+            isEditable
+        }
+
         func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
             if !isEditable {
                 if string.isEmpty {
@@ -350,3 +386,39 @@ private struct BackSpaceListenerTextField<T: TokenTextFieldToken>: UIViewReprese
         }
     }
 }
+
+#if DEBUG
+
+private struct PreviewToken: TokenTextFieldToken {
+    var id: String { value }
+    var value: String
+    var isSelected: Bool = false
+    var convertedToToken: Bool = false
+    var isValid: Bool? = true
+    var displayName: String?
+    var icon: ImageResource?
+    
+    static func empty(isSelected: Bool) -> PreviewToken {
+        PreviewToken(value: "")
+    }
+}
+
+#Preview {
+    @Previewable @State var tokens: [PreviewToken] = [
+        .init(value: "", displayName: "Mickey Mouse"),
+        .init(value: "", displayName: "Minnie Mouse"),
+        .init(value: "", displayName: "Donald Duck"),
+        .init(value: "", displayName: "Daisy Duck"),
+        .init(value: "", displayName: "Scrooge McDuck"),
+        .init(value: "", displayName: "Goofy"),
+        .init(value: "", displayName: "Quack"),
+        .init(value: "", displayName: "Ludwig Von Drake"),
+    ]
+
+    TokenTextField(tokens: $tokens, isEditable: false, label: {
+        Text("Tokens:")
+    })
+    .padding()
+}
+
+#endif

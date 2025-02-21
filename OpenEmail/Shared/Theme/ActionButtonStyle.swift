@@ -16,7 +16,7 @@ struct ActionButtonStyle: ButtonStyle {
 
     private func overlayColor(isPressed: Bool) -> Color {
         if !isEnabled {
-            return Color(NSColor(white: 0.3, alpha: 0.8))
+            return .disabledActionButtonOverlay
         } else {
             return isPressed ? .white.opacity(0.5) : .clear
         }

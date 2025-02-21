@@ -119,7 +119,7 @@ struct ContentView: View {
 
         ToolbarItem {
             HStack(spacing: 2) {
-                AsyncButton(actionOptions: [.disableButton]) {
+                AsyncButton {
                     await triggerSync()
                 } label: {
                     SyncProgressView()
@@ -165,8 +165,8 @@ struct ContentView: View {
     }
 
     private func updateContactRequests() async {
-            hasContactRequests = await contactRequestsController.hasContactRequests
-        }
+        hasContactRequests = await contactRequestsController.hasContactRequests
+    }
 
     private func triggerSync() async {
         await syncService.synchronize()

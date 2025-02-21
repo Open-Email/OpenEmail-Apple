@@ -161,7 +161,7 @@ struct ComposeMessageView: View {
             .buttonStyle(.plain)
             .help("Add files to the message")
 
-            AsyncButton(actionOptions: [.disableButton]) {
+            AsyncButton {
                 do {
                     try await viewModel.send()
                     dismiss()
@@ -194,11 +194,7 @@ struct ComposeMessageView: View {
                     }
                     .foregroundStyle(.secondary)
                 } else {
-                    HStack(spacing: .Spacing.xxxSmall) {
-                        Image(.readers)
-                        Text("Readers:")
-                    }
-                    .foregroundStyle(.secondary)
+                    ReadersLabelView()
                 }
 
                 ReadersView(
@@ -206,7 +202,6 @@ struct ComposeMessageView: View {
                     readers: $viewModel.readers,
                     tickedReaders: .constant([]),
                     hasInvalidReader: $hasInvalidReader,
-                    prefixLabel: nil,
                     showProfileType: .popover
                 )
                 .focused($isReadersFocused)

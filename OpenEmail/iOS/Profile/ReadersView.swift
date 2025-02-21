@@ -14,7 +14,6 @@ struct ReadersView: View {
     @Binding private var hasInvalidReader: Bool
     private var pendingText: Binding<String>?
 
-    private let prefixLabel: String?
     @State private var inputText = ""
     @State private var inputEditingPosition: Int = 0
     @State private var showAlreadyAddedAlert = false
@@ -52,7 +51,6 @@ struct ReadersView: View {
         readers: Binding<[EmailAddress]>,
         tickedReaders: Binding<[String]>,
         hasInvalidReader: Binding<Bool>,
-        prefixLabel: String?,
         pendingText: Binding<String>? = nil
     ) {
         self.isEditable = isEditable
@@ -60,7 +58,6 @@ struct ReadersView: View {
         _tickedReaders = tickedReaders
         _hasInvalidReader = hasInvalidReader
         self.pendingText = pendingText
-        self.prefixLabel = prefixLabel
     }
 
     func validateToken(_ token: String) -> Bool {
@@ -72,6 +69,10 @@ struct ReadersView: View {
         TokenTextField(
             tokens: $tokens,
             validateToken: validateToken,
+            isEditable: isEditable,
+            label: {
+                ReadersLabelView()
+            },
             onSelectToken: { token in
                 guard let address = EmailAddress(token.value) else { return }
                 presentedProfileAddress = address
@@ -79,6 +80,9 @@ struct ReadersView: View {
             },
             onTokenAdded: onTokenAdded
         )
+        .task {
+            updateTokensFromReaders()
+        }
         .onChange(of: tokens) {
             readers = validReaders
             pendingText?.wrappedValue = pendingAdddress
@@ -96,44 +100,7 @@ struct ReadersView: View {
             }
         }
         .popover(item: $presentedProfileAddress) { emailAddress in
-            NavigationStack {
-                VStack {
-                    ProfileView(emailAddress: emailAddress, showActionButtons: true, onProfileLoaded: { profile, _ in
-                        presentedProfile = profile
-                    })
-                    .toolbar {
-                        Button(role: .cancel) {
-                            closeProfile()
-                        } label: {
-                            Image(systemName: "xmark")
-                        }
-                        .foregroundStyle(.white)
-                    }
-
-                    if let token = tokens.first(where: { $0.value == emailAddress.address }) {
-                        if isEditable && (!token.isInMyContacts || token.isInOtherContacts == false) {
-                            HStack {
-                                Button("Remove Reader", role: .destructive) {
-                                    onRemoveReader(token)
-                                    closeProfile()
-                                }
-
-                                if token.value != registeredEmailAddress && !token.isInMyContacts {
-                                    AsyncButton("Add Contact") {
-                                        let usecase = AddToContactsUseCase()
-                                        try? await usecase.add(emailAddress: emailAddress, cachedName: presentedProfile?[.name])
-                                        await updateContactsState(for: token)
-                                        closeProfile()
-                                    }
-                                    .disabled(presentedProfile == nil)
-                                }
-                            }
-                            .buttonStyle(.bordered)
-                            .padding()
-                        }
-                    }
-                }
-            }
+            profilePopover(emailAddress: emailAddress)
         }
         .task {
             await updateAllContactsStates()
@@ -141,17 +108,30 @@ struct ReadersView: View {
     }
 
     private func updateTokensFromReaders() {
+        let currentReaders = Set(tokens.map { $0.value.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { $0.isNotEmpty })
+        let newReaders = Set(readers.map { $0.address.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { $0.isNotEmpty })
+
+        let removedReaders = currentReaders.subtracting(newReaders)
+        for removedReader in removedReaders {
+            tokens.removeAll { $0.value == removedReader }
+        }
+
         var newTokens = [ReaderToken]()
+
         for reader in readers {
             guard !tokens.contains(where: { $0.value == reader.address }) else {
                 continue
             }
 
-            let token = ReaderToken(value: reader.address, isValid: true)
-            newTokens.append(token)
+            // don't show reader if it is myself, except when I am the only reader or when composing a message
+            let isMe = reader.address == registeredEmailAddress
+            if !isMe || readers.count == 1 || isEditable {
+                let token = ReaderToken(value: reader.address, isValid: true, isMe: isMe)
+                newTokens.append(token)
+            }
         }
 
-        if !newTokens.isEmpty {
+        if newTokens.isNotEmpty {
             if tokens.last?.convertedToToken == false {
                 tokens.removeLast()
             }
@@ -174,7 +154,7 @@ struct ReadersView: View {
 
     private func onTokenAdded(_ token: ReaderToken) {
         Task {
-            await updateContactsState(for: token)
+            await checkMyContacts(for: token)
         }
     }
 
@@ -193,31 +173,27 @@ struct ReadersView: View {
 
     private func updateAllContactsStates() async {
         for token in tokens {
-            await updateContactsState(for: token)
+            await checkMyContacts(for: token)
         }
-    }
-
-    private func updateContactsState(for token: ReaderToken) async {
-        await checkMyContacts(for: token)
-        await checkOtherContacts(for: token)
     }
 
     private func checkMyContacts(for token: ReaderToken) async {
         guard let emailAddress = EmailAddress(token.value) else { return }
 
-        var contactName: String?
+        let isMe = emailAddress.address == registeredEmailAddress
+        let contactName: String?
+        let isInMyContacts: Bool
 
-        if emailAddress == LocalUser.current?.address {
-            contactName = profileName
-            return
+        if isMe {
+            contactName = "me"
+            isInMyContacts = true
+        } else {
+            let contact = try? await contactsStore.contact(address: emailAddress.address)
+            contactName = contact?.cachedName
+            isInMyContacts = contact != nil
         }
 
-        let contact = try? await contactsStore.contact(address: emailAddress.address)
-
-        contactName = contact?.cachedName
-
-        let isInMyContacts = contact != nil
-        if !isInMyContacts && !profilesShown.contains(emailAddress) && isEditable {
+        if !isMe && !isInMyContacts && !profilesShown.contains(emailAddress) && isEditable {
             presentedProfileAddress = emailAddress
         }
 
@@ -226,6 +202,7 @@ struct ReadersView: View {
                 var editableToken = $0
                 editableToken.displayName = contactName
                 editableToken.isInMyContacts = isInMyContacts
+                editableToken.isMe = isMe
                 return editableToken
             } else {
                 return $0
@@ -233,33 +210,52 @@ struct ReadersView: View {
         }
     }
 
-    private func checkOtherContacts(for token: ReaderToken) async {
-        guard
-            let localUser = LocalUser.current,
-            let emailAddress = EmailAddress(token.value)
-        else {
-            return
-        }
+    private func profilePopover(emailAddress: EmailAddress) -> some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                ProfileView(
+                    emailAddress: emailAddress,
+                    showActionButtons: false,
+                    onProfileLoaded: { profile, _ in
+                        presentedProfile = profile
+                    })
 
-        if let isInOtherContacts = try? await client.isAddressInContacts(localUser: localUser, address: emailAddress) {
-            tokens = tokens.map {
-                if $0.id == token.id {
-                    var editableToken = $0
-                    editableToken.isInOtherContacts = isInOtherContacts
-                    return editableToken
-                } else {
-                    return $0
+                if
+                    isEditable,
+                    let token = tokens.first(where: { $0.value == emailAddress.address })
+                {
+                    HStack {
+                        Button("Remove Reader", role: .destructive) {
+                            onRemoveReader(token)
+                            closeProfile()
+                        }
+
+                        if token.value != registeredEmailAddress, !token.isInMyContacts {
+                            AsyncButton("Add Contact") {
+                                let usecase = AddToContactsUseCase()
+                                try? await usecase.add(emailAddress: emailAddress, cachedName: presentedProfile?[.name])
+                                await checkMyContacts(for: token)
+                                closeProfile()
+                            }
+                            .disabled(presentedProfile == nil)
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(.themeBackground)
                 }
             }
+            .profilePopoverToolbar(closeProfile: closeProfile)
         }
     }
 }
 
 #Preview("1 reader") {
     VStack(alignment: .leading) {
-        ReadersView(isEditable: false, readers: .constant([EmailAddress("mickey.mouse@disneymail.com")].compactMap { $0 }), tickedReaders: .constant([]), hasInvalidReader: .constant(false), prefixLabel: nil)
+        ReadersView(isEditable: false, readers: .constant([EmailAddress("mickey.mouse@disneymail.com")].compactMap { $0 }), tickedReaders: .constant([]), hasInvalidReader: .constant(false))
     }
-    .frame(width: 500)
+    .padding()
 }
 
 #Preview("10 readers") {
@@ -267,25 +263,24 @@ struct ReadersView: View {
         ReadersView(
             isEditable: false,
             readers: .constant([
-                EmailAddress("mickey.mouse@disneymail.com"),
-                EmailAddress("minnie.mouse@magicmail.com"),
-                EmailAddress("donald.duck@quackmail.com"),
-                EmailAddress("daisy.duck@flowerpowermail.com"),
-                EmailAddress("goofy.goof@laughtermail.com"),
-                EmailAddress("pluto.pup@starstruckmail.com"),
-                EmailAddress("cinderella.princess@fairytalemail.com"),
-                EmailAddress("buzz.lightyear@toinfinitymail.com"),
-                EmailAddress("ariel.mermaid@undertheseamail.com"),
-                EmailAddress("simba.lionking@savannahmail.com"),
+                EmailAddress("mickey@disneymail.com"),
+                EmailAddress("min@magic.com"),
+                EmailAddress("don@quack.com"),
+                EmailAddress("daisy@flowerpowermail.com"),
+                EmailAddress("goofy@laughtermail.com"),
+                EmailAddress("pluto@starstruckmail.com"),
+                EmailAddress("cinderella@fairytal.com"),
+                EmailAddress("buzz@toinfinitymail.com"),
+                EmailAddress("ariel@undertheseamail.com"),
+                EmailAddress("simba@savannahmail.com"),
             ].compactMap { $0 }),
             tickedReaders: .constant([
                 "mickey.mouse@disneymail.com",
                 "minnie.mouse@magicmail.com"
             ].compactMap { $0 }),
-            hasInvalidReader: .constant(false),
-            prefixLabel: nil)
+            hasInvalidReader: .constant(false))
     }
-    .frame(width: 500)
+    .padding()
 }
 
 #Preview("20 readers") {
@@ -318,8 +313,16 @@ struct ReadersView: View {
                 "mickey.mouse@disneymail.com",
                 "minnie.mouse@magicmail.com"
             ].compactMap { $0 }),
-            hasInvalidReader: .constant(false),
-            prefixLabel: nil)
+            hasInvalidReader: .constant(false))
     }
-    .frame(width: 500)
+}
+
+#Preview("editable") {
+    @Previewable @State var readers: [EmailAddress] = []
+    VStack(alignment: .leading) {
+        Divider()
+        ReadersView(isEditable: true, readers: $readers, tickedReaders: .constant([]), hasInvalidReader: .constant(false))
+        Divider()
+    }
+    .padding()
 }

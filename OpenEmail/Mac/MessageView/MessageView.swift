@@ -144,10 +144,10 @@ struct MessageView: View {
             selectedMessageProfileAddress = nil
         }
         .onReceive(NotificationCenter.default.publisher(for: .didSynchronizeMessages)) { _ in
-            viewModel.doFetchMessage()
+            viewModel.fetchMessage()
         }
         .onReceive(NotificationCenter.default.publisher(for: .didUpdateMessages)) { _ in
-            viewModel.doFetchMessage()
+            viewModel.fetchMessage()
         }
     }
 
@@ -161,7 +161,7 @@ struct MessageView: View {
                     .bold()
 
                 if let message {
-                    messageTypeBadge(message: message)
+                    MessageTypeBadge(scope: navigationState.selectedScope)
 
                     Spacer()
 
@@ -215,11 +215,7 @@ struct MessageView: View {
 
                     if message?.isBroadcast == false {
                         HStack(alignment: .firstTextBaseline, spacing: .Spacing.xSmall) {
-                            HStack(spacing: .Spacing.xxxSmall) {
-                                Image(.readers)
-                                Text("Readers:")
-                            }
-                            .foregroundStyle(.secondary)
+                            ReadersLabelView()
 
                             let readersBinding = Binding<[EmailAddress]>(
                                 get: {
@@ -241,7 +237,6 @@ struct MessageView: View {
                                 readers: readersBinding,
                                 tickedReaders: deliveries,
                                 hasInvalidReader: .constant(false),
-                                prefixLabel: nil,
                                 showProfileType: .callback(onShowProfile: { address in
                                     selectedMessageProfileAddress = EmailAddress(address)
                                 })
@@ -464,33 +459,6 @@ struct MessageView: View {
                 .lineSpacing(5)
         } else {
             Text("Loading…").italic().disabled(true)
-        }
-    }
-
-    @ViewBuilder
-    private func messageTypeBadge(message: Message) -> some View {
-        let text: String? = {
-            switch navigationState.selectedScope {
-            case .broadcasts: "Broadcast"
-            case .inbox: "Incoming"
-            case .outbox: "Outgoing"
-            case .drafts: "Draft"
-            case .trash: nil
-            case .contacts: nil
-            }
-        }()
-
-        if let text {
-            Text(text)
-                .fontWeight(.semibold)
-                .padding(.horizontal, .Spacing.xSmall)
-                .padding(.vertical, .Spacing.xxSmall)
-                .background {
-                    RoundedRectangle(cornerRadius: .CornerRadii.small)
-                        .fill(.themeBadgeBackground)
-                }
-        } else {
-            EmptyView()
         }
     }
 

@@ -14,38 +14,53 @@ struct KeysSettingsView: View {
         let privateSigningKey = keys?.privateSigningKey
         let privateEncryptionKey = keys?.privateEncryptionKey
 
-        Form {
+        List {
             if let privateSigningKey, let privateEncryptionKey {
                 qrCode(
                     privateSigningKey: privateSigningKey,
                     privateEncryptionKey: privateEncryptionKey
                 )
-                .listRowBackground(Color.clear)
+                .listRowBackground(Color.themeBackground)
+                .listRowSeparator(.hidden)
             }
 
             Section("Private Keys") {
                 keyRow(title: "Private Signing Key", key: privateSigningKey)
                 keyRow(title: "Private Encryption Key", key: privateEncryptionKey)
             }
+            .listRowSeparator(.hidden)
 
             Section("Public Keys") {
                 keyRow(title: "Public Signing Key", key: publicSigningKey)
                 keyRow(title: "Public Encryption Key", key: publicSigningKey)
             }
+            .listRowSeparator(.hidden)
         }
-        .formStyle(.grouped)
+        .listStyle(.grouped)
         .textSelection(.enabled)
         .scrollBounceBehavior(.basedOnSize)
+        .scrollContentBackground(.hidden)
         .navigationTitle("Keys")
-        .navigationBarTitleDisplayMode(.inline)
     }
 
     @ViewBuilder
     private func keyRow(title: String, key: String?) -> some View {
         VStack(alignment: .leading) {
-            Text(title)
+            HStack {
+                Text(title).font(.headline)
+                Spacer()
+
+                if let key {
+                    Button("Copy", image: .copy) {
+                        UIPasteboard.general.string = key
+                    }
+                    .foregroundStyle(.secondary)
+                    .buttonStyle(.plain)
+                    .labelStyle(.iconOnly)
+                    .frame(width: 24, height: 24)
+                }
+            }
             Text(key ?? "-")
-                .foregroundStyle(.secondary)
         }
     }
 
@@ -55,11 +70,12 @@ struct KeysSettingsView: View {
         if let qrCode = QRCodeGenerator.generateQRCode(from: string) {
             VStack {
                 qrCode.swiftUIImage
-                    .padding(10)
+                    .padding(.Spacing.small)
                     .background(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .clipShape(RoundedRectangle(cornerRadius: .CornerRadii.default))
             }
             .frame(maxWidth: .infinity)
+            .padding(.vertical, .Spacing.xLarge)
         }
     }
 }

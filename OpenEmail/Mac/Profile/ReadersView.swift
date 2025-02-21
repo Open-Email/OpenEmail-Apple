@@ -28,7 +28,6 @@ struct ReadersView: View {
     @Binding private var tickedReaders: [String]
     @Binding private var hasInvalidReader: Bool
 
-    private let prefixLabel: String?
     @State private var inputText = zeroWidthSpace
     @State private var didFixCursorPositionAfterFocus: Bool = false
     @State private var inputEditingPosition: Int = 0
@@ -58,27 +57,19 @@ struct ReadersView: View {
         readers: Binding<[EmailAddress]>,
         tickedReaders: Binding<[String]>,
         hasInvalidReader: Binding<Bool>,
-        prefixLabel: String?,
         showProfileType: ShowProfileType
     ) {
         self.isEditable = isEditable
         _readers = readers
         _tickedReaders = tickedReaders
         _hasInvalidReader = hasInvalidReader
-        self.prefixLabel = prefixLabel
         self.showProfileType = showProfileType
     }
 
     var body: some View {
         // TODO: only display first 10 readers with option to expand to see all
         HFlow(itemSpacing: 4, rowSpacing: 2) {
-            if let prefixLabel {
-                Text(prefixLabel)
-            }
-
-            ForEach(Array(readers.enumerated()), id: \.offset) {
-                index,
-                reader in
+            ForEach(Array(readers.enumerated()), id: \.offset) { index, reader in
                 // don't show reader if it is myself, except when I am the only reader or when composing a message
                 if reader.address != registeredEmailAddress || readers.count == 1 || isEditable {
                     ProfileTagView(
@@ -389,7 +380,7 @@ struct ReadersView: View {
 
 #Preview("1 reader") {
     VStack(alignment: .leading) {
-        ReadersView(isEditable: false, readers: .constant([EmailAddress("mickey.mouse@disneymail.com")].compactMap { $0 }), tickedReaders: .constant([]), hasInvalidReader: .constant(false), prefixLabel: nil, showProfileType: .popover)
+        ReadersView(isEditable: false, readers: .constant([EmailAddress("mickey.mouse@disneymail.com")].compactMap { $0 }), tickedReaders: .constant([]), hasInvalidReader: .constant(false), showProfileType: .popover)
     }
     .padding()
     .frame(width: 500)
@@ -417,7 +408,6 @@ struct ReadersView: View {
                 "minnie.mouse@magicmail.com"
             ].compactMap { $0 }),
             hasInvalidReader: .constant(false),
-            prefixLabel: nil,
             showProfileType: .popover)
     }
     .padding()
@@ -456,22 +446,9 @@ struct ReadersView: View {
                 "minnie.mouse@magicmail.com"
             ].compactMap { $0 }),
             hasInvalidReader: .constant(false),
-            prefixLabel: nil,
             showProfileType: .popover)
     }
     .padding()
     .frame(width: 500)
     .background(.themeViewBackground)
-}
-
-
-public extension View {
-    @ViewBuilder
-    func modify(@ViewBuilder _ transform: (Self) -> (some View)?) -> some View {
-        if let view = transform(self), !(view is EmptyView) {
-            view
-        } else {
-            self
-        }
-    }
 }

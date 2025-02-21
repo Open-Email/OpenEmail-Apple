@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 
 struct SettingsView: View {
@@ -10,10 +11,10 @@ struct SettingsView: View {
                     NavigationLink {
                         GeneralSettingsView()
                             .navigationTitle("General")
-                            .navigationBarTitleDisplayMode(.inline)
                     } label: {
-                        Label("General", systemImage: "gear")
+                        Label("General", image: .settings)
                     }
+                    .listRowSeparator(.hidden, edges: .top)
 
                     NavigationLink {
                         TrustedDomainsSettingsView()
@@ -24,14 +25,19 @@ struct SettingsView: View {
                     NavigationLink {
                         KeysSettingsView()
                     } label: {
-                        Label("Keys", systemImage: "key.horizontal.fill")
+                        Label("Keys", image: .key)
                     }
                 }
+                .foregroundStyle(Color.themePrimary)
 
                 Section {
-                    Button("Remove Account", role: .destructive) {
+                    Button(role: .destructive) {
                         showRemoveAccountConfirmation = true
+                    } label: {
+                        Label("Log Out", image: .logout)
+                            .foregroundStyle(.red)
                     }
+                    .listRowSeparator(.hidden, edges: .top)
                     .alert("Remove Account?", isPresented: $showRemoveAccountConfirmation) {
                         Button("Remove Account", role: .destructive) {
                             RemoveAccountUseCase().removeAccount()
@@ -39,8 +45,21 @@ struct SettingsView: View {
                     } message: {
                         Text("All local data will be deleted. Log in again to restore data.")
                     }
+                } header: {
+                    Text("Account")
+                } footer: {
+                    VStack {
+                        Text(Bundle.main.appName).fontWeight(.semibold)
+                        Text("Version ") + Text(Bundle.main.appVersionLong) + Text(" (") + Text(Bundle.main.appBuild) + Text(")")
+                    }
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, .Spacing.xLarge)
                 }
+                .listRowSeparator(.hidden, edges: .bottom)
             }
+            .listStyle(.plain)
             .navigationTitle("Settings")
         }
     }

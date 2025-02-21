@@ -28,18 +28,12 @@ struct OnboardingExistingAccountView: View {
             }
 
             VStack(alignment: .leading) {
-                Text("Private Encryption Key")
-                    .textCase(.uppercase)
-                    .font(.callout)
-                    .fontWeight(.medium)
+                OpenEmailTextFieldLabel("Private Encryption Key")
                 keyTextEditor(text: $viewModel.privateEncryptionKey)
             }
 
             VStack(alignment: .leading) {
-                Text("Private Signing Key")
-                    .textCase(.uppercase)
-                    .font(.callout)
-                    .fontWeight(.medium)
+                OpenEmailTextFieldLabel("Private Signing Key")
                 keyTextEditor(text: $viewModel.privateSigningKey)
             }
 

@@ -10,6 +10,9 @@ struct SendButtonStyle: ButtonStyle {
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 16, height: 16)
             configuration.label
+            #if os(iOS)
+                .font(.callout)
+            #endif
         }
         .foregroundStyle(.white)
         .padding(.vertical, .Spacing.xSmall)

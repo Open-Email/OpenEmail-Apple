@@ -24,7 +24,7 @@ class MessageViewModel {
     var messageID: String? {
         didSet {
             if messageID != nil {
-                doFetchMessage()
+                fetchMessage()
             } else {
                 message = nil
                 authorProfile = nil
@@ -37,6 +37,10 @@ class MessageViewModel {
     var profileImage: OEImage?
     var isLoadingProfileImage = true
     var isRecalling = false
+
+    var readersAddresses: [EmailAddress] {
+        message?.readers.compactMap { EmailAddress($0) } ?? []
+    }
 
     var showProgress: Bool {
         isRecalling
@@ -63,10 +67,10 @@ class MessageViewModel {
     init(messageID: String?) {
         self.messageID = messageID
 
-        doFetchMessage()
+        fetchMessage()
     }
 
-    func doFetchMessage() {
+    func fetchMessage() {
         if let messageID {
             Task {
                 await fetchMessage(messageID: messageID)

@@ -43,16 +43,14 @@ struct ProfileView: View {
                 }
 
                 if verticalLayout {
-                    VStack(alignment: .leading, spacing: .Spacing.default) {
-                        let canEditReceiveBroadcasts = !viewModel.isSelf && viewModel.isInContacts
-                        ProfileAttributesView(
-                            profile: $viewModel.profile,
-                            receiveBroadcasts: canEditReceiveBroadcasts ? $viewModel.receiveBroadcasts : nil,
-                            isEditable: false,
-                            hidesEmptyFields: true,
-                            showsProfileImage: true
-                        )
-                    }
+                    let canEditReceiveBroadcasts = !viewModel.isSelf && viewModel.isInContacts
+                    ProfileAttributesView(
+                        profile: $viewModel.profile,
+                        receiveBroadcasts: canEditReceiveBroadcasts ? $viewModel.receiveBroadcasts : nil,
+                        isEditable: false,
+                        hidesEmptyFields: true,
+                        profileImageStyle: .shape()
+                    )
                 } else {
                     HStack(alignment: .top, spacing: .Spacing.default) {
                         ProfileImageView(
@@ -61,16 +59,14 @@ struct ProfileView: View {
                             size: profileImageSize ?? 288
                         )
 
-                        VStack(alignment: .leading, spacing: .Spacing.default) {
-                            let canEditReceiveBroadcasts = !viewModel.isSelf && viewModel.isInContacts
-                            ProfileAttributesView(
-                                profile: $viewModel.profile,
-                                receiveBroadcasts: canEditReceiveBroadcasts ? $viewModel.receiveBroadcasts : nil,
-                                isEditable: false,
-                                hidesEmptyFields: true,
-                                showsProfileImage: false
-                            )
-                        }
+                        let canEditReceiveBroadcasts = !viewModel.isSelf && viewModel.isInContacts
+                        ProfileAttributesView(
+                            profile: $viewModel.profile,
+                            receiveBroadcasts: canEditReceiveBroadcasts ? $viewModel.receiveBroadcasts : nil,
+                            isEditable: false,
+                            hidesEmptyFields: true,
+                            profileImageStyle: .none
+                        )
                     }
                     .padding(.leading, .Spacing.default)
                     .padding(.top, .Spacing.xSmall)
@@ -183,7 +179,7 @@ struct ProfileView: View {
                 }
                 .buttonStyle(ActionButtonStyle(height: 32, isProminent: true))
             } else if !viewModel.isSelf {
-                AsyncButton(actionOptions: [.disableButton]) {
+                AsyncButton {
                     await addToContacts()
                 } label: {
                     HStack(spacing: .Spacing.xxSmall) {

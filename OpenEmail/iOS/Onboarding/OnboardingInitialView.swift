@@ -10,85 +10,83 @@ struct OnboardingInitialView: View {
     @State private var viewModel = OnboardingInitialViewModel()
     @State private var presentedPages: [OnboardingPage] = []
     @State private var emailAddress: String = ""
+    @FocusState private var keyboardShown: Bool
 
     var body: some View {
         NavigationStack(path: $presentedPages) {
-            VStack {
-                Image(systemName: "dot.radiowaves.left.and.right")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .foregroundStyle(.accent)
-                    .frame(maxHeight: 100)
-                    .padding(.top)
-
-                Text("OpenEmail")
-                    .font(.largeTitle)
-                    .padding(.top)
-                    .bold()
-                Text("Email of the future, today.")
-                    .font(.headline)
-                    .padding(.top, 10)
-                Text("Spam-free, phishing-free, private & secure by design.")
-                    .multilineTextAlignment(.center)
-
-                VStack {
-                    TextField("", text: $emailAddress, prompt: Text("OpenEmail address"))
-                        .keyboardType(.emailAddress)
-                        .textFieldStyle(.roundedBorder)
-                        .textContentType(.emailAddress)
-                        .textInputAutocapitalization(.never)
-                        .font(.title2)
-                        .disabled(viewModel.isCheckingEmailAddress)
-
-                    AsyncButton {
-                        if await viewModel.registerExistingEmailAddress(emailAddress) {
-                            presentedPages.append(.existingAccount)
+            ScrollView {
+                VStack(spacing: 0) {
+                    OnboardingHeaderView()
+                    #if DEBUG
+                        .onTapGesture(count: 3) {
+                            emailAddress = "martin1@open.email"
                         }
-                    } label: {
-                        Label("Sign In", systemImage: "chevron.right")
-                            .bold()
-                            .foregroundStyle(.white)
-                            .padding(.vertical, 10)
-                            .padding(.horizontal, 15)
-                            .background {
-                                RoundedRectangle(cornerRadius: 5, style: .circular)
-                                    .foregroundColor(.accentColor)
+                    #endif
+
+                    VStack(alignment: .leading, spacing: .Spacing.large) {
+                        VStack(alignment: .leading, spacing: .Spacing.xSmall) {
+                            Text("Let’s make the future today")
+                                .font(.title2)
+
+                            Text("Spam-free, phishing-free, private & secure by design")
+                                .foregroundStyle(.secondary)
+                        }
+
+                        VStack(spacing: .Spacing.xxxxLarge) {
+                            TextField("Email Address", text: $emailAddress, prompt: Text("email address"))
+                                .keyboardType(.emailAddress)
+                                .textFieldStyle(.openEmail)
+                                .textContentType(.emailAddress)
+                                .textInputAutocapitalization(.never)
+                                .disabled(viewModel.isCheckingEmailAddress)
+                                .focused($keyboardShown)
+
+                            AsyncButton(actionOptions: [.showProgressView]) {
+                                if await viewModel.registerExistingEmailAddress(emailAddress) {
+                                    presentedPages.append(.existingAccount)
+                                }
+                            } label: {
+                                Text("Log In")
                             }
+                            .buttonStyle(OpenEmailButtonStyle(style: .primary))
+                            .keyboardShortcut(.defaultAction)
+                            .disabled(viewModel.isCheckingEmailAddress || !EmailAddress.isValid(emailAddress))
+                        }
+
+                        Spacer()
+
+                        VStack(spacing: .Spacing.default) {
+                            Text("Don’t have an OpenEmail address yet?")
+                                .foregroundStyle(.secondary)
+                                .font(.callout)
+
+                            Button("Create one for free") {
+                                presentedPages.append(.newAccount)
+                            }
+                            .buttonStyle(OpenEmailButtonStyle(style: .secondary))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.bottom, .Spacing.xLarge)
                     }
-                    .buttonStyle(.plain)
-                    .keyboardShortcut(.defaultAction)
-                    .contentShape(RoundedRectangle(cornerRadius: 5))
-                    .disabled(viewModel.isCheckingEmailAddress || !EmailAddress.isValid(emailAddress))
+                    .padding([.leading, .trailing, .bottom], .Spacing.default)
+                    .contentShape(Rectangle())
+                    .onTapGesture(count: keyboardShown ? 1 : .max, perform: { // if keyboard shown use single tap to close it, otherwise set .max to not interfere with other stuff
+                        keyboardShown = false
+                    })
                 }
-                .padding(.top)
-
-                Spacer()
-
-                Text("Don't have an OpenEmail address yet?")
-                Button("Get one for free instantly") {
-                    presentedPages.append(.newAccount)
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(.accent)
-            }
-            .padding(20)
-            .blur(radius: viewModel.isCheckingEmailAddress ? 3 : 0)
-            .overlay {
-                if viewModel.isCheckingEmailAddress {
-                    ProgressView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(.background.opacity(0.75))
+                .alert("OpenEmail is not supported on this host.", isPresented: $viewModel.showsServiceNotSupportedError) {}
+                .navigationDestination(for: OnboardingPage.self) { page in
+                    switch page {
+                    case .existingAccount:
+                        OnboardingExistingAccountView(emailAddress: emailAddress)
+                    case .newAccount:
+                        OnboardingNewAccountView()
+                    }
                 }
             }
-            .alert("OpenEmail not supported on this host.", isPresented: $viewModel.showsServiceNotSupportedError) {}
-            .navigationDestination(for: OnboardingPage.self) { page in
-                switch page {
-                case .existingAccount:
-                    OnboardingExistingAccountView(emailAddress: emailAddress)
-                case .newAccount:
-                    OnboardingNewAccountView()
-                }
-            }
+            .scrollBounceBehavior(.basedOnSize)
+            .ignoresSafeArea(edges: .top)
+            .navigationTitle("")
         }
     }
 }
