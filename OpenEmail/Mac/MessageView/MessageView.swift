@@ -179,10 +179,12 @@ struct MessageView: View {
                 VStack(alignment: .leading, spacing: .Spacing.xSmall) {
                     HStack {
                         if message != nil {
-                            if let authorName = viewModel.authorProfile?[.name] {
-                                Text(authorName)
-                                    .fontWeight(.semibold)
-                            }
+                            // TODO: Author name is displayed twice.
+                            // Consider extending the profile tag so that it can name + emeail address for the author.
+//                            if let authorName = viewModel.authorProfile?[.name] {
+//                                Text(authorName)
+//                                    .fontWeight(.semibold)
+//                            }
 
                             ProfileTagView(
                                 emailAddress: Binding(get: {
