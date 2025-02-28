@@ -27,7 +27,7 @@ struct ProfileEditorView: View {
 
                         List {
                             ForEach(profile.groupedAttributes) { group in
-                                GroupItemView(group: group, isSelected: group.groupType == selectedGroup) {
+                                ProfileEditorGroupItemView(group: group, isSelected: group.groupType == selectedGroup) {
                                     selectedGroup = group.groupType
                                 }
                             }
@@ -91,68 +91,6 @@ struct ProfileEditorView: View {
     }
 }
 
-private extension ProfileAttributesGroup {
-    var icon: ImageResource {
-        switch groupType {
-        case .general: .ProfileAttributesGroup.general
-        case .work: .ProfileAttributesGroup.work
-        case .personal: .ProfileAttributesGroup.personal
-        case .interests: .ProfileAttributesGroup.interests
-        case .contacts: .ProfileAttributesGroup.contacts
-        case .configuration: .ProfileAttributesGroup.configuration
-        }
-    }
-}
-
-private struct GroupItemView: View {
-    let group: ProfileAttributesGroup
-    let isSelected: Bool
-    let onSelection: () -> Void
-
-    @Environment(\.colorScheme) private var colorScheme
-
-    var body: some View {
-        HStack {
-            icon
-
-            Text(group.displayName)
-                .foregroundStyle(isSelected ? .themePrimary : .themeSecondary)
-        }
-        .foregroundStyle(isSelected ? .themePrimary : .themeSecondary)
-        .padding(.horizontal, .Spacing.small)
-        .frame(height: 60)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .contentShape(Rectangle())
-        .onTapGesture {
-            onSelection()
-        }
-    }
-
-    @ViewBuilder
-    private var icon: some View {
-        ZStack {
-            Circle()
-                .fill(isSelected ? .themePrimary : .themeIconBackground)
-                .frame(width: 40, height: 40)
-                .overlay {
-                    if colorScheme == .light {
-                        Circle().stroke(Color.themeLineGray)
-                    }
-                }
-
-            Image(group.icon)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .scaledToFit()
-                .frame(width: 24, height: 24)
-                .foregroundStyle(isSelected ? .themeBackground : .themePrimary)
-        }
-        .frame(width: 40, height: 40)
-        .clipShape(Circle())
-        .shadow(color: .themeShadow, radius: 4, y: 2)
-    }
-}
-
 #Preview {
     ProfileEditorView()
         .frame(width: 800, height: 600)
@@ -163,7 +101,7 @@ private struct GroupItemView: View {
 
     List {
         ForEach(profile.groupedAttributes) { group in
-            GroupItemView(group: group, isSelected: group.groupType == .general) {
+            ProfileEditorGroupItemView(group: group, isSelected: group.groupType == .general) {
             }
         }
     }

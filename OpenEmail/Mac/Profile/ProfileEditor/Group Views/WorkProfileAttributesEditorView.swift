@@ -42,7 +42,7 @@ struct WorkProfileAttributesEditorView: View {
                             HStack {
                                 OpenEmailTextFieldLabel(ProfileAttribute.jobTitle.displayTitle)
 
-                                if let info = ProfileAttribute.organization.info {
+                                if let info = ProfileAttribute.jobTitle.info {
                                     InfoButton(text: info)
                                 }
                             }
@@ -62,8 +62,5 @@ struct WorkProfileAttributesEditorView: View {
 
 #Preview {
     @Previewable @State var profile: Profile = .makeFake()
-    HStack {
-        WorkProfileAttributesEditorView(profile: $profile)
-    }
-    .frame(height: 800)
+    WorkProfileAttributesEditorView(profile: $profile)
 }
