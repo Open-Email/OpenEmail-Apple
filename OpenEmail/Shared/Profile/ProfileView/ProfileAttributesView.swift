@@ -87,6 +87,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                                 }
                             }
                             .toggleStyle(.switch)
+                            .tint(.accentColor)
                             Divider()
                         }
                         .padding(.vertical, .Spacing.xxxSmall)

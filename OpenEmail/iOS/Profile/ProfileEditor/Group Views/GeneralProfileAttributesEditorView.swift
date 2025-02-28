@@ -38,7 +38,7 @@ struct GeneralProfileAttributesEditorView: View {
                 VStack(alignment: .leading, spacing: .Spacing.xSmall) {
                     Toggle(ProfileAttribute.away.displayTitle, isOn: $profile.away)
                         .toggleStyle(.switch)
-                        .tint(.accentColorMobile)
+                        .tint(.accentColor)
 
                     if profile[boolean: .away] == true {
                         OpenEmailTextEditor(text: $profile.awayWarning)

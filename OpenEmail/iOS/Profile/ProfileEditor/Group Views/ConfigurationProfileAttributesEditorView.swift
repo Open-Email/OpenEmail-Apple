@@ -41,7 +41,7 @@ struct ConfigurationProfileAttributesEditorView: View {
                 .padding(.top, .Spacing.default)
             }
             .toggleStyle(.switch)
-            .tint(.accentColorMobile)
+            .tint(.accentColor)
             .listRowSeparator(.hidden)
         }
         .listStyle(.plain)
