@@ -436,7 +436,7 @@ struct InfoButton: View {
         hidesEmptyFields: true,
         profileImageStyle: .shape()
     )
-    .frame(height: 500)
+    .frame(width: 320, height: 500)
     #else
     ProfileAttributesView(
         profile: .constant(.makeFake(awayWarning: "Away")),

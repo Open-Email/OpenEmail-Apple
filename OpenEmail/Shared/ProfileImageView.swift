@@ -84,7 +84,6 @@ struct ProfileImageView<Placeholder: View>: View {
                 }
                 .frame(width: size, height: size)
                 .clipShape(Circle())
-                .blur(radius: isLoading ? 4 : 0)
                 .shadow(color: .themeShadow, radius: 4, y: 2)
             case .rectangle:
                 Color.clear
@@ -92,20 +91,15 @@ struct ProfileImageView<Placeholder: View>: View {
                     .background {
                         makeImage()
                     }
-                    .blur(radius: isLoading ? 4 : 0)
             case .roundedRectangle(let cornerRadius):
-                ZStack {
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .fill(.themeSecondary)
-                        .frame(width: size, height: size)
-
-                    makeImage()
-                }
-                .frame(width: size, height: size)
-                .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-                .blur(radius: isLoading ? 4 : 0)
+                makeImage()
+                    .frame(maxWidth: .infinity)
+                    .frame(height: size)
+                    .background(Color.themeSecondary)
+                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
             }
         }
+        .blur(radius: isLoading ? 4 : 0)
         .overlay {
             if isLoading {
                 ProgressView()
@@ -227,12 +221,15 @@ private extension String {
 }
 
 #Preview("Rounded rect placeholder large") {
-    ProfileImageView(
-        emailAddress: "mickey@mouse.com",
-        name: nil,
-        shape: .roundedRectangle(cornerRadius: .CornerRadii.default),
-        size: 288
-    )
+    VStack {
+        ProfileImageView(
+            emailAddress: "mickey@mouse.com",
+            name: nil,
+            shape: .roundedRectangle(cornerRadius: .CornerRadii.default),
+            size: 288
+        )
+    }
+    .frame(width: 320, height: 500)
     .padding()
 }
 

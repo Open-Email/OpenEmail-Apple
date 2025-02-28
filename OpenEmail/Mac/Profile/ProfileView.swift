@@ -111,7 +111,7 @@ struct ProfileView: View {
                 .help("Close")
             }
             .padding(.bottom, -.Spacing.small)
-            .padding(.horizontal, .Spacing.default)
+            .padding(.horizontal, .Spacing.small)
         }
     }
 
