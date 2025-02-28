@@ -8,7 +8,7 @@ struct ContentView: View {
     private let contactRequestsController = ContactRequestsController()
     @Injected(\.syncService) private var syncService
     
-    @State private var hasContactRequests = false
+    @State private var contactRequestsCount = 0
 
     private let contactsOrNotificationsUpdatedPublisher = Publishers.Merge(
         NotificationCenter.default.publisher(for: .didUpdateContacts),
@@ -28,6 +28,7 @@ struct ContentView: View {
                     Image(.scopeContacts)
                     Text("Contacts")
                 }
+                .badge(contactRequestsCount)
 
             ProfileEditorTabView()
                 .tabItem {
@@ -59,7 +60,7 @@ struct ContentView: View {
 
     private func updateContactRequests() {
         Task {
-            hasContactRequests = await contactRequestsController.hasContactRequests
+            contactRequestsCount = await contactRequestsController.contactRequests.count
         }
     }
 }
