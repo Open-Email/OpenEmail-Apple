@@ -14,12 +14,12 @@ struct ActionButtonStyle: ButtonStyle {
         self.isProminent = isProminent
     }
 
+    private var fillColor: Color {
+        isProminent ? .themePrimary : .actionButtonBackground
+    }
+
     private func overlayColor(isPressed: Bool) -> Color {
-        if !isEnabled {
-            return .disabledActionButtonOverlay
-        } else {
-            return isPressed ? .white.opacity(0.5) : .clear
-        }
+        isPressed ? .white.opacity(0.5) : .clear
     }
 
     func makeBody(configuration: Configuration) -> some View {
@@ -32,13 +32,14 @@ struct ActionButtonStyle: ButtonStyle {
             .frame(height: height)
             .background {
                 Capsule(style: .circular)
-                    .fill(isProminent ? .themePrimary : .actionButtonBackground)
+                    .fill(fillColor)
                     .stroke(.actionButtonOutline)
             }
             .overlay {
                 Capsule(style: .circular)
                     .fill(overlayColor(isPressed: configuration.isPressed))
             }
+            .opacity(isEnabled ? 1 : 0.5)
     }
 }
 
