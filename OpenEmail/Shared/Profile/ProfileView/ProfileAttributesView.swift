@@ -107,7 +107,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                                 }
                             }
                         } header: {
-                            Text(group.displayName)
+                            Text(group.groupType.displayName)
                                 .font(.title2)
                                 .foregroundStyle(.primary)
                                 .padding(.top, .Spacing.xSmall)

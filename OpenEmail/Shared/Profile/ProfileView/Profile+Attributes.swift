@@ -8,15 +8,9 @@ enum ProfileAttributesGroupType: String {
     case interests
     case contacts
     case configuration
-}
-
-struct ProfileAttributesGroup: Identifiable {
-    let groupType: ProfileAttributesGroupType
-    let attributes: [ProfileAttribute]
-    var id: String { groupType.rawValue }
 
     var displayName: String {
-        switch groupType {
+        switch self {
         case .general: "General"
         case .work: "Work"
         case .personal: "Personal"
@@ -25,6 +19,12 @@ struct ProfileAttributesGroup: Identifiable {
         case .configuration: "Configuration"
         }
     }
+}
+
+struct ProfileAttributesGroup: Identifiable {
+    let groupType: ProfileAttributesGroupType
+    let attributes: [ProfileAttribute]
+    var id: String { groupType.rawValue }
 }
 
 extension Profile {

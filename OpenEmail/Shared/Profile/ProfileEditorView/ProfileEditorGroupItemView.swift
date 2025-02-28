@@ -11,11 +11,11 @@ struct ProfileEditorGroupItemView: View {
         HStack {
 #if os(iOS)
             Image(group.icon)
-            Text(group.displayName)
+            Text(group.groupType.displayName)
                 .fontWeight(.medium)
 #else
             icon
-            Text(group.displayName)
+            Text(group.groupType.displayName)
                 .foregroundStyle(isSelected ? .themePrimary : .themeSecondary)
 #endif
         }

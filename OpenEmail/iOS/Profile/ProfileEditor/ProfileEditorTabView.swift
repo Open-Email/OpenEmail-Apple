@@ -22,7 +22,21 @@ struct ProfileEditorTabView: View {
             .navigationTitle("Profile")
         } detail: {
             if let selectedGroup {
-                Text("Group: \(selectedGroup)")
+                Group {
+                    switch selectedGroup {
+                    case .general: GeneralProfileAttributesEditorView(profile: makeProfileBinding(), didChangeImage: { image in
+                        viewModel.profileImage = image
+                        viewModel.didChangeImage = true
+                        viewModel.updateProfile()
+                    })
+                    case .personal: PersonalProfileAttributesEditorView(profile: makeProfileBinding())
+                    case .work: WorkProfileAttributesEditorView(profile: makeProfileBinding())
+                    case .interests: InterestsProfileAttributesEditorView(profile: makeProfileBinding())
+                    case .contacts: ContactsProfileAttributesEditorView(profile: makeProfileBinding())
+                    case .configuration: ConfigurationProfileAttributesEditorView(profile: makeProfileBinding())
+                    }
+                }
+                .navigationTitle(selectedGroup.displayName)
             }
         }
         .onAppear {
@@ -34,6 +48,13 @@ struct ProfileEditorTabView: View {
         .onChange(of: viewModel.profile) {
             viewModel.updateProfile()
         }
+    }
+
+    private func makeProfileBinding() -> Binding<Profile> {
+        Binding(
+            get: { viewModel.profile! },
+            set: { viewModel.profile = $0 }
+        )
     }
 
     private func reloadProfile() {
