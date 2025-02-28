@@ -234,6 +234,10 @@
 		5BE74D8B2C9D794D003997D6 /* ComposeMessageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1698E1E02B98EA71009CB634 /* ComposeMessageViewModel.swift */; };
 		5BE74D8D2C9D7B8A003997D6 /* ComposeMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BE74D8C2C9D7B8A003997D6 /* ComposeMessageView.swift */; };
 		5BECC7C42B922C6500143BD6 /* ProfileAttribute+Title.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BECC7C32B922C6500143BD6 /* ProfileAttribute+Title.swift */; };
+		5BF25D1C2D71BAB900720F54 /* ProfileEditorTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF25D1B2D71BAB900720F54 /* ProfileEditorTabView.swift */; };
+		5BF25D1E2D71BBD100720F54 /* ProfileEditorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16468EBB2B90BFCE0096BC0D /* ProfileEditorViewModel.swift */; };
+		5BF25D202D71C18A00720F54 /* ProfileEditorGroupItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF25D1F2D71C18A00720F54 /* ProfileEditorGroupItemView.swift */; };
+		5BF25D212D71C18A00720F54 /* ProfileEditorGroupItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF25D1F2D71C18A00720F54 /* ProfileEditorGroupItemView.swift */; };
 		5BFDAF492D43CD2900335189 /* OpenEmailTextFieldLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1C37872D3A5A220017D57D /* OpenEmailTextFieldLabel.swift */; };
 		5BFDDAEA2B51731C009DDCDA /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = 5BFDDAE92B51731C009DDCDA /* Logging */; };
 		5BFDDAED2B51A408009DDCDA /* MultipleMessagesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BFDDAEC2B51A408009DDCDA /* MultipleMessagesView.swift */; };
@@ -397,6 +401,8 @@
 		5BE74D882C9D711E003997D6 /* SyncProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncProgressView.swift; sourceTree = "<group>"; };
 		5BE74D8C2C9D7B8A003997D6 /* ComposeMessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeMessageView.swift; sourceTree = "<group>"; };
 		5BECC7C32B922C6500143BD6 /* ProfileAttribute+Title.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProfileAttribute+Title.swift"; sourceTree = "<group>"; };
+		5BF25D1B2D71BAB900720F54 /* ProfileEditorTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileEditorTabView.swift; sourceTree = "<group>"; };
+		5BF25D1F2D71C18A00720F54 /* ProfileEditorGroupItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileEditorGroupItemView.swift; sourceTree = "<group>"; };
 		5BFDDAE82B51720C009DDCDA /* Logging */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Logging; sourceTree = "<group>"; };
 		5BFDDAEC2B51A408009DDCDA /* MultipleMessagesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipleMessagesView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -458,7 +464,6 @@
 			children = (
 				5BC1DE762D0304FF000A90DD /* ProfileEditorView.swift */,
 				5BC1DE782D032C08000A90DD /* Group Views */,
-				16468EBB2B90BFCE0096BC0D /* ProfileEditorViewModel.swift */,
 			);
 			path = ProfileEditor;
 			sourceTree = "<group>";
@@ -487,6 +492,7 @@
 		5B30466C2C6F2AC100B33157 /* Profile */ = {
 			isa = PBXGroup;
 			children = (
+				5BF25D1A2D71B99100720F54 /* ProfileEditor */,
 				5BDD1D302CA69590004AF1D5 /* ReadersView.swift */,
 				5BDD1D342CA69A9B004AF1D5 /* ReaderToken.swift */,
 				5B30466D2C6F2AD000B33157 /* ProfileView.swift */,
@@ -542,6 +548,7 @@
 		5B61F7212CB93F8D006C0C92 /* Profile */ = {
 			isa = PBXGroup;
 			children = (
+				5BF25D1D2D71BBC700720F54 /* ProfileEditorView */,
 				5B61F7202CB93F8D006C0C92 /* ProfileView */,
 			);
 			path = Profile;
@@ -977,6 +984,23 @@
 			path = Compose;
 			sourceTree = "<group>";
 		};
+		5BF25D1A2D71B99100720F54 /* ProfileEditor */ = {
+			isa = PBXGroup;
+			children = (
+				5BF25D1B2D71BAB900720F54 /* ProfileEditorTabView.swift */,
+			);
+			path = ProfileEditor;
+			sourceTree = "<group>";
+		};
+		5BF25D1D2D71BBC700720F54 /* ProfileEditorView */ = {
+			isa = PBXGroup;
+			children = (
+				16468EBB2B90BFCE0096BC0D /* ProfileEditorViewModel.swift */,
+				5BF25D1F2D71C18A00720F54 /* ProfileEditorGroupItemView.swift */,
+			);
+			path = ProfileEditorView;
+			sourceTree = "<group>";
+		};
 		5BFDDAEB2B51A3F3009DDCDA /* MultipleMessagesView */ = {
 			isa = PBXGroup;
 			children = (
@@ -1179,6 +1203,7 @@
 				5BA3D0282CDE42D000D969BD /* EmptyListView.swift in Sources */,
 				5BC6E0A82C2EE88000C5951C /* Dependencies.swift in Sources */,
 				5B141C262C13260100597F70 /* Icons.swift in Sources */,
+				5BF25D202D71C18A00720F54 /* ProfileEditorGroupItemView.swift in Sources */,
 				5B7C807B2AEBF1110088E2EA /* OpenEmailApp.swift in Sources */,
 				5B2A08CB2C25AC580005B075 /* GeneralSettingsView.swift in Sources */,
 				5BDA2F0B2C5D04D3009FB2BD /* WindowIDs.swift in Sources */,
@@ -1252,6 +1277,7 @@
 				5BDA2EC62C5CCF48009FB2BD /* Injection.swift in Sources */,
 				5B3046822C6F863000B33157 /* AttachmentsListViewModel.swift in Sources */,
 				5BDA2EC72C5CCF48009FB2BD /* LocalUserMock.swift in Sources */,
+				5BF25D1C2D71BAB900720F54 /* ProfileEditorTabView.swift in Sources */,
 				5BD1FA692C664E7200DE4B5D /* GeneralSettingsView.swift in Sources */,
 				5B2C7CC92CCB9A6000948B0F /* Spacings.swift in Sources */,
 				5B3046772C6F599000B33157 /* MessageViewModel.swift in Sources */,
@@ -1270,6 +1296,7 @@
 				5BDA2ECC2C5CCF48009FB2BD /* ProfileAttribute+Info.swift in Sources */,
 				5BDA2ECD2C5CCF48009FB2BD /* AsyncButton.swift in Sources */,
 				5BDD1D312CA69590004AF1D5 /* ReadersView.swift in Sources */,
+				5BF25D212D71C18A00720F54 /* ProfileEditorGroupItemView.swift in Sources */,
 				5BE2CF9D2D4CDBA600E9DB1A /* MessageTypeBadge.swift in Sources */,
 				5BE491672D562BB70036DBBF /* ProfileActionButton.swift in Sources */,
 				5BDA2ECE2C5CCF48009FB2BD /* TimeInterval+Extension.swift in Sources */,
@@ -1330,6 +1357,7 @@
 				5B61F7252CB93F8D006C0C92 /* ProfileViewModel.swift in Sources */,
 				5B61F7262CB93F8D006C0C92 /* Profile+Attributes.swift in Sources */,
 				5B61F7272CB93F8D006C0C92 /* ProfileAttributesView.swift in Sources */,
+				5BF25D1E2D71BBD100720F54 /* ProfileEditorViewModel.swift in Sources */,
 				5BDA2EE22C5CCF48009FB2BD /* ProfileAttribute+Title.swift in Sources */,
 				5BE491702D565E940036DBBF /* ContactsListViewModel.swift in Sources */,
 				5BE491712D565E940036DBBF /* ContactListItemView.swift in Sources */,

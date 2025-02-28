@@ -29,7 +29,7 @@ struct ContentView: View {
                     Text("Contacts")
                 }
 
-            Text(registeredEmailAddress ?? "not logged in")
+            ProfileEditorTabView()
                 .tabItem {
                     Image(.profileTab)
                     Text("Profile")

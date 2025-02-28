@@ -1,17 +1,17 @@
 import Foundation
 import Observation
 import OpenEmailCore
-import AppKit
 import SwiftUI
 import Combine
 import Logging
+import Utils
 
 @Observable
 class ProfileEditorViewModel {
     var profile: Profile?
     var isLoadingProfile = false
     var didChangeImage = false
-    var profileImage: NSImage?
+    var profileImage: OEImage?
 
     @ObservationIgnored
     @Injected(\.client) private var client
