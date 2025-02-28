@@ -1,9 +1,10 @@
 import Foundation
+import Combine
 import Observation
 import OpenEmailCore
-import Logging
-import Combine
 import OpenEmailPersistence
+import Logging
+import Utils
 
 extension Notification.Name {
     static let didSynchronizeMessages = Notification.Name("didSynchronizeMessages")
@@ -25,6 +26,9 @@ class SyncService: MessageSyncing {
 
     @ObservationIgnored
     @Injected(\.client) private var client
+
+    @ObservationIgnored
+    @Injected(\.messagesStore) private var messagesStore
 
     private var subscriptions = Set<AnyCancellable>()
     private var syncTimer: Timer?
@@ -104,6 +108,7 @@ class SyncService: MessageSyncing {
 
         do {
             outgoingMessageIds = try await client.fetchLocalMessages(localUser: localUser, localProfile: localProfile)
+            await cleanUpOutboxMessages()
         } catch {
             Log.error("Error fetching local messages: \(error)")
         }
@@ -198,6 +203,29 @@ class SyncService: MessageSyncing {
                     await self.synchronize()
                 }
             }
+        }
+    }
+
+    /// Oubtbox messages disappear from the server after a while, so they have to be deleted from the local
+    /// storage in order to stay in sync with the server.
+    ///
+    /// This is best effort, ignoring any errors.
+    private func cleanUpOutboxMessages() async {
+        guard
+            let localUser = LocalUser.current,
+            let allMessages = try? await messagesStore.allMessages(searchText: "")
+        else {
+            return
+        }
+
+        let localOutboxMessageIds = allMessages
+            .filteredBy(scope: .outbox, localUser: localUser)
+            .map { $0.id }
+            .toSet()
+
+        let messageIdsToDelete = localOutboxMessageIds.subtracting(outgoingMessageIds.toSet())
+        for messageId in messageIdsToDelete {
+            try? await messagesStore.deleteMessage(id: messageId)
         }
     }
 }
