@@ -580,13 +580,12 @@ public func contentFromHeaders(headersText: String) throws -> ContentHeaders {
             }
 
         case HEADER_CONTENT_DATE:
-            let formatter = ISO8601DateFormatter()
-            formatter.formatOptions = [.withInternetDateTime]
-            if let date = formatter.date(from: headerParts[1]) {
+            if let date = parseISO8601Date(headerParts[1]) {
                 parsedDate = date
             } else {
                 parsedDate = .distantPast
             }
+
 
         case HEADER_CONTENT_SIZE:
             if let size = UInt64(headerParts[1]) {

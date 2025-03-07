@@ -28,7 +28,7 @@ class ProfileEditorViewModel {
             }
     }
 
-    func updateImage(_ image: NSImage?, _ data: Data?) {
+    func updateImage(_ image: OEImage?, _ data: Data?) {
         self.profileImageData = data
         self.didChangeImage = true
     }

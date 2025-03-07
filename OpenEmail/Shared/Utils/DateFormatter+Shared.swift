@@ -7,7 +7,8 @@ public extension RelativeDateTimeFormatter {
 public extension ISO8601DateFormatter {
     static let backendDateFormatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        formatter.timeZone = TimeZone(identifier: "UTC")
+        formatter.formatOptions = [.withInternetDateTime] // No fractional seconds
         return formatter
     }()
 }

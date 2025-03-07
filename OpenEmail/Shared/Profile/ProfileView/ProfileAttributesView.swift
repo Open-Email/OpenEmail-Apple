@@ -2,6 +2,7 @@ import SwiftUI
 import OpenEmailModel
 import OpenEmailCore
 import Inspect
+import Utils
 
 struct ProfileAttributesView<ActionButtonRow: View>: View {
     enum ProfileImageStyle {
@@ -310,7 +311,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
         return Binding(
             get: {
                 if let dateString = profile?[attribute] {
-                    return ISO8601DateFormatter.backendDateFormatter.date(from: dateString)
+                    return parseISO8601Date(dateString)
                 } else {
                     return nil
                 }
