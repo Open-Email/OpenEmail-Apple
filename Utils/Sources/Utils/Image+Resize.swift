@@ -4,60 +4,66 @@ import Foundation
 import UIKit
 
 public extension UIImage {
-    func resizeAndCrop(targetSize: CGSize) -> Data? {
-        let scale = max(size.width / self.size.width, size.height / self.size.height)
+    func resizeAndCrop(targetSize: CGSize, quality: CGFloat = 0.8) -> Data? {
+        let scale = max(targetSize.width / self.size.width, targetSize.height / self.size.height)
         let newSize = CGSize(width: self.size.width * scale, height: self.size.height * scale)
 
-        let origin = CGPoint(x: (size.width - newSize.width) / 2.0, y: (size.height - newSize.height) / 2.0)
+        let origin = CGPoint(x: (targetSize.width - newSize.width) / 2.0, y: (targetSize.height - newSize.height) / 2.0)
         let rect = CGRect(origin: origin, size: newSize)
 
-        UIGraphicsBeginImageContextWithOptions(size, false, 0.0)
+        UIGraphicsBeginImageContextWithOptions(targetSize, false, 1.0)
+        UIColor.white.setFill()
+        UIRectFill(CGRect(origin: .zero, size: targetSize))
         self.draw(in: rect)
+
         let newImage = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
 
-        return newImage?.pngData()
+        return newImage?.jpegData(compressionQuality: quality)
     }
 }
 #else
 import AppKit
 
 public extension NSImage {
-    func resizeAndCrop(targetSize: CGSize) -> Data? {
+    func resizeAndCrop(targetSize: CGSize, quality: CGFloat = 0.8) -> Data? {
         guard let sourceCGImage = cgImage(forProposedRect: nil, context: nil, hints: nil) else {
             return nil
         }
 
-        let context = CGContext(data: nil, width: Int(targetSize.width), height: Int(targetSize.height), bitsPerComponent: sourceCGImage.bitsPerComponent, bytesPerRow: 0, space: sourceCGImage.colorSpace ?? CGColorSpaceCreateDeviceRGB(), bitmapInfo: sourceCGImage.bitmapInfo.rawValue)
+        let context = CGContext(data: nil,
+                                width: Int(targetSize.width),
+                                height: Int(targetSize.height),
+                                bitsPerComponent: 8,
+                                bytesPerRow: 0,
+                                space: CGColorSpaceCreateDeviceRGB(),
+                                bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue)
 
-        context?.setFillColor(CGColor.white)
-        context?.fill(CGRect(x: 0, y: 0, width: targetSize.width, height: targetSize.height))
+        guard let context = context else { return nil }
 
-        // Calculate the scaling and cropping
+        context.setFillColor(CGColor.white)
+        context.fill(CGRect(x: 0, y: 0, width: targetSize.width, height: targetSize.height))
+
         let sourceSize = CGSize(width: sourceCGImage.width, height: sourceCGImage.height)
         let targetAspectRatio = targetSize.width / targetSize.height
         let sourceAspectRatio = sourceSize.width / sourceSize.height
-        var scaleFactor: CGFloat
-        if sourceAspectRatio > targetAspectRatio {
-            scaleFactor = targetSize.height / sourceSize.height
-        } else {
-            scaleFactor = targetSize.width / sourceSize.width
-        }
+
+        let scaleFactor = sourceAspectRatio > targetAspectRatio ?
+                          targetSize.height / sourceSize.height :
+                          targetSize.width / sourceSize.width
+
         let scaledWidth = sourceSize.width * scaleFactor
         let scaledHeight = sourceSize.height * scaleFactor
         let dx = (targetSize.width - scaledWidth) / 2
         let dy = (targetSize.height - scaledHeight) / 2
 
-        // Drawing the image into the context, resizing and cropping it
-        context?.draw(sourceCGImage, in: CGRect(x: dx, y: dy, width: scaledWidth, height: scaledHeight))
+        context.draw(sourceCGImage, in: CGRect(x: dx, y: dy, width: scaledWidth, height: scaledHeight))
 
-        guard let scaledCGImage = context?.makeImage() else { return nil }
+        guard let scaledCGImage = context.makeImage() else { return nil }
 
-        // Convert the CGImage to Data
         let bitmapRep = NSBitmapImageRep(cgImage: scaledCGImage)
-        guard let imageData = bitmapRep.representation(using: .png, properties: [:]) else { return nil }
 
-        return imageData
+        return bitmapRep.representation(using: .jpeg, properties: [.compressionFactor: quality])
     }
 }
 #endif

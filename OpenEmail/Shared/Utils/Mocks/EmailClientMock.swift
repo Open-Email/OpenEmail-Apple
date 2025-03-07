@@ -70,7 +70,7 @@ class EmailClientMock: Client {
     func uploadProfile(localUser: LocalUser, profile: Profile) async throws {
     }
 
-    func uploadProfileImage(localUser: LocalUser, image: OEImage) async throws {
+    func uploadProfileImage(localUser: LocalUser, imageData: Data) async throws {
     }
 
     func deleteProfileImage(localUser: LocalUser) async throws {

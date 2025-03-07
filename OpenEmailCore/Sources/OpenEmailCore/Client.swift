@@ -12,7 +12,7 @@ public let ENCRYPTED_LINK_HEADER = "Link-Encrypted"
 private let DEFAULT_MAIL_SUBDOMAIN = "mail"
 private let WELL_KNOWN_URI = ".well-known/mail.txt"
 private let CACHE_EXPIRY = 60*60
-
+public let PROFILE_IMAGE_SIZE = CGSize(width: 800, height: 800)
 
 struct DelegatedHostsCache {
     let result: [String]
@@ -77,7 +77,7 @@ public protocol Client {
     func fetchProfile(address: EmailAddress, force: Bool) async throws -> Profile?
     func fetchProfileImage(address: EmailAddress, force: Bool) async throws -> Data?
     func uploadProfile(localUser: LocalUser, profile: Profile) async throws
-    func uploadProfileImage(localUser: LocalUser, image: OEImage) async throws
+    func uploadProfileImage(localUser: LocalUser, imageData: Data) async throws
     func deleteProfileImage(localUser: LocalUser) async throws
     func isAddressInContacts(localUser: LocalUser, address: EmailAddress) async throws -> Bool
 
@@ -1802,30 +1802,26 @@ public class DefaultClient: Client {
         URL(string: "https://\(hostname)/home/\(localUser.address.hostPart)/\(localUser.address.localPart)/image")
     }
 
-    public func uploadProfileImage(localUser: LocalUser, image: OEImage) async throws {
+    public func uploadProfileImage(localUser: LocalUser, imageData: Data) async throws {
         _ = try await withAllRespondingDelegatedHosts(address: localUser.address, handler: { hostname in
             guard let url = self.profileImageUrl(localUser: localUser, hostname: hostname) else {
                 throw ClientError.invalidEndpoint
             }
+
             let authNonce = try Nonce(localUser: localUser).sign(host: hostname)
             var urlRequest = URLRequest(url: url)
             urlRequest.setValue(authNonce, forHTTPHeaderField: AUTHORIZATION_HEADER)
             urlRequest.httpMethod = "PUT"
 
-            // TODO: ?? Move out size to constants, e.g. PROFILE_IMAGE_SIZE
-            guard let data = image.resizeAndCrop(targetSize: CGSize(width: 400, height: 400)) else {
-                throw ClientError.uploadFailure
-            }
+            urlRequest.httpBody = imageData
 
-            urlRequest.httpBody = data
             let (_, response) = try await URLSession.shared.data(for: urlRequest)
             if let httpResponse = response as? HTTPURLResponse {
                 if httpResponse.statusCode != 200  {
                     throw ClientError.uploadFailure
                 } else {
-                    // update local image cache
                     if let url = URL(string: "https://\(hostname)/mail/\(localUser.address.hostPart)/\(localUser.address.localPart)/image") {
-                        self.profileImageCache.setImageData(data, for: url)
+                        self.profileImageCache.setImageData(imageData, for: url)
                         NotificationCenter.default.post(name: .profileImageUpdated, object: nil)
                     }
                 }

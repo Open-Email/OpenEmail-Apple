@@ -12,6 +12,7 @@ class ProfileEditorViewModel {
     var isLoadingProfile = false
     var didChangeImage = false
     var profileImage: OEImage?
+    var profileImageData: Data?
 
     @ObservationIgnored
     @Injected(\.client) private var client
@@ -25,6 +26,11 @@ class ProfileEditorViewModel {
             .sink { [weak self] in
                 self?.doUpdateProfile()
             }
+    }
+
+    func updateImage(_ image: NSImage?, _ data: Data?) {
+        self.profileImageData = data
+        self.didChangeImage = true
     }
 
     func loadProfile() async throws {
@@ -51,8 +57,8 @@ class ProfileEditorViewModel {
         Task {
             do {
                 if didChangeImage {
-                    if let profileImage {
-                        try await client.uploadProfileImage(localUser: localUser, image: profileImage)
+                    if let profileImageData {
+                        try await client.uploadProfileImage(localUser: localUser, imageData: profileImageData)
                     } else {
                         try await client.deleteProfileImage(localUser: localUser)
                     }

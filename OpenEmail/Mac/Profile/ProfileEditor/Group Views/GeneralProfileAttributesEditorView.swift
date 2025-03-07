@@ -6,7 +6,7 @@ import Logging
 
 struct GeneralProfileAttributesEditorView: View {
     @Binding var profile: Profile
-    var didChangeImage: (NSImage?) -> Void
+    var didChangeImage: (NSImage?, Data?) -> Void 
 
     @State private var showingImagePicker = false
     @State private var image: NSImage?
@@ -36,13 +36,19 @@ struct GeneralProfileAttributesEditorView: View {
                     }
                 }
 
-                guard let image = NSImage(contentsOf: fileUrl) else {
+                guard let selectedImage = NSImage(contentsOf: fileUrl) else {
                     Log.error("Could not create image from \(fileUrl)")
                     return
                 }
 
-                self.image = image
-                didChangeImage(image)
+                guard let resizedImageData = selectedImage.resizeAndCrop(targetSize: PROFILE_IMAGE_SIZE) else {
+                    Log.error("Could not resize image")
+                    return
+                }
+
+                let resizedImage = NSImage(data: resizedImageData)
+                didChangeImage(resizedImage, resizedImageData)
+                self.image = resizedImage
             } catch {
                 Log.error("Could not get image file url: \(error)")
             }
@@ -137,14 +143,14 @@ struct GeneralProfileAttributesEditorView: View {
 
     private func deleteImage() {
         image = nil
-        didChangeImage(nil)
+        didChangeImage(nil, nil)
     }
 }
 
 #Preview {
     @Previewable @State var profile: Profile = .makeFake()
     HStack {
-        GeneralProfileAttributesEditorView(profile: $profile, didChangeImage: { _ in })
+        GeneralProfileAttributesEditorView(profile: $profile, didChangeImage: { _, _ in })
     }
     .frame(height: 800)
 }

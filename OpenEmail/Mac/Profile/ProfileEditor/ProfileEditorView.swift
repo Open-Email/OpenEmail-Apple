@@ -41,8 +41,9 @@ struct ProfileEditorView: View {
 
                     Group {
                         switch selectedGroup {
-                        case .general: GeneralProfileAttributesEditorView(profile: makeProfileBinding(), didChangeImage: { image in
+                        case .general: GeneralProfileAttributesEditorView(profile: makeProfileBinding(), didChangeImage: { image, imageData in
                             viewModel.profileImage = image
+                            viewModel.profileImageData = imageData
                             viewModel.didChangeImage = true
                             viewModel.updateProfile()
                         })
