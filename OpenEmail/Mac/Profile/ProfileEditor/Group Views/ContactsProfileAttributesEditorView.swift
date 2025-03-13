@@ -42,7 +42,7 @@ struct ContactsProfileAttributesEditorView: View {
                     GridRow {
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
                             OpenEmailTextFieldLabel(ProfileAttribute.streams.displayTitle)
-                            TextField("Enter your streams", text: $profile.streams)
+                            TextField("Enter topics", text: $profile.streams)
                                 .textFieldStyle(.openEmail)
                         }
                         .gridCellColumns(2)

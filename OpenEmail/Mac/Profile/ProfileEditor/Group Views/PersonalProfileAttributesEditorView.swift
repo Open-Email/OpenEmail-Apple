@@ -28,7 +28,7 @@ struct PersonalProfileAttributesEditorView: View {
                     GridRow {
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
                             OpenEmailTextFieldLabel(ProfileAttribute.birthday.displayTitle)
-                            TextField("Enter birthday", text: $profile.birthday)
+                            TextField("Enter your birthday", text: $profile.birthday)
                                 .textFieldStyle(.openEmail)
                         }
 
@@ -42,7 +42,7 @@ struct PersonalProfileAttributesEditorView: View {
                     GridRow {
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
                             OpenEmailTextFieldLabel(ProfileAttribute.languages.displayTitle)
-                            TextField("Enter languages", text: $profile.languages)
+                            TextField("Enter languages you speak", text: $profile.languages)
                                 .textFieldStyle(.openEmail)
                         }
 

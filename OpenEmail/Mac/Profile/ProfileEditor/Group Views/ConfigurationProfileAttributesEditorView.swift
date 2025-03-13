@@ -43,7 +43,7 @@ struct ConfigurationProfileAttributesEditorView: View {
                         }
                     }
 
-                    TextField("Enter address expansion", text: $profile.addressExpansion)
+                    TextField("Enter addresses", text: $profile.addressExpansion)
                         .textFieldStyle(.openEmail)
                 }
                 .padding(.top, .Spacing.default)
