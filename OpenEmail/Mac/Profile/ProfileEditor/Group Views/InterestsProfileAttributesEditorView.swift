@@ -43,7 +43,7 @@ struct InterestsProfileAttributesEditorView: View {
 
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
                             OpenEmailTextFieldLabel(ProfileAttribute.sports.displayTitle)
-                            TextField("Enter your favorite kind of sports", text: $profile.sports)
+                            TextField("Enter your favorite kinds of sports", text: $profile.sports)
                                 .textFieldStyle(.openEmail)
                         }
                     }

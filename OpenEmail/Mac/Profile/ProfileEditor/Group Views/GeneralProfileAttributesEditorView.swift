@@ -121,7 +121,7 @@ struct GeneralProfileAttributesEditorView: View {
 
         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
             OpenEmailTextFieldLabel("Status")
-            TextField("Share your mood, plans etc.", text: $profile.status)
+            TextField("Share your mood, plans, etc.", text: $profile.status)
                 .textFieldStyle(.openEmail)
         }
 

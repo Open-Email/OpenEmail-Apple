@@ -112,7 +112,7 @@ struct GeneralProfileAttributesEditorView: View {
     private var currentSection: some View {
         Section("Current") {
             VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                TextField("Share your mood, plans etc.", text: $profile.status)
+                TextField("Share your mood, plans, etc.", text: $profile.status)
                     .textFieldStyle(.openEmail)
             }
 
