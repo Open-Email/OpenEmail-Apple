@@ -125,27 +125,43 @@ public class DefaultClient: Client {
             throw ClientError.noHostsAvailable
         }
 
-        var results = [T]()
-
-        for host in hosts {
-            if let result = try await handler(host) {
-                results.append(result)
+        return try await withThrowingTaskGroup(of: T?.self) { group in
+            for host in hosts {
+              group.addTask {
+                try await handler(host)
+              }
             }
-        }
-        return results
+
+            var results = [T]()
+            for try await result in group {
+              if let result = result {
+                results.append(result)
+              }
+            }
+            return results
+          }
     }
 
     private func withFirstRespondingDelegatedHost<T>(address: EmailAddress, handler: @escaping Handler<T>) async throws -> T? {
-        let hosts = try await lookupHostsDelegations(address: address)
-        guard !hosts.isEmpty else {
-            throw ClientError.noHostsAvailable
-        }
+      let hosts = try await lookupHostsDelegations(address: address)
+      guard !hosts.isEmpty else { throw ClientError.noHostsAvailable }
+
+      return try await withThrowingTaskGroup(of: T?.self) { group in
         for host in hosts {
-            if let result = try await handler(host) {
-                return result
-            }
+          group.addTask {
+            try await handler(host)
+          }
+        }
+
+        // Wait for the first successful result, then cancel others
+        while let result = try await group.next() {
+          if let result = result {
+            group.cancelAll() // Stop all other tasks
+            return result
+          }
         }
         return nil
+      }
     }
 
     // TODO: the response in well known file may split roles of hosts so some hosts
@@ -658,52 +674,58 @@ public class DefaultClient: Client {
         }
 
         let messageIds = try await fetchLocalMessageIds(localUser: localUser, authorProfile: localProfile)
-        for messageId in messageIds {
-            let existingMessage = try? await messagesStore.message(id: messageId)
-            if var message = existingMessage {
-                Log.info("local message \(messageId) already fetched, ignoring")
+        try await withThrowingTaskGroup(of: Void.self) {group in
+            for messageId in messageIds {
+                group.addTask {
+                    let existingMessage = try? await self.messagesStore.message(id: messageId)
+                    if var message = existingMessage {
+                        Log.info("local message \(messageId) already fetched, ignoring")
 
-                // Is message broadcast or completely delivered?
-                if message.isBroadcast || message.deliveries.count == message.readers.count {
-                    continue
-                }
-
-                Log.info("fetching message delivery information")
-                // Fetch deliveries for the message and update local db
-                if let deliveryInfo = try await fetchMessageDeliveryInformation(localUser: localUser, messageId: messageId) {
-                    var deliveriesList: [String] = []
-                    for (lnk, _) in deliveryInfo {
-                        if let contact = try await contactsStore.contact(id: lnk) {
-                            deliveriesList.append(contact.address)
+                        // Is message broadcast or completely delivered?
+                        if message.isBroadcast || message.deliveries.count == message.readers.count {
+                            return
                         }
-                    }
-                    message.deliveries = deliveriesList
-                    try await messagesStore.storeMessage(message)
-                }
 
-                // Notify again all readers not in deliveries
-                let setReaders = Set(message.readers)
-                let setDeliveries = Set(message.deliveries)
-                let pendingDeliveriesAddresses = Array(setReaders.subtracting(setDeliveries))
-                var pendingDeliveriesEmailAddresses: [EmailAddress] = []
-                for address in pendingDeliveriesAddresses {
-                    if let emailAddress = EmailAddress(address) {
-                        pendingDeliveriesEmailAddresses.append(emailAddress)
+                        Log.info("fetching message delivery information")
+                        // Fetch deliveries for the message and update local db
+                        if let deliveryInfo = try await self.fetchMessageDeliveryInformation(localUser: localUser, messageId: messageId) {
+                            var deliveriesList: [String] = []
+                            for (lnk, _) in deliveryInfo {
+                                if let contact = try await self.contactsStore.contact(id: lnk) {
+                                    deliveriesList.append(contact.address)
+                                }
+                            }
+                            message.deliveries = deliveriesList
+                            try await self.messagesStore.storeMessage(message)
+                        }
+
+                        // Notify again all readers not in deliveries
+                        let setReaders = Set(message.readers)
+                        let setDeliveries = Set(message.deliveries)
+                        let pendingDeliveriesAddresses = Array(setReaders.subtracting(setDeliveries))
+                        var pendingDeliveriesEmailAddresses: [EmailAddress] = []
+                        for address in pendingDeliveriesAddresses {
+                            if let emailAddress = EmailAddress(address) {
+                                pendingDeliveriesEmailAddresses.append(emailAddress)
+                            }
+                        }
+                        try await self.notifyReaders(readersAddresses: pendingDeliveriesEmailAddresses, localUser: localUser)
+                    }
+
+                    do {
+                        try await self.withFirstRespondingDelegatedHost(address: localProfile.address, handler: { hostname in
+                            Log.info("Fetching local message \(messageId)")
+                            try await self.fetchLocalMessageFromAgent(host: hostname, localUser: localUser, authorProfile: localProfile, messageID: messageId)
+                        })
+                    } catch {
+                        Log.error("Could not fetch message: \(error)")
+                        return
                     }
                 }
-                try await notifyReaders(readersAddresses: pendingDeliveriesEmailAddresses, localUser: localUser)
             }
-
-            do {
-                try await self.withFirstRespondingDelegatedHost(address: localProfile.address, handler: { hostname in
-                    Log.info("Fetching local message \(messageId)")
-                    try await self.fetchLocalMessageFromAgent(host: hostname, localUser: localUser, authorProfile: localProfile, messageID: messageId)
-                })
-            } catch {
-                Log.error("Could not fetch message: \(error)")
-                continue
-            }
+            try await group.waitForAll()
         }
+        
         return messageIds
     }
 
@@ -740,16 +762,22 @@ public class DefaultClient: Client {
 
     public func fetchRemoteBroadcastMessages(localUser: LocalUser, authorProfile: Profile) async throws {
         let messageIds = try await fetchRemoteBroadcastMessageIds(localUser: localUser, authorProfile: authorProfile)
-        for messageId in messageIds {
-            if try await messagesStore.message(id: messageId) != nil {
-                Log.info("message \(messageId) from \(authorProfile.address.address) already fetched, ignoring")
-                continue
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            for messageId in messageIds {
+                group.addTask {
+                    if try await self.messagesStore.message(id: messageId) != nil {
+                        Log.info("message \(messageId) from \(authorProfile.address.address) already fetched, ignoring")
+                        return
+                    }
+                    try await self.withFirstRespondingDelegatedHost(address: authorProfile.address, handler: { hostname in
+                        Log.info("Fetching messages from \(authorProfile.address.address)")
+                        try await self.fetchBroadcastMessageFromAgent(host: hostname, localUser: localUser, authorProfile: authorProfile, messageID: messageId)
+                    })
+                }
             }
-            try await self.withFirstRespondingDelegatedHost(address: authorProfile.address, handler: { hostname in
-                Log.info("Fetching messages from \(authorProfile.address.address)")
-                try await self.fetchBroadcastMessageFromAgent(host: hostname, localUser: localUser, authorProfile: authorProfile, messageID: messageId)
-            })
+            try await group.waitForAll()
         }
+        
     }
 
     private func fetchBroadcastMessageIdsFromAgent(agentHostname: String, authorProfile: Profile, nonce: String) async throws -> [String] {

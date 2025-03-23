@@ -102,17 +102,7 @@ class SyncService: MessageSyncing {
         } catch {
             Log.error("Error synchronizing contacts: \(error)")
         }
-
-        // Sync own outgoing messages
-        guard hasUserAccount() else { return }
-
-        do {
-            outgoingMessageIds = try await client.fetchLocalMessages(localUser: localUser, localProfile: localProfile)
-            await cleanUpOutboxMessages()
-        } catch {
-            Log.error("Error fetching local messages: \(error)")
-        }
-
+        
         // Execute notifications
         var syncedAddresses: [String] = []
         do {
@@ -131,29 +121,57 @@ class SyncService: MessageSyncing {
             Log.error("Error executing notifications: \(error)")
         }
 
-        // For all contacts, try fetch messages
-        guard hasUserAccount() else { return }
+         await withTaskGroup(of: Void.self) { group in
+             group.addTask {
+                 // Sync own outgoing messages
+                 guard self.hasUserAccount() else { return }
+                 
+                 do {
+                     self.outgoingMessageIds = try await self.client.fetchLocalMessages(localUser: localUser, localProfile: localProfile)
+                     await self.cleanUpOutboxMessages()
+                 } catch {
+                     Log.error("Error fetching local messages: \(error)")
+                 }
+             }
+             
+             group.addTask {
+                 // For all contacts, try fetch messages
+                 guard self.hasUserAccount() else { return }
+                 do {
+                     try await self.fetchMessagesForContacts(localUser, syncedAddresses)
+                 } catch {
+                     Log.error("Error fetching profile messages: \(error)")
+                 }
+                 
+             }
+             
+             await group.waitForAll()
+        }
 
-        do {
-            let contacts = try await PersistedStore.shared.allContacts()
+        Log.info("Syncing complete")
+    }
+    
+    private func fetchMessagesForContacts(_ localUser: LocalUser, _ syncedAddresses: [String]) async throws {
+        let contacts = try await PersistedStore.shared.allContacts()
+        try await withThrowingTaskGroup(of: Void.self) { group in
             for contact in contacts {
-                // Only for those not already fetched via notifications
-                if syncedAddresses.contains(contact.address) {
-                    continue
-                }
-                if let emailAddress = EmailAddress(contact.address),
-                   let profile = try await client.fetchProfile(address: emailAddress, force: true) {
-                    _ = try await client.fetchRemoteMessages(localUser: localUser, authorProfile: profile)
+                group.addTask {
+                    // Only for those not already fetched via notifications
+                    if syncedAddresses.contains(contact.address) {
+                        return
+                    }
+                    if let emailAddress = EmailAddress(contact.address),
+                       let profile = try await self.client.fetchProfile(address: emailAddress, force: true) {
+                        _ = try await self.client.fetchRemoteMessages(localUser: localUser, authorProfile: profile)
 
-                    if contact.receiveBroadcasts {
-                        _ = try await client.fetchRemoteBroadcastMessages(localUser: localUser, authorProfile: profile)
+                        if contact.receiveBroadcasts {
+                            _ = try await self.client.fetchRemoteBroadcastMessages(localUser: localUser, authorProfile: profile)
+                        }
                     }
                 }
             }
-        } catch {
-            Log.error("Error fetching profile messages: \(error)")
+            try await group.waitForAll()
         }
-        Log.info("Syncing complete")
     }
 
     private func hasUserAccount() -> Bool {
