@@ -597,30 +597,39 @@ public class DefaultClient: Client {
     public func executeNotifications(localUser: LocalUser) async throws -> [String] {
         var syncedAddresses: [String] = []
         let notifications = await (try? notificationsStore.allNotifications()) ?? []
-        try await withThrowingTaskGroup(of: Void.self) { taskGroup in
+        try await withThrowingTaskGroup(of: Void.self) { notificationsTaskGroup in
             for notification in notifications {
-                if notification.isExpired() {
-                    // Maximum lifetime of a notification is 7 days.
-                    try await notificationsStore.deleteNotification(id: notification.id)
-                    continue
-                }
-                if notification.isProcessed {
-                    // we've already completed a fetch based on this notification,
-                    // it can be ignored. A new notification may arrive of the same author.
-                    continue
-                }
+                notificationsTaskGroup.addTask {
+                    if notification.isExpired() {
+                        // Maximum lifetime of a notification is 7 days.
+                        try await self.notificationsStore.deleteNotification(id: notification.id)
+                        return
+                    }
+                    if notification.isProcessed {
+                        // we've already completed a fetch based on this notification,
+                        // it can be ignored. A new notification may arrive of the same author.
+                        return
+                    }
 
-                if let contact = try await self.contactsStore.contact(id: notification.link),
-                   let contactAddress = EmailAddress(contact.address),
-                   let contactProfile = try await fetchProfile(address: contactAddress) {
-                    try await self.fetchRemoteMessages(localUser: localUser, authorProfile: contactProfile)
-                    try await self.fetchRemoteBroadcastMessages(localUser: localUser, authorProfile: contactProfile)
-                    try await self.markNotificationAsProcessed(notification: notification)
-                    syncedAddresses.append(contactAddress.address)
+                    if let contact = try await self.contactsStore.contact(id: notification.link),
+                       let contactAddress = EmailAddress(contact.address),
+                       let contactProfile = try await self.fetchProfile(address: contactAddress) {
+                        try await withThrowingTaskGroup(of: Void.self) { taskGroup in
+                            taskGroup.addTask {
+                                try await self.fetchRemoteMessages(localUser: localUser, authorProfile: contactProfile)
+                            }
+                            taskGroup.addTask {
+                                try await self.fetchRemoteBroadcastMessages(localUser: localUser, authorProfile: contactProfile)
+                            }
+                            try await taskGroup.waitForAll()
+                        }
+                        try await self.markNotificationAsProcessed(notification: notification)
+                        syncedAddresses.append(contactAddress.address)
+                    }
                 }
             }
-
-            try await taskGroup.waitForAll()
+            
+            try await notificationsTaskGroup.waitForAll()
         }
         return syncedAddresses
     }
