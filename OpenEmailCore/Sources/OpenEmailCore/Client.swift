@@ -614,6 +614,7 @@ public class DefaultClient: Client {
                    let contactAddress = EmailAddress(contact.address),
                    let contactProfile = try await fetchProfile(address: contactAddress) {
                     try await self.fetchRemoteMessages(localUser: localUser, authorProfile: contactProfile)
+                    try await self.fetchRemoteBroadcastMessages(localUser: localUser, authorProfile: contactProfile)
                     try await self.markNotificationAsProcessed(notification: notification)
                     syncedAddresses.append(contactAddress.address)
                 }
@@ -918,10 +919,7 @@ public class DefaultClient: Client {
             throw ClientError.invalidContentHeaders
         }
 
-        let readers: [String] = {
-            if isBroadcast { return [] }
-            return contentHeaders.readersAddresses?.map { $0.address } ?? []
-        }()
+        let readers: [String] =  isBroadcast ? [] : contentHeaders.readersAddresses?.map { $0.address } ?? []
 
         // For root messages store under <messageId>/payload and <messageId>/headers
         let envelopeFileName = ENVELOPE_FILENAME
