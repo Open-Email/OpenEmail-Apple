@@ -12,6 +12,7 @@ public enum APIError: Error {
 }
 
 public enum ParsingError: Error {
+    case badLinkAttributesStructure
     case badHeaderFormat
     case badChecksum
     case badSignature

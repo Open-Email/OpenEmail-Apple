@@ -18,7 +18,7 @@ public protocol User {
     var address: EmailAddress { get }
 }
 
-public struct LocalUser: User {
+public struct LocalUser: User, Sendable {
     public let address: EmailAddress
     public let name: String?
 

@@ -1,6 +1,6 @@
 import Foundation
 
-public enum ProfileAttribute: String, CaseIterable, Codable {
+public enum ProfileAttribute: String, CaseIterable, Codable, Sendable {
     case about = "About"
     case addressExpansion = "Address-Expansion"
     case away = "Away"
@@ -38,7 +38,67 @@ public enum ProfileAttribute: String, CaseIterable, Codable {
     case updated = "Updated"
 }
 
-public struct Profile: User, Codable, Equatable {
+public struct Link {
+    public var address: EmailAddress
+    public var link: String
+    public var allowedBroadcasts: Bool
+    
+    public init(encryptedLink: String, localUser: LocalUser) throws {
+        
+        let parts = encryptedLink.split(separator: ",", maxSplits: 2)
+        
+        if parts.count == 2 {
+            let linkStr = parts[0].trimmingCharacters(in: .whitespacesAndNewlines)
+            let contactData = parts[1].trimmingCharacters(in: .whitespacesAndNewlines)
+            
+            if let decryptedDataBytes = try? Crypto.decryptAnonymous(
+                cipherText: contactData,
+                privateKey: localUser.privateEncryptionKey,
+                publicKey: localUser.publicEncryptionKey
+            ), let decryptedData = String(bytes: decryptedDataBytes, encoding: .ascii) {
+                
+                self.link = linkStr
+                let splitAtributes = decryptedData.split(separator: ";", maxSplits: 2)
+                let attributesMap = Dictionary<String, String>(
+                    uniqueKeysWithValues: splitAtributes.map {
+                        let keyValue = $0.split(separator: "=")
+                        if (keyValue.count == 2) {
+                            return (
+                                keyValue[0]
+                                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                                    .lowercased(),
+                                String(keyValue[1]
+                                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                                    .lowercased())
+                            )
+                        } else {
+                            return ("address", String($0))
+                        }
+                    })
+                
+                if (!attributesMap.keys.contains("address")) {
+                    throw ParsingError.badLinkAttributesStructure
+                }
+                
+                if let address = EmailAddress(attributesMap["address"]) {
+                    self.address = address
+                } else {
+                    throw ParsingError.badLinkAttributesStructure
+                }
+                
+                allowedBroadcasts = Bool(attributesMap["broadcasts"] != "no")
+                
+            } else {
+                throw ParsingError.badLinkAttributesStructure
+            }
+           
+        } else {
+            throw ParsingError.badLinkAttributesStructure
+        }
+    }
+}
+
+public struct Profile: User, Codable, Equatable, Sendable {
     public var address: EmailAddress
     public var encryptionKeyId: String? = ""
     public var encryptionAlgorithm: String? = ""
