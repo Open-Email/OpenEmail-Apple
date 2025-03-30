@@ -4,6 +4,14 @@ import Utils
 
 #if DEBUG
 class EmailClientMock: Client {
+    func updateBroadcastsForContact(localUser: LocalUser, address: EmailAddress, allowBroadcasts: Bool) async throws {
+        
+    }
+    
+    func getLinks(localUser: OpenEmailCore.LocalUser) async throws -> [Link]? {
+        nil
+    }
+
     func authenticate(emailAddress: EmailAddress, privateEncryptionKey: String, privateSigningKey: String) async throws -> (LocalUser?, [String]) {
         (nil, [])
     }

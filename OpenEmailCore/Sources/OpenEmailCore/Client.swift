@@ -83,6 +83,7 @@ public protocol Client {
     
     // Contacts
     func getLinks(localUser: LocalUser) async throws -> [Link]?
+    func updateBroadcastsForContact(localUser: LocalUser, address: EmailAddress, allowBroadcasts: Bool) async throws
     func storeContact(localUser: LocalUser, address: EmailAddress) async throws
     func fetchContacts(localUser: LocalUser) async throws -> [EmailAddress]
     func deleteContact(localUser: LocalUser, address: EmailAddress) async throws
@@ -1943,21 +1944,29 @@ public class DefaultClient: Client {
     }
     
     public func updateBroadcastsForContact(localUser: LocalUser, address: EmailAddress, allowBroadcasts: Bool) async throws {
-        let linkAddr = localUser.connectionLinkFor(remoteAddress: address.address)
+        let linkAddr = localUser.connectionLinkFor(
+            remoteAddress: address.address
+        )
         
         _ = try await withAllRespondingDelegatedHosts(address: localUser.address, handler: { hostname in
             guard let url = URL(string: "https://\(hostname)/home/\(localUser.address.hostPart)/\(localUser.address.localPart)/links/\(linkAddr)") else {
                 throw ClientError.invalidEndpoint
             }
+            
             let authNonce = try Nonce(localUser: localUser).sign(host: hostname)
             var urlRequest = URLRequest(url: url)
             
-            let encryptedRemoteAddress = try Crypto.encryptAnonymous(data: address.address.bytes, publicKey: localUser.publicEncryptionKey)
-            let encodedEncryptedAddress = Crypto.base64encode(encryptedRemoteAddress)
+            let body = [
+                "address=\(address.address)",
+                "broadcasts=\(allowBroadcasts ? "Yes" : "No")"
+            ].joined(separator: ";")
+            
+            let encryptedBody = try Crypto.encryptAnonymous(data: body.bytes, publicKey: localUser.publicEncryptionKey)
+            let encodedBody = Crypto.base64encode(encryptedBody)
             
             urlRequest.setValue(authNonce, forHTTPHeaderField: AUTHORIZATION_HEADER)
             urlRequest.httpMethod = "PUT"
-            urlRequest.httpBody = encodedEncryptedAddress.data(using: .ascii)
+            urlRequest.httpBody = encodedBody.data(using: .ascii)
             
             let (_, response) = try await URLSession.shared.data(for: urlRequest)
             if let httpResponse = response as? HTTPURLResponse {

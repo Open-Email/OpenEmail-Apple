@@ -41,12 +41,22 @@ struct ProfileView: View {
                         .padding(.horizontal, .Spacing.default)
                         .padding(.vertical, .Spacing.xSmall)
                 }
-
+                
+                let canEditReceiveBroadcasts = !viewModel.isSelf && viewModel.isInContacts
+                let receiveBroadcastsBinding = canEditReceiveBroadcasts && viewModel.receiveBroadcasts != nil ? Binding(
+                    get: {
+                        viewModel.receiveBroadcasts ?? true
+                    },
+                    set: { newValue in
+                        Task {
+                            await viewModel.updateReceiveBroadcasts(newValue)
+                        }
+                    }) : nil
+                
                 if verticalLayout {
-                    let canEditReceiveBroadcasts = !viewModel.isSelf && viewModel.isInContacts
                     ProfileAttributesView(
                         profile: $viewModel.profile,
-                        receiveBroadcasts: canEditReceiveBroadcasts ? $viewModel.receiveBroadcasts : nil,
+                        receiveBroadcasts: receiveBroadcastsBinding,
                         isEditable: false,
                         hidesEmptyFields: true,
                         profileImageStyle: .shape()
@@ -59,10 +69,9 @@ struct ProfileView: View {
                             size: profileImageSize ?? 288
                         )
 
-                        let canEditReceiveBroadcasts = !viewModel.isSelf && viewModel.isInContacts
                         ProfileAttributesView(
                             profile: $viewModel.profile,
-                            receiveBroadcasts: canEditReceiveBroadcasts ? $viewModel.receiveBroadcasts : nil,
+                            receiveBroadcasts: receiveBroadcastsBinding,
                             isEditable: false,
                             hidesEmptyFields: true,
                             profileImageStyle: .none
