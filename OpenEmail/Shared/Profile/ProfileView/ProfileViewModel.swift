@@ -42,14 +42,8 @@ class ProfileViewModel {
 
     var onProfileLoaded: ((Profile?, Error?) -> Void)?
 
-    var receiveBroadcasts = false {
-        didSet {
-            Task {
-                await storeReceiveBroadcasts()
-            }
-        }
-    }
-
+    var receiveBroadcasts: Bool? = nil
+    
     init(
         emailAddress: EmailAddress, 
         profile: Profile? = nil,
@@ -68,7 +62,28 @@ class ProfileViewModel {
             }
         }
     }
-
+    
+    func updateReceiveBroadcasts(_ newValue: Bool) async {
+        let oldValue = receiveBroadcasts
+        
+        await MainActor.run {
+            receiveBroadcasts = newValue
+        }
+        
+        do {
+            try await client.updateBroadcastsForContact(
+                localUser: LocalUser.current!,
+                address: emailAddress,
+                allowBroadcasts: newValue
+            )
+        } catch {
+            // Revert to old value on failure
+            await MainActor.run {
+                receiveBroadcasts = oldValue
+            }
+        }
+    }
+    
     private func fetchProfile(delay: TimeInterval = 0) async {
         guard !isLoadingProfile else { return }
 
@@ -98,21 +113,19 @@ class ProfileViewModel {
 
     @MainActor
     private func updateReceiveBroadcasts() async {
-        guard let contact = (try? await contactsStore.contact(address: emailAddress.address)) else {
-            return
+        let links = try? await client.getLinks(localUser: LocalUser.current!)
+        let currentLink = links?.first {link in
+            link.address == emailAddress
         }
-
-        receiveBroadcasts = contact.receiveBroadcasts
-    }
-
-    private func storeReceiveBroadcasts() async {
         guard var contact = (try? await contactsStore.contact(address: emailAddress.address)) else {
             return
         }
 
-        contact.receiveBroadcasts = receiveBroadcasts
-        try? await contactsStore.storeContact(contact)
+        contact.receiveBroadcasts = currentLink?.allowedBroadcasts ?? true
+        receiveBroadcasts = contact.receiveBroadcasts
     }
+
+    
 
     func addToContacts() async throws {
         let usecase = AddToContactsUseCase()
