@@ -249,6 +249,8 @@
 		5BFDAF492D43CD2900335189 /* OpenEmailTextFieldLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1C37872D3A5A220017D57D /* OpenEmailTextFieldLabel.swift */; };
 		5BFDDAEA2B51731C009DDCDA /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = 5BFDDAE92B51731C009DDCDA /* Logging */; };
 		5BFDDAED2B51A408009DDCDA /* MultipleMessagesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BFDDAEC2B51A408009DDCDA /* MultipleMessagesView.swift */; };
+		9D0775822D9AFB9500C2A2E0 /* ArrayExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0775812D9AFB8100C2A2E0 /* ArrayExtensions.swift */; };
+		9D0775832D9AFB9500C2A2E0 /* ArrayExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0775812D9AFB8100C2A2E0 /* ArrayExtensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -421,6 +423,7 @@
 		5BF25D2F2D71E3BD00720F54 /* OpenEmailTextEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenEmailTextEditor.swift; sourceTree = "<group>"; };
 		5BFDDAE82B51720C009DDCDA /* Logging */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Logging; sourceTree = "<group>"; };
 		5BFDDAEC2B51A408009DDCDA /* MultipleMessagesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipleMessagesView.swift; sourceTree = "<group>"; };
+		9D0775812D9AFB8100C2A2E0 /* ArrayExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayExtensions.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -661,6 +664,7 @@
 		5B7C80DB2AF4FDAB0088E2EA /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				9D0775812D9AFB8100C2A2E0 /* ArrayExtensions.swift */,
 				5BC893422C1C56F8008C943B /* Mocks */,
 				5BC6E0A52C2EE84900C5951C /* Injection.swift */,
 				5B141C2D2C134A4B00597F70 /* TimeInterval+Extension.swift */,
@@ -1257,6 +1261,7 @@
 				5B1757C22BADD5E000405169 /* SettingsView.swift in Sources */,
 				5B66B4B82C08A99B00CA34EE /* ContactSuggestionsView.swift in Sources */,
 				5B0F25892AFE789000226455 /* Message+Random.swift in Sources */,
+				9D0775822D9AFB9500C2A2E0 /* ArrayExtensions.swift in Sources */,
 				5B3046592C6BABC100B33157 /* Message+Display.swift in Sources */,
 				5B5390D42B7F62E000387B6F /* String+Truncating.swift in Sources */,
 				5B8C60E62D0365E400FEF5F1 /* OpenEmailTextEditor.swift in Sources */,
@@ -1296,6 +1301,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9D0775832D9AFB9500C2A2E0 /* ArrayExtensions.swift in Sources */,
 				5BDA2EBE2C5CCD91009FB2BD /* OpenEmailApp.swift in Sources */,
 				5B88AF9A2C8B10D900385E03 /* NetworkConnectionMonitor.swift in Sources */,
 				5BDA2EC02C5CCF35009FB2BD /* Dependencies.swift in Sources */,
