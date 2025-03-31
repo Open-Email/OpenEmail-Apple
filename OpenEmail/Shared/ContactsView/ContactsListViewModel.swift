@@ -109,18 +109,36 @@ class ContactsListViewModel: ContactsListViewModelProtocol {
 
     private func reloadContent() {
         Task {
-            await reloadContacts()
-            await reloadContactRequests()
+            await withTaskGroup(of: Void.self) { taskGroup in
+                taskGroup.addTask {
+                    await self.reloadContacts()
+                }
+                taskGroup.addTask {
+                    await self.reloadContactRequests()
+                }
+                await taskGroup.waitForAll()
+            }
         }
     }
 
     @MainActor
     private func reloadContacts() async {
         do {
+            contacts.removeAll()
+            
             if searchText.isEmpty {
-                contacts = try await contactsStore.allContacts()
+                contacts.append(contentsOf: try await contactsStore.allContacts().distinctBy{ element in
+                    element.address
+                })
             } else {
-                contacts = try await contactsStore.findContacts(containing: searchText)
+                contacts
+                    .append(
+                        contentsOf: try await contactsStore
+                            .findContacts(containing: searchText)
+                            .distinctBy{ element in
+                                element.address
+                            }
+                    )
             }
 
             Log.info("reloaded \(contacts.count) contacts")
@@ -131,7 +149,14 @@ class ContactsListViewModel: ContactsListViewModelProtocol {
     }
     
     private func reloadContactRequests() async {
-        contactRequests = await contactRequestController.contactRequests
+        contactRequests.removeAll()
+        contactRequests
+            .append(
+                contentsOf: await contactRequestController.contactRequests
+                    .distinctBy { element in
+                        element.address
+                    }
+            )
     }
 
     func hasContact(with emailAddress: String) -> Bool {
