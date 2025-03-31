@@ -20,6 +20,7 @@ struct ProfileTagView: View {
     @State private var isInMyContacts: Bool = true
     @State private var isInOtherContacts: Bool?
     @State private var isTicked: Bool = false
+    @State private var isAway: Bool?
     @State private var contactName: String?
     @State private var hasLoadedProfile: Bool = false
     @State private var showContactPopover = false
@@ -63,53 +64,75 @@ struct ProfileTagView: View {
     }
 
     var body: some View {
-        HStack(spacing: .Spacing.xxxSmall) {
-            if isInMyContacts {
-                Image(.readerInContacts)
-            } else {
-                Image(.readerNotInContacts)
-            }
+        ZStack(alignment: Alignment.topTrailing) {
+            HStack(spacing: .Spacing.xxxSmall) {
+                if isInMyContacts {
+                    Image(.readerInContacts)
+                } else {
+                    Image(.readerNotInContacts)
+                }
 
-            if isMyself {
-                Text("me")
-            } else {
-                Text(contactName?.truncated(to: 30) ?? emailAddress ?? "–")
-            }
+                if isMyself {
+                    Text("me")
+                } else {
+                    Text(contactName?.truncated(to: 30) ?? emailAddress ?? "–")
+                }
 
-            if isTicked {
-                Image(systemName: "checkmark")
-                    .controlSize(.mini)
-                    .bold()
+                if isTicked {
+                    Image(systemName: "checkmark")
+                        .controlSize(.mini)
+                        .bold()
+                }
+            }
+            .lineLimit(1)
+            .padding(.vertical, .Spacing.xxxSmall)
+            .padding(.horizontal, .Spacing.xSmall)
+            .foregroundStyle(foregroundColor)
+            .background(Capsule().fill(.themeBadgeBackground))
+            .help(isInMyContacts ? "Reader is in my contacts" : "Reader is not in my contacts")
+            .onTapGesture {
+                guard isEnabled else { return }
+                showProfile()
+            }
+            .popover(isPresented: $showContactPopover) {
+                profilePopover()
+            }
+            .onAppear {
+                updateContactsState()
+            }
+            .onChange(of: emailAddress) {
+                updateContactsState()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .didUpdateContacts)) { _ in
+                updateContactsState()
+            }
+            
+            if let isAway {
+                Circle().fill(isAway ? .themeRed : .themeGreen).frame(width: 8, height: 8)
             }
         }
-        .lineLimit(1)
-        .padding(.vertical, .Spacing.xxxSmall)
-        .padding(.horizontal, .Spacing.xSmall)
-        .foregroundStyle(foregroundColor)
-        .background(Capsule().fill(.themeBadgeBackground))
-        .help(isInMyContacts ? "Reader is in my contacts" : "Reader is not in my contacts")
-        .onTapGesture {
-            guard isEnabled else { return }
-            showProfile()
-        }
-        .popover(isPresented: $showContactPopover) {
-            profilePopover()
-        }
-        .onAppear {
-            updateContactsState()
-        }
-        .onChange(of: emailAddress) {
-            updateContactsState()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .didUpdateContacts)) { _ in
-            updateContactsState()
-        }
+        
     }
 
     private func updateContactsState() {
+        if let address = EmailAddress(self.emailAddress) {
+            let viewModel = ProfileViewModel(
+                emailAddress: address
+            ) { profile, _ in
+                self.isAway = profile?.away ?? false
+            }
+        }
+        
         Task {
-            await checkMyContacts()
-            await checkOtherContacts()
+            await withTaskGroup(of: Void.self) { taskGroup in
+                taskGroup.addTask {
+                    await checkMyContacts()
+                }
+                taskGroup.addTask {
+                    await checkOtherContacts()
+                }
+                await taskGroup.waitForAll()
+            }
         }
     }
 
