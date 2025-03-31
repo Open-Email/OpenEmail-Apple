@@ -7,7 +7,7 @@ import Utils
 
 struct GeneralProfileAttributesEditorView: View {
     @Binding var profile: Profile
-    var didChangeImage: (OEImage?) -> Void
+    var didChangeImage: (OEImage?, Data?) -> Void
 
     @State private var showingPhotoPicker = false
     @State private var photoPickerItem: PhotosPickerItem?
@@ -96,7 +96,11 @@ struct GeneralProfileAttributesEditorView: View {
                     if let data = try await photoPickerItem.loadTransferable(type: Data.self) {
                         if let uiImage = UIImage(data: data) {
                             self.image = uiImage
-                            didChangeImage(uiImage)
+                            guard let resizedImageData = uiImage.resizeAndCrop(targetSize: PROFILE_IMAGE_SIZE) else {
+                                Log.error("Could not resize image")
+                                return
+                            }
+                            didChangeImage(uiImage, resizedImageData)
                         }
                     }
                 } catch {
@@ -133,11 +137,11 @@ struct GeneralProfileAttributesEditorView: View {
 
     private func deleteImage() {
         image = nil
-        didChangeImage(nil)
+        didChangeImage(nil, nil)
     }
 }
 
 #Preview {
     @Previewable @State var profile: Profile = .makeFake()
-    GeneralProfileAttributesEditorView(profile: $profile, didChangeImage: { _ in })
+    GeneralProfileAttributesEditorView(profile: $profile, didChangeImage: { _, _ in })
 }
