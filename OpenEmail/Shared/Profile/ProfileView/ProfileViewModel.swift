@@ -113,16 +113,18 @@ class ProfileViewModel {
 
     @MainActor
     private func updateReceiveBroadcasts() async {
-        let links = try? await client.getLinks(localUser: LocalUser.current!)
-        let currentLink = links?.first {link in
-            link.address == emailAddress
-        }
-        guard var contact = (try? await contactsStore.contact(address: emailAddress.address)) else {
-            return
-        }
+        if let currentUser = LocalUser.current {
+            let links = try? await client.getLinks(localUser: currentUser)
+            let currentLink = links?.first {link in
+                link.address == emailAddress
+            }
+            guard var contact = (try? await contactsStore.contact(address: emailAddress.address)) else {
+                return
+            }
 
-        contact.receiveBroadcasts = currentLink?.allowedBroadcasts ?? true
-        receiveBroadcasts = contact.receiveBroadcasts
+            contact.receiveBroadcasts = currentLink?.allowedBroadcasts ?? true
+            receiveBroadcasts = contact.receiveBroadcasts
+        }
     }
 
     
