@@ -100,6 +100,7 @@ struct ComposeMessageView: View {
                 }
                 .padding(.horizontal)
             }
+            .scrollDismissesKeyboard(.interactively)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") {
