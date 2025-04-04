@@ -21,7 +21,6 @@ struct ComposeMessageView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var hasInvalidReader = false
-    @State private var showsAttachments: Bool = false
 
     @State private var showsError = false
     @State private var error: Error?
@@ -162,7 +161,7 @@ struct ComposeMessageView: View {
             .photosPicker(isPresented: $photoPickerOpen, selection: $photoPickerItems)
             .fileImporter(
                 isPresented: $filePickerOpen,
-                allowedContentTypes: [.data, .image],
+                allowedContentTypes: [UTType.data],
                 allowsMultipleSelection: true
             ) {
                 do {
@@ -257,18 +256,22 @@ struct ComposeMessageView: View {
     private func addSelectedPhotoItems() async {
         guard !photoPickerItems.isEmpty else { return }
 
-        do {
+        await withTaskGroup { group in
             for item in photoPickerItems {
-                guard let imageData = try? await item.loadTransferable(type: Data.self) else {
-                    continue
+                group.addTask {
+                    do {
+                        try await viewModel.addAttachmentItem(from: item)
+                    } catch {
+                        Log.error("Could not add attachment: \(error)")
+                    }
+                    
                 }
-                try await viewModel.addAttachmentItem(from: imageData)
+            
             }
-        } catch {
-            Log.error("Could not add attachment: \(error)")
+            await group.waitForAll()
         }
 
-        photoPickerItems = []
+        photoPickerItems.removeAll()
     }
 
 }
