@@ -1,4 +1,5 @@
 import Foundation
+import _PhotosUI_SwiftUI
 import UniformTypeIdentifiers
 import Observation
 import OpenEmailCore
@@ -31,6 +32,7 @@ enum ComposeAction: Codable, Equatable, Hashable {
 
 enum AttachmentsError: Error {
     case invalidImageData
+    case invalidVideoData
     case fileStorageFailed
 }
 
@@ -499,42 +501,61 @@ class ComposeMessageViewModel {
     }
 
 #if os(iOS)
-    private var addedImageCount = 0
-    func addAttachmentItem(from imageData: Data) async throws {
-        guard
-            let image = UIImage(data: imageData)
-        else {
-            Log.error("Could not get image data")
+    private var addedMediaCount = 0
+    func addAttachmentItem(from item: PhotosPickerItem) async throws {
+        let url: URL
+        
+        let name = item.itemIdentifier
+        
+        guard let data = try? await item.loadTransferable(type: Data.self) else {
             throw AttachmentsError.invalidImageData
         }
-
-        let filename = "image\(addedImageCount)"
-
-        let url: URL
-
-        if
-            let utTypeString = image.cgImage?.utType,
-            let utType = UTType(utTypeString as String)
-        {
-            url = try saveTemporaryImage(data: imageData, utType: utType, filename: filename)
-        } else {
-            // fall back to png
-            Log.warning("Could not determine type of image – falling back to PNG")
-
-            guard let pngData = image.pngData() else {
-                Log.error("Could not get PNG data")
-                throw AttachmentsError.invalidImageData
+        let utType = UTType(item.supportedContentTypes.first?.identifier ?? "")
+        
+        if let image = UIImage(data: data) {
+            // Handle image
+            let filename = "\(name ?? "image")_\(addedMediaCount)"
+            if let type = utType {
+                url = try saveTemporaryFile(data: data, utType: type, filename: filename)
+            } else {
+                Log.warning("Could not determine image type – falling back to PNG")
+                guard let pngData = image.pngData() else {
+                    Log.error("Could not get PNG data")
+                    throw AttachmentsError.invalidImageData
+                }
+                url = try saveTemporaryFile(data: pngData, utType: .png, filename: filename)
+                addedMediaCount += 1
+                attachedFileItems.append(AttachedFileItem(url: url))
             }
-
-            url = try saveTemporaryImage(data: pngData, utType: .png, filename: filename)
+            
+        } else {
+            // Handle video
+            let filename = "\(name ?? "video")_\(addedMediaCount)"
+            
+            if let type = utType {
+                let tempURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString)
+                try data.write(to: tempURL)
+                url = URL(fileURLWithPath: NSTemporaryDirectory())
+                    .appendingPathComponent(filename)
+                    .appendingPathExtension(type.preferredFilenameExtension ?? "mov")
+                try FileManager.default.moveItem(at: tempURL, to: url)
+                defer { try? FileManager.default.removeItem(at: tempURL) }
+                addedMediaCount += 1
+                attachedFileItems.append(AttachedFileItem(url: url))
+            }
         }
 
-        addedImageCount += 1
-
-        let item = AttachedFileItem(url: url)
-        attachedFileItems.append(item)
+        
+    }#endif
+    
+    private func saveTemporaryFile(data: Data, utType: UTType, filename: String) throws -> URL {
+        let fileExtension = utType.preferredFilenameExtension ?? "bin"
+        let url = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent(filename)
+            .appendingPathExtension(fileExtension)
+        try data.write(to: url)
+        return url
     }
-#endif
     
     func removeAttachedFileItem(item: AttachedFileItem) {
         if let index = attachedFileItems.firstIndex(where: { item.url == $0.url }) {
