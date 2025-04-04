@@ -534,10 +534,21 @@ class ComposeMessageViewModel {
             
             if let type = utType {
                 let tempURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString)
+                do {
+                    try FileManager.default.removeItem(atPath: tempURL.path())
+                } catch {
+                    // no file found
+                }
+                
                 try data.write(to: tempURL)
                 url = URL(fileURLWithPath: NSTemporaryDirectory())
                     .appendingPathComponent(filename)
                     .appendingPathExtension(type.preferredFilenameExtension ?? "mov")
+                do {
+                    try FileManager.default.removeItem(atPath: url.path())
+                } catch {
+                    // no file found
+                }
                 try FileManager.default.moveItem(at: tempURL, to: url)
                 defer { try? FileManager.default.removeItem(at: tempURL) }
                 addedMediaCount += 1
@@ -553,6 +564,11 @@ class ComposeMessageViewModel {
         let url = URL(fileURLWithPath: NSTemporaryDirectory())
             .appendingPathComponent(filename)
             .appendingPathExtension(fileExtension)
+        do {
+            try FileManager.default.removeItem(atPath: url.path())
+        } catch {
+            // no file found
+        }
         try data.write(to: url)
         return url
     }
