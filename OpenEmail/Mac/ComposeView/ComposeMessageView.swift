@@ -69,6 +69,10 @@ struct ComposeMessageView: View {
                     }
                 }
             }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                isTextEditorFocused = true
+            }
             .frame(maxWidth: .infinity)
             .scrollBounceBehavior(.basedOnSize)
             .padding(.trailing, -.Spacing.default)
