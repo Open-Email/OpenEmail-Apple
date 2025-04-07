@@ -524,10 +524,9 @@ class ComposeMessageViewModel {
                     throw AttachmentsError.invalidImageData
                 }
                 url = try saveTemporaryFile(data: pngData, utType: .png, filename: filename)
-                addedMediaCount += 1
-                attachedFileItems.append(AttachedFileItem(url: url))
             }
-            
+            addedMediaCount += 1
+            attachedFileItems.append(AttachedFileItem(url: url))
         } else {
             // Handle video
             let filename = "\(name ?? "video")_\(addedMediaCount)"
@@ -564,12 +563,15 @@ class ComposeMessageViewModel {
         let url = URL(fileURLWithPath: NSTemporaryDirectory())
             .appendingPathComponent(filename)
             .appendingPathExtension(fileExtension)
+        
+        try FileManager.default.removeItem(atPath: url.path())
+        
         do {
-            try FileManager.default.removeItem(atPath: url.path())
+            try data.write(to: url)
         } catch {
-            // no file found
+            throw LocalError.fileCopyingError
         }
-        try data.write(to: url)
+        
         return url
     }
     

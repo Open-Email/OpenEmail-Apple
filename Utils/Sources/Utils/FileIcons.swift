@@ -1,4 +1,6 @@
 import Foundation
+import QuickLookThumbnailing
+import UniformTypeIdentifiers
 
 #if canImport(AppKit)
 import AppKit
@@ -32,5 +34,29 @@ public extension UIImage {
         }
         return .defaultFileIcon
     }
+    
+    static func thumbnail(
+            forFileAt url: URL,
+            size: CGSize,
+            scale: CGFloat = UIScreen.main.scale,
+            completion: @escaping (UIImage?) -> Void
+        ) {
+            let scale = scale
+            let request = QLThumbnailGenerator.Request(
+                fileAt: url,
+                size: size,
+                scale: scale,
+                representationTypes: .icon
+            )
+            QLThumbnailGenerator.shared.generateBestRepresentation(
+                for: request
+            ) { (thumbnail, error) in
+                guard let cgImage = thumbnail?.cgImage else {
+                    completion(.defaultFileIcon)
+                    return
+                }
+                completion(UIImage(cgImage: cgImage))
+            }
+        }
 }
 #endif

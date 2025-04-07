@@ -27,6 +27,7 @@ public enum ParsingError: Error {
 }
 
 public enum LocalError: Error {
+    case fileCopyingError
     case fileAccessError
     case accountError
 }
