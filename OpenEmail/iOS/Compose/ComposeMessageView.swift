@@ -17,6 +17,7 @@ struct ComposeMessageView: View {
     @State private var viewModel: ComposeMessageViewModel
     @FocusState private var isTextEditorFocused: Bool
     @FocusState private var isReadersFocused: Bool
+    @FocusState private var isBodyFocused: Bool
 
     @Environment(\.dismiss) private var dismiss
 
@@ -86,7 +87,10 @@ struct ComposeMessageView: View {
                         Divider()
 
                         VStack(alignment: .leading) {
-                            AutoResizingTextEditor(text: $viewModel.fullText)
+                            AutoResizingTextEditor(
+                                text: $viewModel.fullText,
+                                isFocused: $isBodyFocused
+                            )
 
                             if !viewModel.attachedFileItems.isEmpty {
                                 ComposeAttachmentsListView(attachedFileItems: $viewModel.attachedFileItems, onDelete: {
@@ -98,6 +102,10 @@ struct ComposeMessageView: View {
                     }
                 }
                 .padding(.horizontal)
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                isBodyFocused.toggle()
             }
             .scrollDismissesKeyboard(.interactively)
             .toolbar {
@@ -279,9 +287,11 @@ struct ComposeMessageView: View {
 private struct AutoResizingTextEditor: View {
     @Binding var text: String
     @State private var textHeight: CGFloat = 40 // Minimum height
-
+    @FocusState.Binding var isFocused: Bool
+    
     var body: some View {
         TextEditor(text: $text)
+            .focused($isFocused)
             .frame(height: textHeight)
             .scrollDisabled(true)
             .font(.body)
