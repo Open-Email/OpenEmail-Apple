@@ -152,25 +152,40 @@ class SyncService: MessageSyncing {
     }
     
     private func fetchMessagesForContacts(_ localUser: LocalUser, _ syncedAddresses: [String]) async throws {
-        let contacts = try await PersistedStore.shared.allContacts()
-        try await withThrowingTaskGroup(of: Void.self) { group in
-            for contact in contacts {
-                group.addTask {
-                    // Only for those not already fetched via notifications
-                    if syncedAddresses.contains(contact.address) {
-                        return
-                    }
-                    if let emailAddress = EmailAddress(contact.address),
-                       let profile = try await self.client.fetchProfile(address: emailAddress, force: true) {
-                        _ = try await self.client.fetchRemoteMessages(localUser: localUser, authorProfile: profile)
+        let contacts = try await PersistedStore.shared.allContacts().filter {
+            syncedAddresses.contains($0.address) == false
+        }
+        let maxConcurrentTasks = min(5, contacts.count)
+        
+        func getContactMessages(_ index: Int) async throws {
+            if let emailAddress = EmailAddress(contacts[index].address),
+               let profile = try await self.client.fetchProfile(address: emailAddress, force: true) {
+                _ = try await self.client.fetchRemoteMessages(localUser: localUser, authorProfile: profile)
 
-                        if contact.receiveBroadcasts {
-                            _ = try await self.client.fetchRemoteBroadcastMessages(localUser: localUser, authorProfile: profile)
-                        }
+                if contacts[index].receiveBroadcasts {
+                    _ = try await self.client.fetchRemoteBroadcastMessages(localUser: localUser, authorProfile: profile)
+                }
+            }
+        }
+       
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            
+            for index in 0..<maxConcurrentTasks {
+                group.addTask {
+                    try await getContactMessages(index)
+                }
+            }
+            var tmpIndex = maxConcurrentTasks
+            
+            while try await group.next() != nil {
+                if (tmpIndex < contacts.count) {
+                    let i = tmpIndex
+                    tmpIndex += 1
+                    group.addTask {
+                        try await getContactMessages(i)
                     }
                 }
             }
-            try await group.waitForAll()
         }
     }
 

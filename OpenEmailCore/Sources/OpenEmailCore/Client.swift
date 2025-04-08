@@ -743,13 +743,16 @@ public class DefaultClient: Client {
     
     public func fetchRemoteMessages(localUser: LocalUser, authorProfile: Profile) async throws {
         let messageIds = try await fetchRemoteMessageIds(localUser: localUser, authorProfile: authorProfile)
+        let maxConcurrentTasks = min(5, messageIds.count)
+        
+        
         let connectionLink = localUser.connectionLinkFor(remoteAddress: authorProfile.address.address)
         
         try await withThrowingTaskGroup(of: Void.self) { taskGroup in
-            for messageId in messageIds {
+            for index in 0..<maxConcurrentTasks {
                 taskGroup.addTask {
                     try await self.processRemoteMessage(
-                        messageId: messageId,
+                        messageId: messageIds[index],
                         authorProfile: authorProfile,
                         connectionLink: connectionLink,
                         localUser: localUser
@@ -757,7 +760,22 @@ public class DefaultClient: Client {
                 }
             }
             
-            try await taskGroup.waitForAll()
+            var tmpIndex = maxConcurrentTasks
+            
+            while try await taskGroup.next() != nil {
+                if (tmpIndex < messageIds.count) {
+                    let i = tmpIndex
+                    tmpIndex += 1
+                    taskGroup.addTask {
+                        try await self.processRemoteMessage(
+                            messageId: messageIds[i],
+                            authorProfile: authorProfile,
+                            connectionLink: connectionLink,
+                            localUser: localUser
+                        )
+                    }
+                }
+            }
         }
     }
     
@@ -774,22 +792,40 @@ public class DefaultClient: Client {
     
     public func fetchRemoteBroadcastMessages(localUser: LocalUser, authorProfile: Profile) async throws {
         let messageIds = try await fetchRemoteBroadcastMessageIds(localUser: localUser, authorProfile: authorProfile)
-        try await withThrowingTaskGroup(of: Void.self) { group in
-            for messageId in messageIds {
-                group.addTask {
-                    if try await self.messagesStore.message(id: messageId) != nil {
-                        Log.info("message \(messageId) from \(authorProfile.address.address) already fetched, ignoring")
-                        return
-                    }
-                    try await self.withFirstRespondingDelegatedHost(address: authorProfile.address, handler: { hostname in
-                        Log.info("Fetching messages from \(authorProfile.address.address)")
-                        try await self.fetchBroadcastMessageFromAgent(host: hostname, localUser: localUser, authorProfile: authorProfile, messageID: messageId)
-                    })
-                }
+        
+        let maxConcurrentTasks = min(5, messageIds.count)
+        
+        func getRemoteMessage(_ messageId: String) async throws {
+            if try await self.messagesStore.message(id: messageId) != nil {
+                Log.info("message \(messageId) from \(authorProfile.address.address) already fetched, ignoring")
+                return
             }
-            try await group.waitForAll()
+            try await self.withFirstRespondingDelegatedHost(address: authorProfile.address, handler: { hostname in
+                Log.info("Fetching messages from \(authorProfile.address.address)")
+                try await self.fetchBroadcastMessageFromAgent(host: hostname, localUser: localUser, authorProfile: authorProfile, messageID: messageId)
+            })
         }
         
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            
+            for index in 0..<maxConcurrentTasks {
+                group.addTask {
+                    try await getRemoteMessage(messageIds[index])
+                }
+            }
+            
+            var tmpIndex = maxConcurrentTasks
+            
+            while try await group.next() != nil {
+                if (tmpIndex < messageIds.count) {
+                    let i = tmpIndex
+                    tmpIndex += 1
+                    group.addTask {
+                        try await getRemoteMessage(messageIds[i])
+                    }
+                }
+            }
+        }
     }
     
     private func fetchBroadcastMessageIdsFromAgent(agentHostname: String, authorProfile: Profile, nonce: String) async throws -> [String] {
