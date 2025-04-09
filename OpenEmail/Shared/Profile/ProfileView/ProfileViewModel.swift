@@ -6,23 +6,19 @@ import OpenEmailPersistence
 import OpenEmailModel
 import Logging
 
-@Observable
-class ProfileViewModel {
-    var profile: Profile?
-    private var profileLoadingError: Error?
-    var isLoadingProfile = false
+class ProfileViewModel: ObservableObject {
+    @Published var profile: Profile?
+    @Published var profileLoadingError: Error?
+    @Published var isLoadingProfile = false
 
-    var emailAddress: EmailAddress
-    var isInContacts: Bool = false
-    var isSelf: Bool = false
+    @Published var emailAddress: EmailAddress
+    @Published var isInContacts: Bool = false
+    @Published var isSelf: Bool = false
 
-    @ObservationIgnored
     @Injected(\.client) private var client
 
-    @ObservationIgnored
     @Injected(\.contactsStore) private var contactsStore: ContactStoring
 
-    @ObservationIgnored
     @Injected(\.syncService) private var syncService
 
     var errorText: String {
@@ -48,7 +44,6 @@ class ProfileViewModel {
         emailAddress: EmailAddress, 
         profile: Profile? = nil,
         shouldRefreshProfile: Bool = true,
-        profileLoadingDelay: TimeInterval = 0,
         onProfileLoaded: ((Profile?, Error?) -> Void)? = nil
     ) {
         self.emailAddress = emailAddress
@@ -58,7 +53,7 @@ class ProfileViewModel {
 
         Task {
             if shouldRefreshProfile {
-                await fetchProfile(delay: profileLoadingDelay)
+                await updateProfile()
             }
         }
     }
@@ -84,26 +79,43 @@ class ProfileViewModel {
         }
     }
     
-    private func fetchProfile(delay: TimeInterval = 0) async {
+    @MainActor
+    private func updateProfile() async {
         guard !isLoadingProfile else { return }
 
         isLoadingProfile = true
         profileLoadingError = nil
-
-        do {
-            try await Task.sleep(seconds: delay)
-            profile = try await client.fetchProfile(address: emailAddress, force: true)
-            onProfileLoaded?(profile, nil)
-        } catch {
-            profileLoadingError = error
-            onProfileLoaded?(nil, error)
-            Log.error("Could not load profile: \(error)")
+        
+        await withTaskGroup { group in
+            group.addTask {
+                await self.fetchProfile()
+            }
+            
+            group.addTask {
+                await self.updateIsInContacts()
+            }
+            group.addTask {
+                await self.updateReceiveBroadcasts()
+            }
+            
+            await group.waitForAll()
         }
 
-        await updateIsInContacts()
-        await updateReceiveBroadcasts()
-
         isLoadingProfile = false
+    }
+    
+    @MainActor
+    private func fetchProfile() async {
+        do {
+            self.profile = try await self.client.fetchProfile(address: self.emailAddress, force: true)
+            self.profileLoadingError = nil
+            self.onProfileLoaded?(self.profile, nil)
+        } catch {
+            self.profile = nil
+            self.profileLoadingError = error
+            self.onProfileLoaded?(nil, error)
+            Log.error("Could not load profile: \(error)")
+        }
     }
 
     @MainActor
@@ -143,7 +155,7 @@ class ProfileViewModel {
 
     func refreshProfile() {
         Task {
-            await fetchProfile()
+            await updateProfile()
         }
     }
 
