@@ -3,7 +3,7 @@ import OpenEmailCore
 import Logging
 
 struct ProfileView: View {
-    @State private var viewModel: ProfileViewModel
+    @ObservedObject private var viewModel: ProfileViewModel
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) var registeredEmailAddress: String?
 
     private let showActionButtons: Bool
@@ -15,11 +15,10 @@ struct ProfileView: View {
         emailAddress: EmailAddress,
         showActionButtons: Bool = true,
         isContactRequest: Bool = false,
-        onProfileLoaded: ((Profile?, Error?) -> Void)? = nil
     ) {
         self.showActionButtons = showActionButtons
         self.isContactRequest = isContactRequest
-        viewModel = ProfileViewModel(emailAddress: emailAddress, onProfileLoaded: onProfileLoaded)
+        viewModel = ProfileViewModel(emailAddress: emailAddress)
     }
 
     var body: some View {
@@ -157,7 +156,6 @@ struct ProfileView: View {
         emailAddress: .init("mickey@mouse.com")!,
         showActionButtons: true,
         isContactRequest: false,
-        onProfileLoaded: nil
     )
 }
 
@@ -170,7 +168,6 @@ struct ProfileView: View {
         emailAddress: .init("mickey@mouse.com")!,
         showActionButtons: true,
         isContactRequest: false,
-        onProfileLoaded: nil
     )
 }
 
@@ -183,7 +180,6 @@ struct ProfileView: View {
         emailAddress: .init("mickey@mouse.com")!,
         showActionButtons: true,
         isContactRequest: false,
-        onProfileLoaded: nil
     )
 }
 
@@ -199,7 +195,6 @@ struct ProfileView: View {
         emailAddress: .init("mickey@mouse.com")!,
         showActionButtons: false,
         isContactRequest: false,
-        onProfileLoaded: nil
     )
 }
 
