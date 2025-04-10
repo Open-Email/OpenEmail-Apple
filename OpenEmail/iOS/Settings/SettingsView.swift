@@ -38,8 +38,8 @@ struct SettingsView: View {
                             .foregroundStyle(.red)
                     }
                     .listRowSeparator(.hidden, edges: .top)
-                    .alert("Remove Account?", isPresented: $showRemoveAccountConfirmation) {
-                        Button("Remove Account", role: .destructive) {
+                    .alert("Log Out?", isPresented: $showRemoveAccountConfirmation) {
+                        Button("Log Out", role: .destructive) {
                             RemoveAccountUseCase().removeAccount()
                         }
                     } message: {
