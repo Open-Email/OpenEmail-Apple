@@ -178,38 +178,17 @@ struct MessageView: View {
 
                 VStack(alignment: .leading, spacing: .Spacing.xSmall) {
                     HStack {
-                        if message != nil {
-                            // TODO: Author name is displayed twice.
-                            // Consider extending the profile tag so that it can name + emeail address for the author.
-//                            if let authorName = viewModel.authorProfile?[.name] {
-//                                Text(authorName)
-//                                    .fontWeight(.semibold)
-//                            }
-
+                        if message != nil, let address = viewModel.authorProfile?.address {
                             ProfileTagView(
-                                emailAddress: Binding(get: {
-                                    viewModel.message?.author
-                                }, set: { _ in }),
+                                emailAddress: address,
                                 isSelected: false,
-                                configuration: .init(
-                                    automaticallyShowProfileIfNotInContacts: false,
-                                    canRemoveReader: false,
-                                    showsActionButtons: true,
-                                    onShowProfile: { _ in
-                                        selectedMessageProfileAddress = EmailAddress(message?.author)
-                                    })
+                                automaticallyShowProfileIfNotInContacts: false,
+                                canRemoveReader: false,
+                                showsActionButtons: true,
+                                onShowProfile: { _ in
+                                    selectedMessageProfileAddress = EmailAddress(message?.author)
+                                }
                             )
-                        } else {
-                            ProfileTagView(
-                                emailAddress: .constant("placeholder"),
-                                isSelected: false,
-                                configuration: .init(
-                                    automaticallyShowProfileIfNotInContacts: false,
-                                    canRemoveReader: false,
-                                    showsActionButtons: true)
-                            )
-                            .redacted(reason: .placeholder)
-                            .disabled(true)
                         }
                     }
 

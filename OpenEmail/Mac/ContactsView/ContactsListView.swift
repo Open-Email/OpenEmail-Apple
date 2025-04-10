@@ -14,7 +14,6 @@ struct ContactsListView: View {
     @State private var showsAddContactError = false
     @State private var showsContactExistsError = false
     @State private var addContactError: Error?
-    @State private var didLoadProfile = false
 
     @Binding private var selectedContactListItem: ContactListItem?
 
@@ -125,7 +124,20 @@ struct ContactsListView: View {
             }
         })) {
             if let emailAddress = EmailAddress(addressToAdd) {
-                profilePreviewSheetView(emailAddress: emailAddress)
+                ProfilePreviewSheetView(
+                    emailAddress: emailAddress,
+                    onAddContactClicked: { address in
+                        Task {
+                            do {
+                                try await viewModel.addContact(address: emailAddress.address)
+                            } catch {
+                                Log.error("Error while adding contact: \(error)")
+                                addContactError = error
+                                showsAddContactError = true
+                            }
+                        }
+                    }
+                )
             }
         }
         .alert("Could not add contact", isPresented: $showsAddContactError, actions: {
@@ -155,48 +167,61 @@ struct ContactsListView: View {
         }
     }
 
-    @ViewBuilder
-    private func profilePreviewSheetView(emailAddress: EmailAddress) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            ProfileView(
-                viewModel: ProfileViewModel(emailAddress: emailAddress, onProfileLoaded: { profile, error in
-                    didLoadProfile = profile != nil && error == nil
-                }),
-                showActionButtons: false,
-                profileImageSize: 240
+    struct ProfilePreviewSheetView: View {
+        @Environment(\.dismiss) private var dismiss
+        @StateObject var profileViewModel: ProfileViewModel
+        let emailAddress: EmailAddress
+        let onAddContactClicked: ((String) -> Void)
+
+        init(
+            emailAddress: EmailAddress,
+            onAddContactClicked: @escaping ((String) -> Void)
+        ) {
+            self.emailAddress = emailAddress
+            self.onAddContactClicked = onAddContactClicked
+            _profileViewModel = StateObject(
+                wrappedValue: ProfileViewModel(
+                    emailAddress: emailAddress,
+                )
             )
-            .padding(.top, -.Spacing.xSmall)
-
-            HStack {
-                Spacer()
-
-                Button("Cancel", role: .cancel) {
-                    addressToAdd = nil
-                    showAddContactView = true
-                }
-
-                if didLoadProfile {
-                    AsyncButton("Add", role: .cancel) {
-                        do {
-                            try await viewModel.addContact(address: emailAddress.address)
-                        } catch {
-                            Log.error("Error while adding contact: \(error)")
-                            addContactError = error
-                            showsAddContactError = true
-                        }
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .keyboardShortcut(.defaultAction)
-                    .disabled(emailAddress.address == LocalUser.current?.address.address)
-                }
-            }
-            .padding(.horizontal, .Spacing.default)
-            .padding(.bottom, .Spacing.default)
         }
-        .frame(width: 600)
-        .frame(maxHeight: 600)
-        .background(.themeViewBackground)
+        
+        var body: some View {
+            
+            let profileLoaded = profileViewModel.profile != nil && profileViewModel.profileLoadingError == nil
+            
+            VStack(alignment: .leading, spacing: 0) {
+                ProfileView(
+                    viewModel: profileViewModel,
+                    showActionButtons: false,
+                    profileImageSize: 240
+                )
+                .padding(.top, -.Spacing.xSmall)
+
+                HStack {
+                    Spacer()
+
+                    Button("Cancel", role: .cancel) {
+                        dismiss()
+                    }
+
+                    if profileLoaded {
+                        Button("Add", role: .cancel) {
+                            onAddContactClicked(emailAddress.address)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .keyboardShortcut(.defaultAction)
+                        .disabled(emailAddress.address == LocalUser.current?.address.address)
+                    }
+                }
+                .padding(.horizontal, .Spacing.default)
+                .padding(.bottom, .Spacing.default)
+            }
+            //.frame(width: 600, height: 600)
+            .background(.themeViewBackground)
+        }
     }
+
 }
 
 #if DEBUG

@@ -1,58 +1,49 @@
 import SwiftUI
 import OpenEmailCore
 import OpenEmailPersistence
+import Logging
 
 struct ProfileTagView: View {
+    
     @Environment(\.isEnabled) var isEnabled: Bool
     @AppStorage(UserDefaultsKeys.profileName) var profileName: String?
+    @StateObject var profileViewModel: ProfileViewModel
 
-    struct Configuration {
-        var automaticallyShowProfileIfNotInContacts: Bool
-        var canRemoveReader: Bool
-        var showsActionButtons: Bool
-
-        /// If not `nil` this is called when the profile should be shown. The receiver is responsible for correctly
-        /// showing the profile.
-        /// If `nil`, the profile is shown as a popover over the profile tag view.
-        var onShowProfile: ((String) -> Void)?
-    }
-
-    @State private var isInMyContacts: Bool = true
-    @State private var isInOtherContacts: Bool?
-    @State private var isTicked: Bool = false
-    @State private var isAway: Bool?
-    @State private var contactName: String?
-    @State private var hasLoadedProfile: Bool = false
+    private let isTicked: Bool
     @State private var showContactPopover = false
 
     @Injected(\.client) private var client
     @Injected(\.contactsStore) private var contactsStore: ContactStoring
 
-    @Binding var emailAddress: String?
-    var isSelected: Bool
-    var configuration: Configuration
-    var onRemoveReader: (() -> Void)?
-
-    private var isMyself: Bool {
-        emailAddress == LocalUser.current?.address.address
-    }
-
-    private var indicateThatNotInOthersContacts: Bool {
-        isInOtherContacts == false
-    }
+    let isSelected: Bool
+    let onRemoveReader: (() -> Void)?
+    let automaticallyShowProfileIfNotInContacts: Bool
+    let canRemoveReader: Bool
+    let showsActionButtons: Bool
+    let onShowProfile: ((String) -> Void)?
 
     init(
-        emailAddress: Binding<String?>,
+        emailAddress: EmailAddress,
         isSelected: Bool,
         isTicked: Bool = false,
-        configuration: Configuration,
-        onRemoveReader: (() -> Void)? = nil
+        onRemoveReader: (() -> Void)? = nil,
+        automaticallyShowProfileIfNotInContacts: Bool,
+        canRemoveReader: Bool,
+        showsActionButtons: Bool,
+        onShowProfile: ((String) -> Void)? = nil
     ) {
-        _emailAddress = emailAddress
+        _profileViewModel = StateObject(
+            wrappedValue: ProfileViewModel(
+                emailAddress: emailAddress,
+            )
+        )
         self.isSelected = isSelected
         self.isTicked = isTicked
-        self.configuration = configuration
         self.onRemoveReader = onRemoveReader
+        self.automaticallyShowProfileIfNotInContacts = automaticallyShowProfileIfNotInContacts
+        self.canRemoveReader = canRemoveReader
+        self.showsActionButtons = showsActionButtons
+        self.onShowProfile = onShowProfile
     }
 
     private var foregroundColor: Color {
@@ -66,16 +57,21 @@ struct ProfileTagView: View {
     var body: some View {
         ZStack(alignment: Alignment.topTrailing) {
             HStack(spacing: .Spacing.xxxSmall) {
-                if isInMyContacts {
+                if profileViewModel.isInContacts {
                     Image(.readerInContacts)
                 } else {
                     Image(.readerNotInContacts)
                 }
 
-                if isMyself {
+                if profileViewModel.isSelf {
                     Text("me")
                 } else {
-                    Text(contactName?.truncated(to: 30) ?? emailAddress ?? "–")
+                    Text(
+                        profileViewModel.profile?.name
+                            .truncated(
+                                to: 30
+                            ) ?? profileViewModel.emailAddress.address
+                    )
                 }
 
                 if isTicked {
@@ -89,152 +85,122 @@ struct ProfileTagView: View {
             .padding(.horizontal, .Spacing.xSmall)
             .foregroundStyle(foregroundColor)
             .background(Capsule().fill(.themeBadgeBackground))
-            .help(isInMyContacts ? "Reader is in my contacts" : "Reader is not in my contacts")
+            .help(profileViewModel.isInContacts ? "Reader is in my contacts" : "Reader is not in my contacts")
             .onTapGesture {
                 guard isEnabled else { return }
                 showProfile()
             }
             .popover(isPresented: $showContactPopover) {
-                profilePopover()
-            }
-            .onAppear {
-                updateContactsState()
-            }
-            .onChange(of: emailAddress) {
-                updateContactsState()
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .didUpdateContacts)) { _ in
-                updateContactsState()
+                ProfilePopover(
+                    profileViewModel: profileViewModel,
+                    onDismiss: {
+                        showContactPopover = false
+                    },
+                    onRemoveReader: self.onRemoveReader,
+                    showsActionButtons: showsActionButtons,
+                    canRemoveReader: canRemoveReader
+                )
             }
             
-            if let isAway {
-                Circle().fill(isAway ? .themeRed : .themeGreen).frame(width: 8, height: 8)
+            if let away = profileViewModel.profile?.away {
+                Circle()
+                    .fill(away ? .themeRed : .themeGreen)
+                    .frame(width: 8, height: 8)
             }
         }
         
-    }
-
-    private func updateContactsState() {
-        if let address = EmailAddress(self.emailAddress) {
-            let viewModel = ProfileViewModel(
-                emailAddress: address
-            ) { profile, _ in
-                self.isAway = profile?.away ?? false
-            }
-        }
-        
-        Task {
-            await withTaskGroup(of: Void.self) { taskGroup in
-                taskGroup.addTask {
-                    await checkMyContacts()
-                }
-                taskGroup.addTask {
-                    await checkOtherContacts()
-                }
-                await taskGroup.waitForAll()
-            }
-        }
-    }
-
-    private func checkMyContacts() async {
-        guard let emailAddress else { return }
-
-        if isMyself {
-            contactName = profileName
-            return
-        }
-
-        let contact = try? await contactsStore.contact(address: emailAddress)
-
-        contactName = contact?.cachedName
-
-        isInMyContacts = contact != nil
-        if !isInMyContacts && configuration.automaticallyShowProfileIfNotInContacts {
-            showProfile()
-        }
     }
 
     private func showProfile() {
-        guard let emailAddress else { return }
-        if let onShowProfile = configuration.onShowProfile {
-            onShowProfile(emailAddress)
+        if let onShowProfile = onShowProfile {
+            onShowProfile(profileViewModel.emailAddress.address)
         } else {
             showContactPopover = true
         }
     }
 
-    private func checkOtherContacts() async {
-        guard
-            let localUser = LocalUser.current,
-            let emailAddress = EmailAddress(emailAddress)
-        else {
-            return
-        }
+}
 
-        isInOtherContacts = try? await client.isAddressInContacts(localUser: localUser, address: emailAddress)
+struct ProfilePopover: View {
+    
+    
+    let profileViewModel: ProfileViewModel
+    let onRemoveReader: (() -> Void)?
+    let onDismiss: (() -> Void)
+    let showsActionButtons: Bool
+    let canRemoveReader: Bool
+    
+    init(
+        profileViewModel: ProfileViewModel,
+        onDismiss: @escaping (() -> Void),
+        onRemoveReader: (() -> Void)? = nil,
+        showsActionButtons: Bool,
+        canRemoveReader: Bool
+    ) {
+        self.profileViewModel = profileViewModel
+        self.onRemoveReader = onRemoveReader
+        self.onDismiss = onDismiss
+        self.showsActionButtons = showsActionButtons
+        self.canRemoveReader = canRemoveReader
     }
+    
+    var body: some View {
+        
+        let hasLoadedProfile = profileViewModel.profile != nil
+        let indicateThatNotInOthersContacts: Bool = profileViewModel.isInOtherContacts == false
+        
+        VStack {
+            ProfileView(
+                viewModel: profileViewModel,
+                showActionButtons: showsActionButtons,
+                verticalLayout: false,
+                profileImageSize: 200
+            )
+            .frame(idealWidth: 500, minHeight: 250)
 
-    @ViewBuilder
-    private func profilePopover() -> some View {
-        if let emailAddress = EmailAddress(emailAddress) {
-            VStack {
-                let viewModel = ProfileViewModel(emailAddress: emailAddress) { profile, _ in
-                    hasLoadedProfile = profile != nil
-                }
-
-                ProfileView(
-                    viewModel: viewModel,
-                    showActionButtons: configuration.showsActionButtons,
-                    verticalLayout: false,
-                    profileImageSize: 200
-                )
-                .frame(idealWidth: 500, minHeight: 250)
-
-                if configuration.canRemoveReader && (!isInMyContacts || indicateThatNotInOthersContacts) {
-                    HStack {
-                        Spacer()
-                        Button("Remove Reader") {
-                            onRemoveReader?()
-                            showContactPopover = false
-                        }
-
-                        if !isMyself && !isInMyContacts {
-                            AsyncButton("Add Contact") {
-                                let usecase = AddToContactsUseCase()
-                                try? await usecase.add(emailAddress: emailAddress, cachedName: nil)
-                                updateContactsState()
-                                showContactPopover = false
-                            }
-                            .disabled(!hasLoadedProfile)
-                        }
+            if canRemoveReader && (
+                !profileViewModel.isInContacts || indicateThatNotInOthersContacts
+            ) {
+                HStack {
+                    Spacer()
+                    Button("Remove Reader") {
+                        onRemoveReader?()
+                        onDismiss()
+                        
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 20)
+
+                    if !profileViewModel.isSelf && !profileViewModel.isInContacts {
+                        AsyncButton("Add Contact") {
+                            do {
+                                try await profileViewModel.addToContacts()
+                                onDismiss()
+                            } catch {
+                                Log.error("Could not add to contacts keys:", context: error)
+                            }
+                            
+                        }
+                        .disabled(!hasLoadedProfile)
+                    }
                 }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 20)
             }
-            .background(.themeViewBackground)
         }
+        .background(.themeViewBackground)
     }
+    
 }
 
 #if DEBUG
 
 #Preview {
     VStack {
-        ProfileTagView(emailAddress: .constant("mickey@mouse.com"), isSelected: false, isTicked: false, configuration: .fake, onRemoveReader: nil)
-
-        ProfileTagView(emailAddress: .constant("mickey@mouse.com"), isSelected: true, isTicked: true, configuration: .fake, onRemoveReader: nil)
+        ProfileTagView(emailAddress: EmailAddress("mickey@mouse.com")!, isSelected: false, isTicked: false,onRemoveReader: nil, automaticallyShowProfileIfNotInContacts: false, canRemoveReader: false, showsActionButtons: true)
+        
+        ProfileTagView(emailAddress: EmailAddress("mickey@mouse.com")!, isSelected: true, isTicked: true, onRemoveReader: nil, automaticallyShowProfileIfNotInContacts: false, canRemoveReader: false, showsActionButtons: true)
     }
     .padding()
     .background(.themeViewBackground)
-}
-
-private extension ProfileTagView.Configuration {
-    static let fake = ProfileTagView.Configuration(
-        automaticallyShowProfileIfNotInContacts: false,
-        canRemoveReader: false,
-        showsActionButtons: true
-    )
 }
 
 #endif

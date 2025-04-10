@@ -73,19 +73,17 @@ struct ReadersView: View {
                 // don't show reader if it is myself, except when I am the only reader or when composing a message
                 if reader.address != registeredEmailAddress || readers.count == 1 || isEditable {
                     ProfileTagView(
-                        emailAddress: .constant(reader.address),
+                        emailAddress: reader,
                         isSelected: selectedReaderIndexes.contains(index),
                         isTicked: tickedReaders.contains(reader.address),
-                        configuration: .init(
-                            automaticallyShowProfileIfNotInContacts: isEditable && !profilesShown.contains(reader),
-                            canRemoveReader: isEditable,
-                            showsActionButtons: !isEditable,
-                            onShowProfile: showProfileType.onShowProfile
-                        ),
                         onRemoveReader: {
                             readers.remove(at: index)
                             workaround_setReaders(readers)
-                        }
+                        },
+                        automaticallyShowProfileIfNotInContacts: isEditable && !profilesShown.contains(reader),
+                        canRemoveReader: isEditable,
+                        showsActionButtons: !isEditable,
+                        onShowProfile: showProfileType.onShowProfile
                     )
                 }
             }

@@ -3,7 +3,7 @@ import OpenEmailCore
 import Logging
 
 struct ProfileView: View {
-    @Bindable private var viewModel: ProfileViewModel
+    @ObservedObject private var viewModel: ProfileViewModel
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) var registeredEmailAddress: String?
     @Environment(\.openWindow) private var openWindow
 

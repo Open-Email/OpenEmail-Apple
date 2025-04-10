@@ -266,13 +266,12 @@ public class DefaultClient: Client {
     
     
     private func isValidHostname(hostname: String) -> Bool {
-        guard !hostname.isEmpty else { return false }
-        
-        let host = CFHostCreateWithName(nil, hostname as CFString).takeRetainedValue()
-        var streamError = CFStreamError()
-        return CFHostStartInfoResolution(host, .addresses, &streamError)
-    }
-    
+            guard !hostname.isEmpty else { return false }
+            
+            let host = CFHostCreateWithName(nil, hostname as CFString).takeRetainedValue()
+            var streamError = CFStreamError()
+            return CFHostStartInfoResolution(host, .addresses, &streamError)
+        }
     
     
     // MARK: - Authentication & Registrations

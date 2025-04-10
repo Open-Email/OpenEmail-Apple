@@ -216,9 +216,7 @@ struct ReadersView: View {
                 ProfileView(
                     emailAddress: emailAddress,
                     showActionButtons: false,
-                    onProfileLoaded: { profile, _ in
-                        presentedProfile = profile
-                    })
+                    )
 
                 if
                     isEditable,
