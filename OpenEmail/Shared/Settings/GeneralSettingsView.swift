@@ -51,14 +51,14 @@ struct GeneralSettingsView: View {
 #if canImport(AppKit)
             if registeredEmailAddress != nil {
                 Section("Account") {
-                    Button("Remove Account") {
+                    Button("Log Out") {
                         showRemoveAccountConfirmation = true
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(.red)
                 }
-                .alert("Remove Account?", isPresented: $showRemoveAccountConfirmation) {
-                    Button("Remove Account", role: .destructive) {
+                .alert("Log Out?", isPresented: $showRemoveAccountConfirmation) {
+                    Button("Log Out", role: .destructive) {
                         removeAccount()
                     }
                 } message: {
