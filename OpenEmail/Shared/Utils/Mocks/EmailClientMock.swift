@@ -8,6 +8,10 @@ class EmailClientMock: Client {
         
     }
     
+    func deleteCurrentUser() async throws {
+        
+    }
+    
     func getLinks(localUser: OpenEmailCore.LocalUser) async throws -> [Link]? {
         nil
     }

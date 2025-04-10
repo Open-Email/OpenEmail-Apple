@@ -33,8 +33,20 @@ public actor PersistedStore {
     }
 
     public func deleteAllData() async throws {
-        try await deleteAllContacts()
-        try await deleteAllMessages()
-        try await deleteAllNotifications()
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            group.addTask {
+                try await self.deleteAllContacts()
+            }
+            
+            group.addTask {
+                try await self.deleteAllMessages()
+            }
+            
+            group.addTask {
+                try await self.deleteAllNotifications()
+            }
+            
+            try await group.waitForAll()
+        }
     }
 }

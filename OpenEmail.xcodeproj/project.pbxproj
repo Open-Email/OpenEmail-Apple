@@ -251,6 +251,8 @@
 		5BFDDAED2B51A408009DDCDA /* MultipleMessagesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BFDDAEC2B51A408009DDCDA /* MultipleMessagesView.swift */; };
 		9D0775822D9AFB9500C2A2E0 /* ArrayExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0775812D9AFB8100C2A2E0 /* ArrayExtensions.swift */; };
 		9D0775832D9AFB9500C2A2E0 /* ArrayExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0775812D9AFB8100C2A2E0 /* ArrayExtensions.swift */; };
+		9D0A38562DA8319C00F4BB73 /* DeleteAccountUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */; };
+		9D0A38572DA8319C00F4BB73 /* DeleteAccountUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -424,6 +426,7 @@
 		5BFDDAE82B51720C009DDCDA /* Logging */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Logging; sourceTree = "<group>"; };
 		5BFDDAEC2B51A408009DDCDA /* MultipleMessagesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipleMessagesView.swift; sourceTree = "<group>"; };
 		9D0775812D9AFB8100C2A2E0 /* ArrayExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayExtensions.swift; sourceTree = "<group>"; };
+		9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountUseCase.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -713,6 +716,7 @@
 		5BBE54A52C5CC94B008F25CC /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */,
 				5B2C7CC62CCB978C00948B0F /* SharedImages.xcassets */,
 				5B4452652CCBB48200A2FE5E /* Theme */,
 				5B3C03572BDBF7F700A8B35B /* AddToContactsUseCase.swift */,
@@ -1294,6 +1298,7 @@
 				5B5E88632D68C15A009EBE37 /* Bundle+Info.swift in Sources */,
 				5B43DD6F2D3143CB002CC7B0 /* String+Cleaning.swift in Sources */,
 				5B8808BB2B88B32100E6E3B4 /* AttachmentsListViewModel.swift in Sources */,
+				9D0A38572DA8319C00F4BB73 /* DeleteAccountUseCase.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1347,6 +1352,7 @@
 				5BE491772D5667350036DBBF /* ContactsListViewModelMock.swift in Sources */,
 				5BDA2ED22C5CCF48009FB2BD /* EmailClientMock.swift in Sources */,
 				5BE2CFA12D4D0E9800E9DB1A /* Modify.swift in Sources */,
+				9D0A38562DA8319C00F4BB73 /* DeleteAccountUseCase.swift in Sources */,
 				5BDA2ED32C5CCF48009FB2BD /* MessageStoreMock.swift in Sources */,
 				5BD1FA6C2C66551E00DE4B5D /* TrustedDomainsSettingsView.swift in Sources */,
 				5BB70A3D2D71EF1E005DDA48 /* ProfileAttributeInfoText.swift in Sources */,
@@ -1593,7 +1599,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 19;
+				CURRENT_PROJECT_VERSION = 21;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"OpenEmail/Preview Content\"";
 				DEVELOPMENT_TEAM = Y4RNS8259T;
@@ -1601,6 +1607,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = OpenEmail/Mac/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = OpenEmail;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "2024 Mercata Sagl";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1625,7 +1632,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 19;
+				CURRENT_PROJECT_VERSION = 21;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"OpenEmail/Preview Content\"";
 				DEVELOPMENT_TEAM = Y4RNS8259T;
@@ -1633,6 +1640,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = OpenEmail/Mac/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = OpenEmail;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "2024 Mercata Sagl";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1653,7 +1661,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColorMobile;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_ASSET_PATHS = "OpenEmail/Preview\\ Content";
 				DEVELOPMENT_TEAM = Y4RNS8259T;
 				ENABLE_PREVIEWS = YES;
@@ -1690,7 +1698,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColorMobile;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_ASSET_PATHS = "OpenEmail/Preview\\ Content";
 				DEVELOPMENT_TEAM = Y4RNS8259T;
 				ENABLE_PREVIEWS = YES;
