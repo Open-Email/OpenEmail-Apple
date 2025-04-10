@@ -268,11 +268,21 @@ public class DefaultClient: Client {
     private func isValidHostname(hostname: String) -> Bool {
         guard !hostname.isEmpty else { return false }
         
-        let host = CFHostCreateWithName(nil, hostname as CFString).takeRetainedValue()
-        var streamError = CFStreamError()
-        return CFHostStartInfoResolution(host, .addresses, &streamError)
+        var isValid = false
+        let semaphore = DispatchSemaphore(value: 0)
+        let queue = DispatchQueue(label: "hostname.validation.queue", qos: .userInitiated)
+        
+        queue.async {
+            let host = CFHostCreateWithName(nil, hostname as CFString).takeRetainedValue()
+            var streamError = CFStreamError()
+            let success = CFHostStartInfoResolution(host, .addresses, &streamError)
+            isValid = success
+            semaphore.signal()
+        }
+        
+        semaphore.wait()
+        return isValid
     }
-    
     
     
     // MARK: - Authentication & Registrations

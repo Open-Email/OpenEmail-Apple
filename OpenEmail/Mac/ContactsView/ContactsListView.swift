@@ -182,7 +182,6 @@ struct ContactsListView: View {
             _profileViewModel = StateObject(
                 wrappedValue: ProfileViewModel(
                     emailAddress: emailAddress,
-                    onProfileLoaded: { _, _ in }
                 )
             )
         }

@@ -13,6 +13,7 @@ class ProfileViewModel: ObservableObject {
 
     @Published var emailAddress: EmailAddress
     @Published var isInContacts: Bool = false
+    @Published var isInOtherContacts: Bool?
     @Published var isSelf: Bool = false
 
     @Injected(\.client) private var client
@@ -36,20 +37,16 @@ class ProfileViewModel: ObservableObject {
         return "Could not load user profile"
     }
 
-    var onProfileLoaded: ((Profile?, Error?) -> Void)?
-
     var receiveBroadcasts: Bool? = nil
     
     init(
         emailAddress: EmailAddress, 
         profile: Profile? = nil,
         shouldRefreshProfile: Bool = true,
-        onProfileLoaded: ((Profile?, Error?) -> Void)? = nil
     ) {
         self.emailAddress = emailAddress
         self.profile = profile
         self.isSelf = LocalUser.current?.address == emailAddress
-        self.onProfileLoaded = onProfileLoaded
 
         Task {
             if shouldRefreshProfile {
@@ -94,8 +91,13 @@ class ProfileViewModel: ObservableObject {
             group.addTask {
                 await self.updateIsInContacts()
             }
+            
             group.addTask {
                 await self.updateReceiveBroadcasts()
+            }
+            
+            group.addTask {
+                await self.checkOtherContacts()
             }
             
             await group.waitForAll()
@@ -105,15 +107,20 @@ class ProfileViewModel: ObservableObject {
     }
     
     @MainActor
+    private func checkOtherContacts() async {
+        if let localUser = LocalUser.current {
+            isInOtherContacts = try? await client.isAddressInContacts(localUser: localUser, address: emailAddress)
+        }
+    }
+    
+    @MainActor
     private func fetchProfile() async {
         do {
             self.profile = try await self.client.fetchProfile(address: self.emailAddress, force: true)
             self.profileLoadingError = nil
-            self.onProfileLoaded?(self.profile, nil)
         } catch {
             self.profile = nil
             self.profileLoadingError = error
-            self.onProfileLoaded?(nil, error)
             Log.error("Could not load profile: \(error)")
         }
     }
