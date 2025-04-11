@@ -23,7 +23,7 @@ extension PersistedAttachment {
         Attachment(
             id: id,
             parentMessageId: parentMessage?.id ?? "",
-            fileMessageIds: fileMessageIds,
+            fileMessageIds: fileMessageIds.split(separator: ",").map {substr in String(substr) },
             filename: filename,
             size: size,
             mimeType: mimeType

@@ -8,18 +8,18 @@ class PersistedMessage {
     var authoredOn: Date
     var receivedOn: Date
     var author: String
-    var readers: [String]
+    var readers: String // [String] jined with ","
     var readersStr: String
-    var deliveries: [String]
+    var deliveries: String // [String] jined with ","
     var subject: String
     var body: String?
     var subjectId: String
     var isBroadcast: Bool
-    var accessKey: [UInt8]?
+    var accessKey: Data?
     var localUserAddress: String
     var isRead: Bool
     var deletedAt: Date?
-    var draftAttachmentUrls: [URL]
+    var draftAttachmentUrls: String // [URL] jined with ","
 
     @Relationship(deleteRule: .cascade, inverse: \PersistedAttachment.parentMessage)
     var attachments: [PersistedAttachment] = []
@@ -38,7 +38,7 @@ class PersistedMessage {
         body: String? = nil,
         subjectId: String,
         isBroadcast: Bool,
-        accessKey: [UInt8]?,
+        accessKey: Data?,
         isRead: Bool,
         deletedAt: Date?,
         draftAttachmentUrls: [URL]
@@ -49,15 +49,16 @@ class PersistedMessage {
         self.authoredOn = authoredOn
         self.receivedOn = receivedOn
         self.author = author
-        self.readers = readers
+        self.readers = readers.joined(separator: ",")
         self.readersStr = readersStr
-        self.deliveries = deliveries
+        self.deliveries = deliveries.joined(separator: ",")
         self.subject = subject
         self.body = body
         self.subjectId = subjectId
         self.isRead = isRead
         self.deletedAt = deletedAt
         self.draftAttachmentUrls = draftAttachmentUrls
+            .map { url in url.absoluteString }.joined(separator: ",")
         self.isBroadcast = isBroadcast
         self.accessKey = accessKey
     }

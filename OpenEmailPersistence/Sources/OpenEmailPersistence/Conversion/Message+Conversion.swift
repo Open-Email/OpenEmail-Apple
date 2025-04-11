@@ -18,7 +18,7 @@ extension Message {
             body: body,
             subjectId: subjectId,
             isBroadcast: isBroadcast, 
-            accessKey: accessKey,
+            accessKey: accessKey == nil ? nil : Data(accessKey!),
             isRead: isRead,
             deletedAt: deletedAt,
             draftAttachmentUrls: draftAttachmentUrls
@@ -43,17 +43,17 @@ extension PersistedMessage {
             authoredOn: authoredOn,
             receivedOn: receivedOn,
             author: author,
-            readers: readers,
-            deliveries: deliveries,
+            readers: readers.split(separator: ",").map { subStr in String(subStr) },
+            deliveries: deliveries.split(separator: ",").map { subStr in String(subStr) },
             subject: subject,
             body: body,
             subjectId: subjectId,
             isBroadcast: isBroadcast,
-            accessKey: accessKey,
+            accessKey: accessKey == nil ? nil : [UInt8](accessKey!),
             isRead: isRead,
             deletedAt: deletedAt,
             attachments: attachments.map { $0.toLocal() },
-            draftAttachmentUrls: draftAttachmentUrls
+            draftAttachmentUrls: draftAttachmentUrls.split(separator: ",").map { subStr in URL(string : String(subStr))! }
         )
     }
 }
