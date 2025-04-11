@@ -1805,8 +1805,8 @@ public class DefaultClient: Client {
     public func deleteCurrentUser() async throws {
         if let localUser = LocalUser.current {
             _ = try await withFirstRespondingDelegatedHost(address: localUser.address, handler: { hostname in
-                guard let url = self.profileImageUrl(localUser: localUser, hostname: hostname) else {
-                    throw ClientError.invalidEndpoint
+                guard let url = URL(string: "https://\(hostname)/account/\(localUser.address.hostPart)/\(localUser.address.localPart)") else {
+                    throw ClientError.invalidLink
                 }
                 let authNonce = try Nonce(localUser: localUser).sign(host: hostname)
                 var urlRequest = URLRequest(url: url)
