@@ -1,8 +1,10 @@
 import Foundation
 import SwiftUI
+import Logging
 
 struct SettingsView: View {
-    @State private var showRemoveAccountConfirmation = false
+    @State private var showLogoutConfirmation = false
+    @State private var showDeleteAccountConfirmation = false
     
     var body: some View {
         NavigationStack {
@@ -32,18 +34,36 @@ struct SettingsView: View {
 
                 Section {
                     Button(role: .destructive) {
-                        showRemoveAccountConfirmation = true
+                        showLogoutConfirmation = true
                     } label: {
                         Label("Log Out", image: .logout)
                             .foregroundStyle(.red)
                     }
                     .listRowSeparator(.hidden, edges: .top)
-                    .alert("Log Out?", isPresented: $showRemoveAccountConfirmation) {
+                    .alert("Log Out?", isPresented: $showLogoutConfirmation) {
                         Button("Log Out", role: .destructive) {
                             RemoveAccountUseCase().removeAccount()
                         }
                     } message: {
                         Text("All local data will be deleted. Log in again to restore data.")
+                    }
+                    Button(role: .destructive) {
+                        showDeleteAccountConfirmation = true
+                    } label: {
+                        Label("Delete Account", image: .delete)
+                            .foregroundStyle(.red)
+                    }
+                    .listRowSeparator(.hidden, edges: .top)
+                    .alert("Delete Account?", isPresented: $showDeleteAccountConfirmation) {
+                        AsyncButton("Delete Account", role: .destructive) {
+                            do {
+                                try await DeleteAccountUseCase().deleteAccount()
+                            } catch {
+                                Log.error("Could not delete account:", context: error)
+                            }
+                        }
+                    } message: {
+                        Text("All remote data on server will be permanently deleted.")
                     }
                 } header: {
                     Text("Account")

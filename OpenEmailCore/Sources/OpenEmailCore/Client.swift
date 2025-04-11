@@ -80,6 +80,7 @@ public protocol Client {
     func uploadProfileImage(localUser: LocalUser, imageData: Data) async throws
     func deleteProfileImage(localUser: LocalUser) async throws
     func isAddressInContacts(localUser: LocalUser, address: EmailAddress) async throws -> Bool
+    func deleteCurrentUser() async throws
     
     // Contacts
     func getLinks(localUser: LocalUser) async throws -> [Link]?
@@ -1799,6 +1800,28 @@ public class DefaultClient: Client {
         }
         
         return result
+    }
+    
+    public func deleteCurrentUser() async throws {
+        if let localUser = LocalUser.current {
+            _ = try await withFirstRespondingDelegatedHost(address: localUser.address, handler: { hostname in
+                guard let url = URL(string: "https://\(hostname)/account/\(localUser.address.hostPart)/\(localUser.address.localPart)") else {
+                    throw ClientError.invalidLink
+                }
+                let authNonce = try Nonce(localUser: localUser).sign(host: hostname)
+                var urlRequest = URLRequest(url: url)
+                urlRequest.setValue(authNonce, forHTTPHeaderField: AUTHORIZATION_HEADER)
+                urlRequest.httpMethod = "DELETE"
+                
+                let (_, response) = try await URLSession.shared.data(for: urlRequest)
+                
+                if let httpResponse = response as? HTTPURLResponse {
+                    if httpResponse.statusCode != 200  {
+                        throw ClientError.requestFailed
+                    }
+                }
+            })
+        }
     }
     
     private func updateLocalContact(profile: Profile) async {

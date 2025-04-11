@@ -14,7 +14,8 @@ struct GeneralSettingsView: View {
 
     #if canImport(AppKit)
     @Environment(NavigationState.self) var navigationState
-    @State private var showRemoveAccountConfirmation = false
+    @State private var showLogoutConfirmation = false
+    @State private var showDeleteAccountConfirmation = false
     #endif
 
     private let availableNotificationFetchingIntervals = [-1, 1, 5, 15, 30, 60]
@@ -51,19 +52,36 @@ struct GeneralSettingsView: View {
 #if canImport(AppKit)
             if registeredEmailAddress != nil {
                 Section("Account") {
-                    Button("Log Out") {
-                        showRemoveAccountConfirmation = true
+                    HStack {
+                        Button("Log Out") {
+                            showLogoutConfirmation = true
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.red)
+                        .alert("Log Out?", isPresented: $showLogoutConfirmation) {
+                            AsyncButton("Log Out", role: .destructive) {
+                                await logout()
+                            }
+                        } message: {
+                            Text("All local data will be deleted. Log in again to restore data.")
+                        }
+                        
+                        Button("Delete Account") {
+                            showDeleteAccountConfirmation = true
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.red)
+                        .alert("Delete Account?", isPresented: $showLogoutConfirmation) {
+                            AsyncButton("Delete Account", role: .destructive) {
+                                await deleteAccount()
+                            }
+                        } message: {
+                            Text("All remote data on server will be permanently deleted.")
+                        }
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.red)
+                    
                 }
-                .alert("Log Out?", isPresented: $showRemoveAccountConfirmation) {
-                    Button("Log Out", role: .destructive) {
-                        removeAccount()
-                    }
-                } message: {
-                    Text("All local data will be deleted. Log in again to restore data.")
-                }
+                
             }
 #endif
         }
@@ -72,18 +90,25 @@ struct GeneralSettingsView: View {
     }
 
 #if canImport(AppKit)
-    private func removeAccount() {
+    private func logout() async {
         // close all compose and contact windows
-        Task {
-            await MainActor.run {
-                dismiss()
-                dismissWindow(id: WindowIDs.compose)
-                dismissWindow(id: WindowIDs.profileEditor)
-            }
+        await MainActor.run {
+            dismiss()
+            dismissWindow(id: WindowIDs.compose)
+            dismissWindow(id: WindowIDs.profileEditor)
         }
 
         navigationState.selectedMessageIDs.removeAll()
         RemoveAccountUseCase().removeAccount()
+    }
+    private func deleteAccount() async {
+        do {
+            try await DeleteAccountUseCase().deleteAccount()
+            await logout()
+        } catch {
+            Log.error("Could not delete account:", context: error)
+        }
+        
     }
 #endif
 
