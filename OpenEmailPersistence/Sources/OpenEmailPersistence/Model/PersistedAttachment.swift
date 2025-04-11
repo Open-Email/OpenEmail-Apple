@@ -6,7 +6,7 @@ class PersistedAttachment {
     @Attribute(.unique) var id: String
 
     var parentMessage: PersistedMessage?
-    var fileMessageIds: [String]
+    var fileMessageIds: String // [String] joined with ","
 
     var filename: String
     var size: UInt64
@@ -20,7 +20,7 @@ class PersistedAttachment {
         mimeType: String
     ) {
         self.id = id
-        self.fileMessageIds = fileMessageIds
+        self.fileMessageIds = fileMessageIds.joined(separator: ",")
         self.filename = filename
         self.size = size
         self.mimeType = mimeType
