@@ -180,9 +180,7 @@ class ComposeMessageViewModel {
 
         case .editDraft(let messageId):
             Task {
-                Task {
-                    await setupEditDraft(messageId: messageId)
-                }
+                await setupEditDraft(messageId: messageId)
             }
         }
     }
@@ -297,10 +295,9 @@ class ComposeMessageViewModel {
         }
         let fwdBody = prefix + "\n\n" + bodyText
 
-        // TODO: how to handle attachments that are not downloaded?
         appendAttachedFiles(urls: message.attachments.compactMap {
             attachmentsManager.fileUrl(for: $0)
-        })
+        }, preserveFilePath: true)
 
         DispatchQueue.main.async {
             self.subject = message.subject
@@ -408,7 +405,10 @@ class ComposeMessageViewModel {
             copyReadersFromMessage(draftMessage, author: localAuthorAddress)
         }
 
-        appendAttachedFiles(urls: draftMessage.draftAttachmentUrls)
+        appendAttachedFiles(
+            urls: draftMessage.draftAttachmentUrls,
+            preserveFilePath: true
+        )
     }
 
     func addReader(_ address: EmailAddress, ignoreAddress: EmailAddress? = nil) {
@@ -489,15 +489,27 @@ class ComposeMessageViewModel {
 
     // MARK: - Attachments
 
-    func appendAttachedFiles(urls: [URL]) {
-        for url in urls {
-            if !attachedFileItems.contains(where: { url == $0.url }) {
-                let item = AttachedFileItem(url: url)
-                attachedFileItems.append(item)
+    func appendAttachedFiles(urls: [URL], preserveFilePath: Bool = false) {
+        Task {
+            do {
+                try await withThrowingTaskGroup(of: Void.self) { group in
+                    for url in urls {
+                        group.addTask {
+                            let sandboxUrl = preserveFilePath ? url : try await self.copyFileIntoSandbox(url)
+                            if !self.attachedFileItems.contains(where: { sandboxUrl == $0.url }) {
+                                let item = AttachedFileItem(url: sandboxUrl)
+                                self.attachedFileItems.append(item)
+                            }
+                        }
+                    }
+                    
+                    try await group.waitForAll()
+                }
+            } catch {
+                Log.error(error)
             }
+            updateDraft()
         }
-
-        updateDraft()
     }
 
 #if os(iOS)
@@ -558,23 +570,31 @@ class ComposeMessageViewModel {
         
     }#endif
     
-    private func saveTemporaryFile(data: Data, utType: UTType, filename: String) throws -> URL {
-        let fileExtension = utType.preferredFilenameExtension ?? "bin"
-        let url = URL(fileURLWithPath: NSTemporaryDirectory())
-            .appendingPathComponent(filename)
-            .appendingPathExtension(fileExtension)
-        
-        try FileManager.default.removeItem(atPath: url.path())
-        
-        do {
-            try data.write(to: url)
-        } catch {
-            throw LocalError.fileCopyingError
+    private func copyFileIntoSandbox(_ sourceURL: URL) async throws -> URL {
+        let needsSecurityAccess = sourceURL.startAccessingSecurityScopedResource()
+        defer {
+            if needsSecurityAccess {
+                sourceURL.stopAccessingSecurityScopedResource()
+            }
         }
-        
-        return url
+
+        let fileName = sourceURL.lastPathComponent
+        let destDir = try FileManager.default.url(
+            for: .documentDirectory,
+            in: .userDomainMask,
+            appropriateFor: nil,
+            create: true
+        )
+        let destURL = destDir.appendingPathComponent(fileName)
+
+        if FileManager.default.fileExists(atPath: destURL.path) {
+            try FileManager.default.removeItem(at: destURL)
+        }
+        try FileManager.default.copyItem(at: sourceURL, to: destURL)
+
+        return destURL
     }
-    
+
     func removeAttachedFileItem(item: AttachedFileItem) {
         if let index = attachedFileItems.firstIndex(where: { item.url == $0.url }) {
             if item.url.isInTemporaryDirectory {
@@ -584,29 +604,6 @@ class ComposeMessageViewModel {
         }
 
         updateDraft()
-    }
-
-    private func saveTemporaryImage(data: Data, utType: UTType, filename: String) throws -> URL {
-        let fm = FileManager.default
-
-        let messageId = draftMessage?.id ?? ""
-
-        let tempUrl = fm.temporaryDirectory
-            .appendingPathComponent("attachments", isDirectory: true)
-            .appendingPathComponent(messageId, isDirectory: true)
-
-        var fileUrl = tempUrl.appendingPathComponent(filename)
-        if let preferredFilenameExtension = utType.preferredFilenameExtension {
-            fileUrl = fileUrl.appendingPathExtension(preferredFilenameExtension)
-        }
-
-        try fm.createDirectory(at: tempUrl, withIntermediateDirectories: true)
-        if fm.createFile(atPath: fileUrl.path(), contents: data) {
-            Log.debug("successfully stored temporary attachment")
-            return fileUrl
-        } else {
-            throw AttachmentsError.fileStorageFailed
-        }
     }
 
     // MARK: - Drafts

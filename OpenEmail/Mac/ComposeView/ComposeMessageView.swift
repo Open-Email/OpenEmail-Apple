@@ -5,6 +5,7 @@ import OpenEmailModel
 import Logging 
 import Inspect
 import Flow
+import UniformTypeIdentifiers
 
 @MainActor
 struct ComposeMessageView: View {
@@ -82,7 +83,11 @@ struct ComposeMessageView: View {
                     .fill(.clear)
                     .stroke(isDropping ? .accent : .clear, lineWidth: 2)
                     .onDrop(of: [.fileURL], isTargeted: $isDropping) { items -> Bool in
-                        dropItems(items)
+                        Task {
+                            await dropItems(items)
+                        }
+                        return true
+                        
                     }
             }
         }
@@ -290,16 +295,44 @@ struct ComposeMessageView: View {
         }
     }
 
-    private func dropItems(_ items: [NSItemProvider]) -> Bool {
-        for item in items {
-            _ = item.loadObject(ofClass: URL.self) { [viewModel] url, _ in
-                if let url {
-                    viewModel.appendAttachedFiles(urls: [url])
+    private func dropItems(_ items: [NSItemProvider]) async -> Bool {
+        do {
+            var droppedUrls: [URL] = []
+            try await withThrowingTaskGroup(of: Void.self) { group in
+                for item in items {
+                    group.addTask {
+                        // Load the raw item
+                        let loaded = try await item.loadItem(
+                            forTypeIdentifier: UTType.fileURL.identifier,
+                            options: nil
+                        )
+                        
+                        // Try casting to URL directly
+                        if let url = loaded as? URL {
+                            droppedUrls.append(url)
+                        }
+                        
+                        // Fallback: maybe Data‑encoded URL string
+                        if let data = loaded as? Data,
+                           let str = String(data: data, encoding: .utf8),
+                           let url = URL(string: str) {
+                            droppedUrls.append(url)
+                        }
+                        
+                    }
                 }
+                
+                try await group.waitForAll()
             }
+            
+            viewModel
+                .appendAttachedFiles(urls: droppedUrls)
+            
+            return true
+        } catch {
+            Log.error(error)
+            return false
         }
-
-        return false
     }
 }
 
