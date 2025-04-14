@@ -189,7 +189,11 @@ struct ComposeMessageView: View {
                 viewModel.updateDraft()
             }
             .onChange(of: photoPickerItems) {
-                Task { await addSelectedPhotoItems() }
+                guard photoPickerItems.isNotEmpty else { return }
+                Task {
+                    await viewModel.addAttachments(photoPickerItems)
+                    photoPickerItems.removeAll()
+                }
             }
         }
         .blur(radius: viewModel.isSending ? 4 : 0)
@@ -260,28 +264,6 @@ struct ComposeMessageView: View {
             Log.error("Error sending message: \(error)")
         }
     }
-
-    private func addSelectedPhotoItems() async {
-        guard !photoPickerItems.isEmpty else { return }
-
-        await withTaskGroup { group in
-            for item in photoPickerItems {
-                group.addTask {
-                    do {
-                        try await viewModel.addAttachmentItem(from: item)
-                    } catch {
-                        Log.error("Could not add attachment: \(error)")
-                    }
-                    
-                }
-            
-            }
-            await group.waitForAll()
-        }
-
-        photoPickerItems.removeAll()
-    }
-
 }
 
 private struct AutoResizingTextEditor: View {

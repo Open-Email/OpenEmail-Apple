@@ -34,6 +34,8 @@ enum AttachmentsError: Error {
     case invalidImageData
     case invalidVideoData
     case fileStorageFailed
+    case transferableNotLoaded
+    case unsupportedContentType
 }
 
 struct AttachedFileItem: Identifiable, Equatable {
@@ -513,62 +515,46 @@ class ComposeMessageViewModel {
     }
 
 #if os(iOS)
-    private var addedMediaCount = 0
-    func addAttachmentItem(from item: PhotosPickerItem) async throws {
-        let url: URL
-        
-        let name = item.itemIdentifier
-        
-        guard let data = try? await item.loadTransferable(type: Data.self) else {
-            throw AttachmentsError.invalidImageData
-        }
-        let utType = UTType(item.supportedContentTypes.first?.identifier ?? "")
-        
-        if let image = UIImage(data: data) {
-            // Handle image
-            let filename = "\(name ?? "image")_\(addedMediaCount)"
-            if let type = utType {
-                url = try saveTemporaryFile(data: data, utType: type, filename: filename)
-            } else {
-                Log.warning("Could not determine image type – falling back to PNG")
-                guard let pngData = image.pngData() else {
-                    Log.error("Could not get PNG data")
-                    throw AttachmentsError.invalidImageData
+    func addAttachments(_ items: [PhotosPickerItem]) async {
+        let docsURL = getDocumentsDirectory()
+        await withTaskGroup(of: Void.self) { group in
+            for item in items {
+                group.addTask {
+                    do {
+                        let url = try await self.getURL(item: item, docsURL: docsURL)
+                        self.attachedFileItems.append(AttachedFileItem(url: url))
+                    } catch {
+                        Log.error(error)
+                    }
                 }
-                url = try saveTemporaryFile(data: pngData, utType: .png, filename: filename)
             }
-            addedMediaCount += 1
-            attachedFileItems.append(AttachedFileItem(url: url))
-        } else {
-            // Handle video
-            let filename = "\(name ?? "video")_\(addedMediaCount)"
             
-            if let type = utType {
-                let tempURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString)
-                do {
-                    try FileManager.default.removeItem(atPath: tempURL.path())
-                } catch {
-                    // no file found
-                }
-                
-                try data.write(to: tempURL)
-                url = URL(fileURLWithPath: NSTemporaryDirectory())
-                    .appendingPathComponent(filename)
-                    .appendingPathExtension(type.preferredFilenameExtension ?? "mov")
-                do {
-                    try FileManager.default.removeItem(atPath: url.path())
-                } catch {
-                    // no file found
-                }
-                try FileManager.default.moveItem(at: tempURL, to: url)
-                defer { try? FileManager.default.removeItem(at: tempURL) }
-                addedMediaCount += 1
-                attachedFileItems.append(AttachedFileItem(url: url))
-            }
+            await group.waitForAll()
         }
-
         
-    }#endif
+    }
+    
+    func getURL(item: PhotosPickerItem, docsURL: URL) async throws -> URL {
+        if let loaded = try await item.loadTransferable(type: Data.self) {
+            if let contentType = item.supportedContentTypes.first {
+                let url = docsURL.appendingPathComponent(
+                    "\(UUID().uuidString)\(contentType.preferredFilenameExtension == nil ? "" : ".\(contentType.preferredFilenameExtension!)")"
+                )
+                try loaded.write(to: url)
+                return url
+            } else {
+                throw AttachmentsError.unsupportedContentType
+            }
+        } else {
+            throw AttachmentsError.transferableNotLoaded
+        }
+    }
+    
+    func getDocumentsDirectory() -> URL {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        return paths[0]
+    }
+#endif
     
     private func copyFileIntoSandbox(_ sourceURL: URL) async throws -> URL {
         let needsSecurityAccess = sourceURL.startAccessingSecurityScopedResource()
