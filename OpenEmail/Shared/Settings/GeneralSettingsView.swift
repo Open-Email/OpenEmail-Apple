@@ -71,7 +71,7 @@ struct GeneralSettingsView: View {
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(.red)
-                        .alert("Delete Account?", isPresented: $showLogoutConfirmation) {
+                        .alert("Delete Account?", isPresented: $showDeleteAccountConfirmation) {
                             AsyncButton("Delete Account", role: .destructive) {
                                 await deleteAccount()
                             }
