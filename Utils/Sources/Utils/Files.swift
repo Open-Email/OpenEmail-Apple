@@ -1,46 +1,21 @@
 import Foundation
+import Logging
 
-public func copyBytes(from sourceURL: URL, to destinationURL: URL, offset: UInt64, bytesCount: Int) throws {
-    let fileManager = FileManager.default
 
-    // Ensure the source file exists
-    guard fileManager.fileExists(atPath: sourceURL.path) else {
-        throw NSError(domain: "CopyBytesError", code: 404, userInfo: [NSLocalizedDescriptionKey: "Source file does not exist"])
+public func copyFile(src: URL, dst: URL) throws {
+    guard dst.startAccessingSecurityScopedResource() else {
+        Log.error("🔒 Couldn't access user-selected folder")
+        return
     }
-
-    // Create the destination file if it does not exist
-    if !fileManager.fileExists(atPath: destinationURL.path) {
-        fileManager.createFile(atPath: destinationURL.path, contents: nil, attributes: nil)
+    defer { dst.stopAccessingSecurityScopedResource() }
+    
+    let fm = FileManager.default
+    
+    if fm.fileExists(atPath: dst.path) {
+        try fm.removeItem(at: dst)
     }
-
-    // Open the source file for reading
-    let isSourceSecurityScoped = sourceURL.startAccessingSecurityScopedResource()
-    let sourceFileHandle = try FileHandle(forReadingFrom: sourceURL)
-    defer {
-        if isSourceSecurityScoped {
-            sourceURL.stopAccessingSecurityScopedResource()
-        }
-        sourceFileHandle.closeFile()
-    }
-
-    // Seek to the specified offset
-    sourceFileHandle.seek(toFileOffset: offset)
-
-    // Read the specified number of bytes
-    let data = sourceFileHandle.readData(ofLength: bytesCount)
-
-    // Open the destination file for writing
-    let isDestinationSecurityScoped = destinationURL.startAccessingSecurityScopedResource()
-    let destinationFileHandle = try FileHandle(forWritingTo: destinationURL)
-    defer {
-        if isDestinationSecurityScoped {
-            destinationURL.stopAccessingSecurityScopedResource()
-        }
-        destinationFileHandle.closeFile()
-    }
-
-    // Write the data to the destination file
-    destinationFileHandle.write(data)
+    
+    try fm.copyItem(at: src, to: dst)
 }
 
 public func concatenateFiles(at locations: [URL], to destinationURL: URL) throws {

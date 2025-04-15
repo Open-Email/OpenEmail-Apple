@@ -12,11 +12,18 @@ let package = Package(
             name: "Utils",
             targets: ["Utils"]),
     ],
+    dependencies: [
+        // local dependencies
+        .package(path: "../Logging"),
+    ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "Utils"),
+            name: "Utils",
+            dependencies: [
+                .product(name: "Logging", package: "Logging")
+            ]),
         .testTarget(
             name: "UtilsTests",
             dependencies: ["Utils"]),
