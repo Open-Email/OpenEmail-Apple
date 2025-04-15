@@ -7,6 +7,7 @@ import Logging
 import OpenEmailPersistence
 import OpenEmailModel
 import Utils
+import SwiftUI
 #if canImport(AppKit)
 import AppKit
 #else
@@ -515,31 +516,72 @@ class ComposeMessageViewModel {
     }
 
 #if os(iOS)
-    func addAttachments(_ items: [PhotosPickerItem]) async {
+    
+    enum AttachmentType {
+        case video
+        case image
+    }
+    
+    struct Movie: Transferable {
+        let url: URL
+
+        static var transferRepresentation: some TransferRepresentation {
+            FileRepresentation(contentType: .movie) { movie in SentTransferredFile(movie.url)
+            } importing: { received in
+                let copy = URL.documentsDirectory.appending(path: "\(UUID().uuidString).mp4")
+
+                if FileManager.default.fileExists(atPath: copy.path()) {
+                    try FileManager.default.removeItem(at: copy)
+                }
+
+                try FileManager.default.copyItem(at: received.file, to: copy)
+                return Self.init(url: copy)
+            }
+        }
+    }
+    
+    func addAttachments(_ items: [PhotosPickerItem], type: AttachmentType) async {
         let docsURL = getDocumentsDirectory()
+        
         await withTaskGroup(of: Void.self) { group in
             for item in items {
                 group.addTask {
-                    do {
-                        let url = try await self.getURL(item: item, docsURL: docsURL)
-                        self.attachedFileItems.append(AttachedFileItem(url: url))
-                    } catch {
-                        Log.error(error)
+                    switch type {
+                    case .video:
+                        do {
+                            if let movie = try await item.loadTransferable(type: Movie.self) {
+                                self.attachedFileItems
+                                    .append(AttachedFileItem(url: movie.url))
+                            }
+                        } catch {
+                            Log.error(error)
+                        }
+                    case .image:
+                        do {
+                            let url = try await self.getImageURL(item: item, docsURL: docsURL)
+                            self.attachedFileItems.append(AttachedFileItem(url: url))
+                        } catch {
+                            Log.error(error)
+                        }
                     }
                 }
+                
+                await group.waitForAll()
             }
             
-            await group.waitForAll()
         }
-        
     }
     
-    func getURL(item: PhotosPickerItem, docsURL: URL) async throws -> URL {
+    func getImageURL(item: PhotosPickerItem, docsURL: URL) async throws -> URL {
+        
         if let loaded = try await item.loadTransferable(type: Data.self) {
             if let contentType = item.supportedContentTypes.first {
                 let url = docsURL.appendingPathComponent(
                     "\(UUID().uuidString)\(contentType.preferredFilenameExtension == nil ? "" : ".\(contentType.preferredFilenameExtension!)")"
                 )
+                if FileManager.default.fileExists(atPath: url.path()) {
+                    try FileManager.default.removeItem(at: url)
+                }
                 try loaded.write(to: url)
                 return url
             } else {
@@ -554,6 +596,8 @@ class ComposeMessageViewModel {
         let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
         return paths[0]
     }
+    
+    
 #endif
     
     private func copyFileIntoSandbox(_ sourceURL: URL) async throws -> URL {
