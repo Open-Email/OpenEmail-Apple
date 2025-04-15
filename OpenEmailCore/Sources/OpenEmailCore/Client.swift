@@ -1461,6 +1461,7 @@ public class DefaultClient: Client {
                 }
                 
                 for try await _ in taskGroup {
+                    try FileManager.default.removeItem(at: url)
                     oneSucceeded = true
                 }
                 if !oneSucceeded {
@@ -1498,6 +1499,7 @@ public class DefaultClient: Client {
                 }
                 
                 for try await _ in taskGroup {
+                    try FileManager.default.removeItem(at: url)
                     oneSucceeded = true
                 }
                 if !oneSucceeded {
