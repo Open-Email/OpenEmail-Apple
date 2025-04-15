@@ -1,6 +1,7 @@
 import Foundation
 
 public let MESSAGES_DIRECTORY = "messages"
+public let ATTACHMENTS_DIRECTORY = "attachments"
 public let ENVELOPE_FILENAME = "envelope"
 public let PAYLOAD_FILENAME = "payload"
 public let CONTENT_HEADERS_FILENAME = "headers"

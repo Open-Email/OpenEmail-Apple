@@ -10,6 +10,12 @@ public extension FileManager {
             .appending(path: MESSAGES_DIRECTORY, directoryHint: .isDirectory)
             .appending(path: userAddress, directoryHint: .isDirectory)
     }
+    
+    func attachmentsFolderURL(userAddress: String) -> URL {
+        documentsDirectoryUrl()
+            .appending(path: ATTACHMENTS_DIRECTORY, directoryHint: .isDirectory)
+            .appending(path: userAddress, directoryHint: .isDirectory)
+    }
 
     func messageFolderURL(userAddress: String, messageID: String) ->  URL {
         messagesFolderURL(userAddress: userAddress)

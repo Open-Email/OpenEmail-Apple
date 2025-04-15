@@ -9,6 +9,6 @@ class DeleteAccountUseCase {
     
     func deleteAccount() async throws {
         try await self.client.deleteCurrentUser()
-        RemoveAccountUseCase().removeAccount()
+        LogoutUseCase().logout()
     }
 }

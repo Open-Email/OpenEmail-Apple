@@ -99,7 +99,7 @@ struct GeneralSettingsView: View {
         }
 
         navigationState.selectedMessageIDs.removeAll()
-        RemoveAccountUseCase().removeAccount()
+        LogoutUseCase().removeAccount()
     }
     private func deleteAccount() async {
         do {

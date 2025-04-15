@@ -528,20 +528,31 @@ class ComposeMessageViewModel {
         static var transferRepresentation: some TransferRepresentation {
             FileRepresentation(contentType: .movie) { movie in SentTransferredFile(movie.url)
             } importing: { received in
-                let copy = URL.documentsDirectory.appending(path: "\(UUID().uuidString).mp4")
-
-                if FileManager.default.fileExists(atPath: copy.path()) {
-                    try FileManager.default.removeItem(at: copy)
+                if let address = LocalUser.current?.address {
+                    let directory = FileManager.default.attachmentsFolderURL(
+                        userAddress: address.address
+                    )
+                    let copy = directory.appending(
+                        path: "\(UUID().uuidString).mp4"
+                    )
+                    
+                    if FileManager.default.fileExists(atPath: copy.path()) {
+                        try FileManager.default.removeItem(at: copy)
+                    }
+                    
+                    try FileManager.default.copyItem(at: received.file, to: copy)
+                    return Self.init(url: copy)
+                } else {
+                    throw AttachmentsError.transferableNotLoaded
                 }
-
-                try FileManager.default.copyItem(at: received.file, to: copy)
-                return Self.init(url: copy)
             }
         }
     }
     
     func addAttachments(_ items: [PhotosPickerItem], type: AttachmentType) async {
-        let docsURL = getDocumentsDirectory()
+        guard let docsURL = getDocumentsDirectory() else {
+            return
+        }
         
         await withTaskGroup(of: Void.self) { group in
             for item in items {
@@ -592,9 +603,15 @@ class ComposeMessageViewModel {
         }
     }
     
-    func getDocumentsDirectory() -> URL {
-        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-        return paths[0]
+    func getDocumentsDirectory() -> URL? {
+        if let address = LocalUser.current?.address {
+            return FileManager.default.attachmentsFolderURL(
+                userAddress: address.address
+            )
+        } else {
+            return nil
+        }
+        
     }
     
     
