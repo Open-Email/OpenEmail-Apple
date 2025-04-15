@@ -123,6 +123,7 @@ class ComposeMessageViewModel {
     }
 
     var attachedFileItems: [AttachedFileItem] = []
+    var attachmentLoading: Bool = false
     var action: ComposeAction
 
     var draftMessage: Message?
@@ -532,6 +533,16 @@ class ComposeMessageViewModel {
                     let directory = FileManager.default.attachmentsFolderURL(
                         userAddress: address.address
                     )
+                    
+                    if (!directory.fileExists) {
+                        try FileManager.default
+                            .createDirectory(
+                                atPath: directory.path(),
+                                withIntermediateDirectories: true,
+                                attributes: nil
+                            )
+                    }
+                    
                     let copy = directory.appending(
                         path: "\(UUID().uuidString).mp4"
                     )
@@ -550,7 +561,8 @@ class ComposeMessageViewModel {
     }
     
     func addAttachments(_ items: [PhotosPickerItem], type: AttachmentType) async {
-        guard let docsURL = getDocumentsDirectory() else {
+        attachmentLoading = true
+        guard let docsURL = try? getAttachmentsDirectory() else {
             return
         }
         
@@ -579,8 +591,8 @@ class ComposeMessageViewModel {
                 
                 await group.waitForAll()
             }
-            
         }
+        attachmentLoading = false
     }
     
     func getImageURL(item: PhotosPickerItem, docsURL: URL) async throws -> URL {
@@ -603,15 +615,25 @@ class ComposeMessageViewModel {
         }
     }
     
-    func getDocumentsDirectory() -> URL? {
+    func getAttachmentsDirectory() throws -> URL? {
         if let address = LocalUser.current?.address {
-            return FileManager.default.attachmentsFolderURL(
+            let rv = FileManager.default.attachmentsFolderURL(
                 userAddress: address.address
             )
+            
+            if (!rv.fileExists) {
+                try FileManager.default
+                    .createDirectory(
+                        atPath: rv.path(),
+                        withIntermediateDirectories: true,
+                        attributes: nil
+                    )
+            }
+            
+            return rv
         } else {
             return nil
         }
-        
     }
     
     

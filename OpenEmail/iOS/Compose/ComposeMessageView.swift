@@ -101,6 +101,10 @@ struct ComposeMessageView: View {
                                 })
                                 .padding(.top, .Spacing.default)
                             }
+                            
+                            if viewModel.attachmentLoading {
+                                ProgressView()
+                            }
                         }
                     }
                 }
