@@ -143,11 +143,15 @@ class AttachmentsListViewModel {
                 return
             }
 
-            do {
-                try concatenateFiles(at: item.locations, to: selectedURL)
-            } catch {
-                Log.error("Failed to copy file:", context: error)
+            if let attachment = item.attachment,
+               let fileURL = attachmentsManager.fileUrl(for: attachment){
+                do {
+                    try copyFile(src: fileURL, dst: selectedURL)
+                } catch {
+                    Log.error("Failed to copy file:", context: error)
+                }
             }
+           
         }
     }
 
