@@ -4,14 +4,14 @@ import OpenEmailPersistence
 import OpenEmailCore
 import Utils
 
-class RemoveAccountUseCase {
+class LogoutUseCase {
     private let keysStore: KeysStoring
 
     init(keyStore: KeysStoring = standardKeyStore()) {
         self.keysStore = keyStore
     }
 
-    func removeAccount() {
+    func logout() {
         let defaults = UserDefaults.standard
         guard let registeredEmailAddress = defaults.registeredEmailAddress else { return }
 
@@ -27,8 +27,8 @@ class RemoveAccountUseCase {
         defaults.registeredEmailAddress = nil
 
         let fm = FileManager.default
-        let messageFolderUrl = fm.messagesFolderURL(userAddress: registeredEmailAddress)
-        try? fm.removeItem(at: messageFolderUrl)
+        try? fm.removeItem(at: fm.messagesFolderURL(userAddress: registeredEmailAddress))
+        try? fm.removeItem(at: fm.attachmentsFolderURL(userAddress: registeredEmailAddress))
 
         Task {
             try await PersistedStore.shared.deleteAllData()

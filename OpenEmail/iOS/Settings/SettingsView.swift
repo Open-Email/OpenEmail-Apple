@@ -42,7 +42,7 @@ struct SettingsView: View {
                     .listRowSeparator(.hidden, edges: .top)
                     .alert("Log Out?", isPresented: $showLogoutConfirmation) {
                         Button("Log Out", role: .destructive) {
-                            RemoveAccountUseCase().removeAccount()
+                            LogoutUseCase().logout()
                         }
                     } message: {
                         Text("All local data will be deleted. Log in again to restore data.")

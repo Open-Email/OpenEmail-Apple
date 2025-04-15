@@ -7,6 +7,7 @@ import Logging
 import OpenEmailPersistence
 import OpenEmailModel
 import Utils
+import SwiftUI
 #if canImport(AppKit)
 import AppKit
 #else
@@ -34,6 +35,8 @@ enum AttachmentsError: Error {
     case invalidImageData
     case invalidVideoData
     case fileStorageFailed
+    case transferableNotLoaded
+    case unsupportedContentType
 }
 
 struct AttachedFileItem: Identifiable, Equatable {
@@ -120,6 +123,7 @@ class ComposeMessageViewModel {
     }
 
     var attachedFileItems: [AttachedFileItem] = []
+    var attachmentLoading: Bool = false
     var action: ComposeAction
 
     var draftMessage: Message?
@@ -180,9 +184,7 @@ class ComposeMessageViewModel {
 
         case .editDraft(let messageId):
             Task {
-                Task {
-                    await setupEditDraft(messageId: messageId)
-                }
+                await setupEditDraft(messageId: messageId)
             }
         }
     }
@@ -297,10 +299,9 @@ class ComposeMessageViewModel {
         }
         let fwdBody = prefix + "\n\n" + bodyText
 
-        // TODO: how to handle attachments that are not downloaded?
         appendAttachedFiles(urls: message.attachments.compactMap {
             attachmentsManager.fileUrl(for: $0)
-        })
+        }, preserveFilePath: true)
 
         DispatchQueue.main.async {
             self.subject = message.subject
@@ -408,7 +409,10 @@ class ComposeMessageViewModel {
             copyReadersFromMessage(draftMessage, author: localAuthorAddress)
         }
 
-        appendAttachedFiles(urls: draftMessage.draftAttachmentUrls)
+        appendAttachedFiles(
+            urls: draftMessage.draftAttachmentUrls,
+            preserveFilePath: true
+        )
     }
 
     func addReader(_ address: EmailAddress, ignoreAddress: EmailAddress? = nil) {
@@ -489,92 +493,177 @@ class ComposeMessageViewModel {
 
     // MARK: - Attachments
 
-    func appendAttachedFiles(urls: [URL]) {
-        for url in urls {
-            if !attachedFileItems.contains(where: { url == $0.url }) {
-                let item = AttachedFileItem(url: url)
-                attachedFileItems.append(item)
+    func appendAttachedFiles(urls: [URL], preserveFilePath: Bool = false) {
+        Task {
+            do {
+                try await withThrowingTaskGroup(of: Void.self) { group in
+                    for url in urls {
+                        group.addTask {
+                            let sandboxUrl = preserveFilePath ? url : try await self.copyFileIntoSandbox(url)
+                            if !self.attachedFileItems.contains(where: { sandboxUrl == $0.url }) {
+                                let item = AttachedFileItem(url: sandboxUrl)
+                                self.attachedFileItems.append(item)
+                            }
+                        }
+                    }
+                    
+                    try await group.waitForAll()
+                }
+            } catch {
+                Log.error(error)
             }
+            updateDraft()
         }
-
-        updateDraft()
     }
 
 #if os(iOS)
-    private var addedMediaCount = 0
-    func addAttachmentItem(from item: PhotosPickerItem) async throws {
+    
+    enum AttachmentType {
+        case video
+        case image
+    }
+    
+    struct Movie: Transferable {
         let url: URL
-        
-        let name = item.itemIdentifier
-        
-        guard let data = try? await item.loadTransferable(type: Data.self) else {
-            throw AttachmentsError.invalidImageData
-        }
-        let utType = UTType(item.supportedContentTypes.first?.identifier ?? "")
-        
-        if let image = UIImage(data: data) {
-            // Handle image
-            let filename = "\(name ?? "image")_\(addedMediaCount)"
-            if let type = utType {
-                url = try saveTemporaryFile(data: data, utType: type, filename: filename)
-            } else {
-                Log.warning("Could not determine image type – falling back to PNG")
-                guard let pngData = image.pngData() else {
-                    Log.error("Could not get PNG data")
-                    throw AttachmentsError.invalidImageData
+
+        static var transferRepresentation: some TransferRepresentation {
+            FileRepresentation(contentType: .movie) { movie in SentTransferredFile(movie.url)
+            } importing: { received in
+                if let address = LocalUser.current?.address {
+                    let directory = FileManager.default.attachmentsFolderURL(
+                        userAddress: address.address
+                    )
+                    
+                    if (!directory.fileExists) {
+                        try FileManager.default
+                            .createDirectory(
+                                atPath: directory.path(),
+                                withIntermediateDirectories: true,
+                                attributes: nil
+                            )
+                    }
+                    
+                    let copy = directory.appending(
+                        path: "\(UUID().uuidString).mp4"
+                    )
+                    
+                    if FileManager.default.fileExists(atPath: copy.path()) {
+                        try FileManager.default.removeItem(at: copy)
+                    }
+                    
+                    try FileManager.default.copyItem(at: received.file, to: copy)
+                    return Self.init(url: copy)
+                } else {
+                    throw AttachmentsError.transferableNotLoaded
                 }
-                url = try saveTemporaryFile(data: pngData, utType: .png, filename: filename)
             }
-            addedMediaCount += 1
-            attachedFileItems.append(AttachedFileItem(url: url))
-        } else {
-            // Handle video
-            let filename = "\(name ?? "video")_\(addedMediaCount)"
-            
-            if let type = utType {
-                let tempURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString)
-                do {
-                    try FileManager.default.removeItem(atPath: tempURL.path())
-                } catch {
-                    // no file found
+        }
+    }
+    
+    func addAttachments(_ items: [PhotosPickerItem], type: AttachmentType) async {
+        attachmentLoading = true
+        guard let docsURL = try? getAttachmentsDirectory() else {
+            return
+        }
+        
+        await withTaskGroup(of: Void.self) { group in
+            for item in items {
+                group.addTask {
+                    switch type {
+                    case .video:
+                        do {
+                            if let movie = try await item.loadTransferable(type: Movie.self) {
+                                self.attachedFileItems
+                                    .append(AttachedFileItem(url: movie.url))
+                            }
+                        } catch {
+                            Log.error(error)
+                        }
+                    case .image:
+                        do {
+                            let url = try await self.getImageURL(item: item, docsURL: docsURL)
+                            self.attachedFileItems.append(AttachedFileItem(url: url))
+                        } catch {
+                            Log.error(error)
+                        }
+                    }
                 }
                 
-                try data.write(to: tempURL)
-                url = URL(fileURLWithPath: NSTemporaryDirectory())
-                    .appendingPathComponent(filename)
-                    .appendingPathExtension(type.preferredFilenameExtension ?? "mov")
-                do {
-                    try FileManager.default.removeItem(atPath: url.path())
-                } catch {
-                    // no file found
+                await group.waitForAll()
+            }
+        }
+        attachmentLoading = false
+    }
+    
+    func getImageURL(item: PhotosPickerItem, docsURL: URL) async throws -> URL {
+        
+        if let loaded = try await item.loadTransferable(type: Data.self) {
+            if let contentType = item.supportedContentTypes.first {
+                let url = docsURL.appendingPathComponent(
+                    "\(UUID().uuidString)\(contentType.preferredFilenameExtension == nil ? "" : ".\(contentType.preferredFilenameExtension!)")"
+                )
+                if FileManager.default.fileExists(atPath: url.path()) {
+                    try FileManager.default.removeItem(at: url)
                 }
-                try FileManager.default.moveItem(at: tempURL, to: url)
-                defer { try? FileManager.default.removeItem(at: tempURL) }
-                addedMediaCount += 1
-                attachedFileItems.append(AttachedFileItem(url: url))
+                try loaded.write(to: url)
+                return url
+            } else {
+                throw AttachmentsError.unsupportedContentType
+            }
+        } else {
+            throw AttachmentsError.transferableNotLoaded
+        }
+    }
+    
+    func getAttachmentsDirectory() throws -> URL? {
+        if let address = LocalUser.current?.address {
+            let rv = FileManager.default.attachmentsFolderURL(
+                userAddress: address.address
+            )
+            
+            if (!rv.fileExists) {
+                try FileManager.default
+                    .createDirectory(
+                        atPath: rv.path(),
+                        withIntermediateDirectories: true,
+                        attributes: nil
+                    )
+            }
+            
+            return rv
+        } else {
+            return nil
+        }
+    }
+    
+    
+#endif
+    
+    private func copyFileIntoSandbox(_ sourceURL: URL) async throws -> URL {
+        let needsSecurityAccess = sourceURL.startAccessingSecurityScopedResource()
+        defer {
+            if needsSecurityAccess {
+                sourceURL.stopAccessingSecurityScopedResource()
             }
         }
 
-        
-    }#endif
-    
-    private func saveTemporaryFile(data: Data, utType: UTType, filename: String) throws -> URL {
-        let fileExtension = utType.preferredFilenameExtension ?? "bin"
-        let url = URL(fileURLWithPath: NSTemporaryDirectory())
-            .appendingPathComponent(filename)
-            .appendingPathExtension(fileExtension)
-        
-        try FileManager.default.removeItem(atPath: url.path())
-        
-        do {
-            try data.write(to: url)
-        } catch {
-            throw LocalError.fileCopyingError
+        let fileName = sourceURL.lastPathComponent
+        let destDir = try FileManager.default.url(
+            for: .documentDirectory,
+            in: .userDomainMask,
+            appropriateFor: nil,
+            create: true
+        )
+        let destURL = destDir.appendingPathComponent(fileName)
+
+        if FileManager.default.fileExists(atPath: destURL.path) {
+            try FileManager.default.removeItem(at: destURL)
         }
-        
-        return url
+        try FileManager.default.copyItem(at: sourceURL, to: destURL)
+
+        return destURL
     }
-    
+
     func removeAttachedFileItem(item: AttachedFileItem) {
         if let index = attachedFileItems.firstIndex(where: { item.url == $0.url }) {
             if item.url.isInTemporaryDirectory {
@@ -584,29 +673,6 @@ class ComposeMessageViewModel {
         }
 
         updateDraft()
-    }
-
-    private func saveTemporaryImage(data: Data, utType: UTType, filename: String) throws -> URL {
-        let fm = FileManager.default
-
-        let messageId = draftMessage?.id ?? ""
-
-        let tempUrl = fm.temporaryDirectory
-            .appendingPathComponent("attachments", isDirectory: true)
-            .appendingPathComponent(messageId, isDirectory: true)
-
-        var fileUrl = tempUrl.appendingPathComponent(filename)
-        if let preferredFilenameExtension = utType.preferredFilenameExtension {
-            fileUrl = fileUrl.appendingPathExtension(preferredFilenameExtension)
-        }
-
-        try fm.createDirectory(at: tempUrl, withIntermediateDirectories: true)
-        if fm.createFile(atPath: fileUrl.path(), contents: data) {
-            Log.debug("successfully stored temporary attachment")
-            return fileUrl
-        } else {
-            throw AttachmentsError.fileStorageFailed
-        }
     }
 
     // MARK: - Drafts

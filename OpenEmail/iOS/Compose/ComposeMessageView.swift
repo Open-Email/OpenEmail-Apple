@@ -30,7 +30,10 @@ struct ComposeMessageView: View {
 
     @State private var filePickerOpen: Bool = false
     @State private var photoPickerOpen: Bool = false
+    @State private var videoPickerOpen: Bool = false
+    @State private var mediaFilter: PHPickerFilter? = nil
     @State private var photoPickerItems: [PhotosPickerItem] = []
+    @State private var videoPickerItems: [PhotosPickerItem] = []
 
     private var onClose: ((ComposeResult) -> Void)?
 
@@ -98,6 +101,10 @@ struct ComposeMessageView: View {
                                 })
                                 .padding(.top, .Spacing.default)
                             }
+                            
+                            if viewModel.attachmentLoading {
+                                ProgressView()
+                            }
                         }
                     }
                 }
@@ -122,6 +129,10 @@ struct ComposeMessageView: View {
                     Menu {
                         Button("Photo Library", systemImage: "photo.on.rectangle") {
                             photoPickerOpen = true
+                        }
+                        
+                        Button("Video Library", systemImage: "movieclapper") {
+                            videoPickerOpen = true
                         }
 
                         Button("Attach File", systemImage: "document") {
@@ -166,7 +177,8 @@ struct ComposeMessageView: View {
                     }
                 }
             }
-            .photosPicker(isPresented: $photoPickerOpen, selection: $photoPickerItems)
+            .photosPicker(isPresented: $photoPickerOpen, selection: $photoPickerItems, matching: .images)
+            .photosPicker(isPresented: $videoPickerOpen, selection: $videoPickerItems, matching: .videos)
             .fileImporter(
                 isPresented: $filePickerOpen,
                 allowedContentTypes: [UTType.data],
@@ -188,8 +200,33 @@ struct ComposeMessageView: View {
             .onChange(of: viewModel.attachedFileItems) {
                 viewModel.updateDraft()
             }
+            .onChange(of: videoPickerItems) {
+                
+                guard videoPickerItems.isNotEmpty else { return }
+                
+                Task {
+                    await viewModel
+                        .addAttachments(
+                            videoPickerItems,
+                            type: ComposeMessageViewModel.AttachmentType.video
+                        )
+                    
+                    videoPickerItems.removeAll()
+                }
+            }
             .onChange(of: photoPickerItems) {
-                Task { await addSelectedPhotoItems() }
+                
+                guard photoPickerItems.isNotEmpty else { return }
+                
+                Task {
+                    await viewModel
+                        .addAttachments(
+                            photoPickerItems,
+                            type: ComposeMessageViewModel.AttachmentType.image
+                        )
+                    
+                    photoPickerItems.removeAll()
+                }
             }
         }
         .blur(radius: viewModel.isSending ? 4 : 0)
@@ -260,28 +297,6 @@ struct ComposeMessageView: View {
             Log.error("Error sending message: \(error)")
         }
     }
-
-    private func addSelectedPhotoItems() async {
-        guard !photoPickerItems.isEmpty else { return }
-
-        await withTaskGroup { group in
-            for item in photoPickerItems {
-                group.addTask {
-                    do {
-                        try await viewModel.addAttachmentItem(from: item)
-                    } catch {
-                        Log.error("Could not add attachment: \(error)")
-                    }
-                    
-                }
-            
-            }
-            await group.waitForAll()
-        }
-
-        photoPickerItems.removeAll()
-    }
-
 }
 
 private struct AutoResizingTextEditor: View {
