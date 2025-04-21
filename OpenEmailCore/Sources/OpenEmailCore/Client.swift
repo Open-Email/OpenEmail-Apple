@@ -214,8 +214,6 @@ public class DefaultClient: Client {
                     .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
                                              // Ignore comments
                     .filter { !$0.hasPrefix("#") }
-                                             // Ignore invalid hostnames
-                    .filter { isValidHostname(hostname: $0) }
                                              // Ignore duplicates
                     .unique()
                                              // Cutoff the list
@@ -264,16 +262,6 @@ public class DefaultClient: Client {
         }
         return false
     }
-    
-    
-    private func isValidHostname(hostname: String) -> Bool {
-            guard !hostname.isEmpty else { return false }
-            
-            let host = CFHostCreateWithName(nil, hostname as CFString).takeRetainedValue()
-            var streamError = CFStreamError()
-            return CFHostStartInfoResolution(host, .addresses, &streamError)
-        }
-    
     
     // MARK: - Authentication & Registrations
     

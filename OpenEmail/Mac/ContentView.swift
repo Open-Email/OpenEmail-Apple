@@ -94,6 +94,18 @@ struct ContentView: View {
 
     @ToolbarContentBuilder
     private func detailsToolbarContent() -> some ToolbarContent {
+        ToolbarItem {
+            AsyncButton {
+                await triggerSync()
+            } label: {
+                SyncProgressView()
+            }
+        }
+        
+        ToolbarItem {
+            Spacer()
+        }
+        
         ToolbarItem(placement: .primaryAction) {
             Button {
                 guard let registeredEmailAddress else { return }
@@ -112,27 +124,7 @@ struct ContentView: View {
             }
             .buttonStyle(.plain)
         }
-
-        ToolbarItem {
-            Spacer()
-        }
-
-        ToolbarItem {
-            HStack(spacing: 2) {
-                AsyncButton {
-                    await triggerSync()
-                } label: {
-                    SyncProgressView()
-                }
-
-                Text("Next sync in \((syncService.nextSyncDate ?? .distantFuture).formattedNextSyncDate)")
-                    .fontWeight(.medium)
-                    .monospacedDigit()
-                    .foregroundStyle(.primary)
-            }
-            .padding(.horizontal, 5)
-            .disabled(syncService.isSyncing)
-        }
+        
 
         ToolbarItem(placement: .confirmationAction) {
             ProfileButton()

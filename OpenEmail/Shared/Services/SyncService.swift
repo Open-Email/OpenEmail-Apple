@@ -12,7 +12,6 @@ extension Notification.Name {
 
 protocol MessageSyncing {
     var isSyncing: Bool { get }
-    var nextSyncDate: Date? { get }
     func synchronize() async
     func fetchAuthorMessages(profile: Profile, includeBroadcasts: Bool) async
     func isActiveOutgoingMessageId(_ messageId: String) -> Bool
@@ -33,10 +32,6 @@ class SyncService: MessageSyncing {
     private var subscriptions = Set<AnyCancellable>()
     private var syncTimer: Timer?
     private var outgoingMessageIds: [String] = []
-
-    var nextSyncDate: Date? {
-        syncTimer?.fireDate
-    }
 
     init() {
         UserDefaults.standard.publisher(for: \.notificationFetchingInterval)
