@@ -132,19 +132,7 @@ struct ComposeMessageView: View {
                     }
                 }
             }
-        }
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                viewModel.updateIsSendButtonEnabled()
-
-                if !viewModel.readers.isEmpty {
-                    isTextEditorFocused = true
-                } else if case .forward = viewModel.action {
-                    isReadersFocused = true
-                }
-            }
-        }
-        .animation(.default, value: viewModel.isBroadcast)
+        }.animation(.default, value: viewModel.isBroadcast)
     }
 
     @ViewBuilder
