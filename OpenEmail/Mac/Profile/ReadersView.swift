@@ -36,7 +36,6 @@ struct ReadersView: View {
     @State private var selectionStartIndex = -1
     @State private var showAlreadyAddedAlert = false
 
-    @State private var showSuggestions = false
     @State private var showLegacySuggestions = false
     @State private var allContacts: [Contact] = []
     @State private var suggestions: [Contact] = []
@@ -78,7 +77,6 @@ struct ReadersView: View {
                         isTicked: tickedReaders.contains(reader.address),
                         onRemoveReader: {
                             readers.remove(at: index)
-                            workaround_setReaders(readers)
                         },
                         automaticallyShowProfileIfNotInContacts: isEditable && !profilesShown.contains(reader),
                         canRemoveReader: isEditable,
@@ -100,25 +98,6 @@ struct ReadersView: View {
                     .textFieldStyle(.plain)
                     .frame(minWidth: 20)
                     .fixedSize() // This causes some visual glitches while typing. It is most probably a SwiftUI bug.
-                    .modify { view in
-                        if #available(macOS 15.0, *) {
-                            view.textInputSuggestions {
-                                ForEach(suggestions) { suggestion in
-                                    Label {
-                                        Text(suggestion.cachedName ?? suggestion.address)
-                                            .padding(.Spacing.xSmall)
-                                    } icon: {
-                                        ProfileImageView(
-                                            emailAddress: suggestion.address,
-                                            name: suggestion.cachedName,
-                                            size: 30
-                                        )
-                                    }
-                                    .textInputCompletion(suggestion.address)
-                                }
-                            }
-                        }
-                    }
                     .onChange(of: inputText) {
                         if !readers.isEmpty && inputText.isEmpty {
                             let last = readers.removeLast()
@@ -130,11 +109,7 @@ struct ReadersView: View {
 
                         updateSuggestions()
 
-                        if #available(macOS 15.0, *) {
-                            showSuggestions = inputText.trimmingCharacters(in: .whitespacesAndNewlines).count >= 3 && !suggestions.isEmpty
-                        } else {
-                            showLegacySuggestions = inputText.trimmingCharacters(in: .whitespacesAndNewlines).count >= 3 && !suggestions.isEmpty
-                        }
+                        showLegacySuggestions = inputText.trimmingCharacters(in: .whitespacesAndNewlines).count >= 1 && !suggestions.isEmpty
                     }
                     .onSubmit {
                         addCurrentInput()
@@ -232,8 +207,6 @@ struct ReadersView: View {
                 }
             }
 
-            workaround_setReaders(newReaders)
-
             selectedReaderIndexes = []
             selectionCursor = -1
             isInputFocused = true
@@ -261,14 +234,6 @@ struct ReadersView: View {
                 allContacts = (try? await contactsStore.allContacts()) ?? []
                 updateSuggestions()
             }
-        }
-    }
-
-    // workaround for view color not updating correctly after removing a reader
-    private func workaround_setReaders(_ newReaders: [EmailAddress]) {
-        readers = []
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            readers = newReaders
         }
     }
 

@@ -166,17 +166,6 @@ struct ComposeMessageView: View {
                     Text("Underlying error: \(String(describing: error))")
                 }
             })
-            .onAppear {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    viewModel.updateIsSendButtonEnabled()
-
-                    if !viewModel.readers.isEmpty {
-                        isTextEditorFocused = true
-                    } else if case .forward = viewModel.action {
-                        isReadersFocused = true
-                    }
-                }
-            }
             .photosPicker(isPresented: $photoPickerOpen, selection: $photoPickerItems, matching: .images)
             .photosPicker(isPresented: $videoPickerOpen, selection: $videoPickerItems, matching: .videos)
             .fileImporter(

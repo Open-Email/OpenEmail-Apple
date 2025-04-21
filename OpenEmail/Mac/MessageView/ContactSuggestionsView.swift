@@ -30,10 +30,6 @@ struct ContactSuggestionsView: View {
         .scrollBounceBehavior(.basedOnSize)
         .fixedSize(horizontal: true, vertical: false)
         .frame(height: rowHeight * CGFloat(min(Self.maxVisibleRows, suggestions.count)))
-        .frame(
-            maxWidth: 300,
-            maxHeight: rowHeight * CGFloat(Self.maxVisibleRows)
-        )
         .padding(.Spacing.small)
     }
 }

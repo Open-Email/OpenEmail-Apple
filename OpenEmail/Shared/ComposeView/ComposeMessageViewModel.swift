@@ -189,12 +189,6 @@ class ComposeMessageViewModel {
         }
     }
 
-    func updateIsSendButtonEnabled() {
-        if !readers.isEmpty {
-            self.readers = readers
-        }
-    }
-
     func send() async throws {
         guard let localUser = LocalUser.current else {
             return
