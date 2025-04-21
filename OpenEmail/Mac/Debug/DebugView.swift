@@ -193,18 +193,6 @@ struct DebugView: View {
                 }
 
                 Section {
-                    LabeledContent("Next sync in:") {
-                        if syncService.isSyncing {
-                            Text("syncing now…")
-                        } else {
-                            if let syncDate = syncService.nextSyncDate {
-                                Text(syncDate, style: .timer)
-                            } else {
-                                Text("–")
-                            }
-                        }
-                    }
-
                     AsyncButton("Sync now") {
                         await syncService.synchronize()
                     }

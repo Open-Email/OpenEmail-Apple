@@ -9,7 +9,6 @@ struct MessageListItemView: View {
 
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
 
-    @Injected(\.syncService) private var syncService
     @Injected(\.contactsStore) private var contactsStore
 
     @State private var profileNames: [String: String] = [:]
