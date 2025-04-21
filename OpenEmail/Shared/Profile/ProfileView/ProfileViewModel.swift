@@ -6,20 +6,24 @@ import OpenEmailPersistence
 import OpenEmailModel
 import Logging
 
-class ProfileViewModel: ObservableObject {
-    @Published var profile: Profile?
-    @Published var profileLoadingError: Error?
-    @Published var isLoadingProfile = false
-
-    @Published var emailAddress: EmailAddress
-    @Published var isInContacts: Bool = false
-    @Published var isInOtherContacts: Bool?
-    @Published var isSelf: Bool = false
-
+@Observable
+class ProfileViewModel {
+    var profile: Profile?
+    var profileLoadingError: Error?
+    var isLoadingProfile = false
+    
+    var emailAddress: EmailAddress
+    var isInContacts: Bool = false
+    var isInOtherContacts: Bool?
+    var isSelf: Bool = false
+    
+    @ObservationIgnored
     @Injected(\.client) private var client
-
+    
+    @ObservationIgnored
     @Injected(\.contactsStore) private var contactsStore: ContactStoring
-
+    
+    @ObservationIgnored
     @Injected(\.syncService) private var syncService
 
     var errorText: String {

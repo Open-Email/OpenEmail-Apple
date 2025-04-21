@@ -169,7 +169,7 @@ struct ContactsListView: View {
 
     struct ProfilePreviewSheetView: View {
         @Environment(\.dismiss) private var dismiss
-        @StateObject var profileViewModel: ProfileViewModel
+        @State var profileViewModel: ProfileViewModel
         let emailAddress: EmailAddress
         let onAddContactClicked: ((String) -> Void)
 
@@ -179,10 +179,8 @@ struct ContactsListView: View {
         ) {
             self.emailAddress = emailAddress
             self.onAddContactClicked = onAddContactClicked
-            _profileViewModel = StateObject(
-                wrappedValue: ProfileViewModel(
-                    emailAddress: emailAddress,
-                )
+            profileViewModel = ProfileViewModel(
+                emailAddress: emailAddress,
             )
         }
         

@@ -185,10 +185,10 @@ struct MessageView: View {
                                 automaticallyShowProfileIfNotInContacts: false,
                                 canRemoveReader: false,
                                 showsActionButtons: true,
-                                onShowProfile: { _ in
-                                    selectedMessageProfileAddress = EmailAddress(message?.author)
+                                onShowProfile: { address in
+                                    selectedMessageProfileAddress = EmailAddress(address)
                                 }
-                            )
+                            ).id(address)
                         }
                     }
 
