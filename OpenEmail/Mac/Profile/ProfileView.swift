@@ -3,7 +3,7 @@ import OpenEmailCore
 import Logging
 
 struct ProfileView: View {
-    @ObservedObject private var viewModel: ProfileViewModel
+    @State private var viewModel: ProfileViewModel
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) var registeredEmailAddress: String?
     @Environment(\.openWindow) private var openWindow
 
@@ -57,7 +57,6 @@ struct ProfileView: View {
                     ProfileAttributesView(
                         profile: $viewModel.profile,
                         receiveBroadcasts: receiveBroadcastsBinding,
-                        isEditable: false,
                         hidesEmptyFields: true,
                         profileImageStyle: .shape()
                     )
@@ -72,7 +71,6 @@ struct ProfileView: View {
                         ProfileAttributesView(
                             profile: $viewModel.profile,
                             receiveBroadcasts: receiveBroadcastsBinding,
-                            isEditable: false,
                             hidesEmptyFields: true,
                             profileImageStyle: .none
                         )
@@ -272,7 +270,7 @@ struct ProfileView: View {
         viewModel: ProfileViewModel(emailAddress: .init("mickey@mouse.com")!),
         showActionButtons: false,
         isContactRequest: false,
-        verticalLayout: true,
+        verticalLayout: false,
         onClose: {}
     )
     .frame(width: 330, height: 600)

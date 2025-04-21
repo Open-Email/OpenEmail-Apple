@@ -82,7 +82,7 @@ struct ReadersView: View {
                         canRemoveReader: isEditable,
                         showsActionButtons: !isEditable,
                         onShowProfile: showProfileType.onShowProfile
-                    )
+                    ).id(reader)
                 }
             }
 

@@ -40,7 +40,6 @@ struct ProfileView: View {
                                 await viewModel.updateReceiveBroadcasts(newValue)
                             }
                         }) : nil,
-                    isEditable: false,
                     hidesEmptyFields: true,
                     profileImageStyle: .fullWidthHeader(height: 450),
                     actionButtonRow: actionButtons

@@ -7,7 +7,7 @@ struct ProfileTagView: View {
     
     @Environment(\.isEnabled) var isEnabled: Bool
     @AppStorage(UserDefaultsKeys.profileName) var profileName: String?
-    @StateObject var profileViewModel: ProfileViewModel
+    @State var profileViewModel: ProfileViewModel
 
     private let isTicked: Bool
     @State private var showContactPopover = false
@@ -20,7 +20,7 @@ struct ProfileTagView: View {
     let automaticallyShowProfileIfNotInContacts: Bool
     let canRemoveReader: Bool
     let showsActionButtons: Bool
-    let onShowProfile: ((String) -> Void)?
+    let onClick: ((String) -> Void)?
 
     init(
         emailAddress: EmailAddress,
@@ -32,10 +32,8 @@ struct ProfileTagView: View {
         showsActionButtons: Bool,
         onShowProfile: ((String) -> Void)? = nil
     ) {
-        _profileViewModel = StateObject(
-            wrappedValue: ProfileViewModel(
-                emailAddress: emailAddress,
-            )
+        profileViewModel = ProfileViewModel(
+            emailAddress: emailAddress,
         )
         self.isSelected = isSelected
         self.isTicked = isTicked
@@ -43,7 +41,7 @@ struct ProfileTagView: View {
         self.automaticallyShowProfileIfNotInContacts = automaticallyShowProfileIfNotInContacts
         self.canRemoveReader = canRemoveReader
         self.showsActionButtons = showsActionButtons
-        self.onShowProfile = onShowProfile
+        self.onClick = onShowProfile
     }
 
     private var foregroundColor: Color {
@@ -102,17 +100,29 @@ struct ProfileTagView: View {
                 )
             }
             
-            if let away = profileViewModel.profile?.away {
+            let seenRecently: Bool = if let lastSeen = profileViewModel.profile?.lastSeen,
+                                        let date = ISO8601DateFormatter.backendDateFormatter.date(
+                                            from: lastSeen
+                                        ) {
+                abs(date.timeIntervalSinceNow.asHours) < 1.0
+            } else {
+                false
+            }
+            
+            let away: Bool = profileViewModel.profile?.away ?? false
+            
+            if (seenRecently || away) {
                 Circle()
-                    .fill(away ? .themeRed : .themeGreen)
+                    .fill(seenRecently ? .themeGreen : .themeGreen)
                     .frame(width: 8, height: 8)
             }
+            
         }
         
     }
 
     private func showProfile() {
-        if let onShowProfile = onShowProfile {
+        if let onShowProfile = onClick {
             onShowProfile(profileViewModel.emailAddress.address)
         } else {
             showContactPopover = true

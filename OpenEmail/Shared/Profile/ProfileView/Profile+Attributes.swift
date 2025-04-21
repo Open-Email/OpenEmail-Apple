@@ -19,6 +19,13 @@ enum ProfileAttributesGroupType: String {
         case .configuration: "Configuration"
         }
     }
+    
+    var shouldShowInPreview: Bool {
+        switch self {
+        case .configuration: return false
+        default: return true
+        }
+    }
 }
 
 struct ProfileAttributesGroup: Identifiable {

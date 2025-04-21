@@ -23,7 +23,6 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
 
     @Binding private var profile: Profile?
     private let receiveBroadcasts: Binding<Bool>?
-    private let isEditable: Bool
     private let hidesEmptyFields: Bool
     private let profileImageStyle: ProfileImageStyle
     @ViewBuilder private var actionButtonRow: () -> ActionButtonRow
@@ -31,14 +30,12 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
     init(
         profile: Binding<Profile?>,
         receiveBroadcasts: Binding<Bool>?,
-        isEditable: Bool,
         hidesEmptyFields: Bool = false,
         profileImageStyle: ProfileImageStyle,
         actionButtonRow: @escaping () -> ActionButtonRow = { EmptyView() }
     ) {
         _profile = profile
         self.receiveBroadcasts = receiveBroadcasts
-        self.isEditable = isEditable
         self.hidesEmptyFields = hidesEmptyFields
         self.profileImageStyle = profileImageStyle
         self.actionButtonRow = actionButtonRow
@@ -109,10 +106,14 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                                 }
                             }
                         } header: {
-                            Text(group.groupType.displayName)
-                                .font(.title2)
-                                .foregroundStyle(.primary)
-                                .padding(.top, .Spacing.xSmall)
+                            if (group.groupType.shouldShowInPreview) {
+                                Text(group.groupType.displayName)
+                                    .font(.title2)
+                                    .foregroundStyle(.primary)
+                                    .padding(.top, .Spacing.xSmall)
+                            } else {
+                                Spacer()
+                            }
                         }
                     }
                 }
@@ -179,31 +180,17 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
         switch attribute.attributeType {
         case .text(let multiline): textField(for: attribute, isMultiline: multiline)
         case .boolean:
-            if isEditable {
-                toggleField(for: attribute, defaultValue: attribute != .away)
-            } else {
-                booleanSign(for: attribute, defaultValue: attribute != .away)
-            }
+            booleanSign(for: attribute, defaultValue: attribute != .away)
         case .date(let relative):
-            if isEditable {
-                // TODO: add date picker if we ever have an editable date
-                textField(for: attribute)
-            } else {
-                dateTextField(for: attribute, isRelative: relative)
-            }
+            dateTextField(for: attribute, isRelative: relative)
         }
     }
 
     private func textField(for attribute: ProfileAttribute, isMultiline: Bool = false) -> some View {
         LabeledContent {
-            if isEditable {
-                TextField("", text: stringBinding(for: attribute), prompt: nil, axis: isMultiline ? .vertical : .horizontal)
-                    .background()
-            } else {
-                Text(profile?[attribute] ?? "")
-                    .textSelection(.enabled)
-                    .foregroundStyle(.primary)
-            }
+            Text(profile?[attribute] ?? "")
+                .textSelection(.enabled)
+                .foregroundStyle(.primary)
         } label: {
             HStack(spacing: .Spacing.xSmall) {
                 if let info = attribute.info {
@@ -218,29 +205,8 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
 
     private func dateTextField(for attribute: ProfileAttribute, isRelative: Bool) -> some View {
         LabeledContent {
-            if isEditable {
-                TextField("", text: dateStringBinding(for: attribute, isRelative: isRelative), prompt: nil)
-            } else {
-                Text(dateString(for: attribute, isRelative: isRelative))
-                    .foregroundStyle(.primary)
-            }
-        } label: {
-            HStack(spacing: .Spacing.xSmall) {
-                if let info = attribute.info {
-                    InfoButton(text: info)
-                }
-
-                Text("\(attribute.displayTitle):")
-                    .foregroundStyle(.secondary)
-            }
-        }
-    }
-
-    private func toggleField(for attribute: ProfileAttribute, defaultValue: Bool = true) -> some View {
-        LabeledContent {
-            Toggle("", isOn: toggleBinding(for: attribute, defaultValue: defaultValue))
-                .toggleStyle(.switch)
-                .disabled(!isEditable)
+            Text(dateString(for: attribute, isRelative: isRelative))
+                .foregroundStyle(.primary)
         } label: {
             HStack(spacing: .Spacing.xSmall) {
                 if let info = attribute.info {
@@ -288,7 +254,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
     // MARK: - Bindings
 
     private func toggleBinding(for attribute: ProfileAttribute, defaultValue: Bool) -> Binding<Bool> {
-        Binding<Bool>(
+        return Binding<Bool>(
             get: {
                 return profile?[boolean: attribute] ?? defaultValue
             },
@@ -304,25 +270,6 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
             },
             set: {
                 profile?[attribute] = $0.isEmpty ? nil : $0
-            })
-    }
-
-    private func dateBinding(for attribute: ProfileAttribute) -> Binding<Date?> {
-        return Binding(
-            get: {
-                if let dateString = profile?[attribute] {
-                    return parseISO8601Date(dateString)
-                } else {
-                    return nil
-                }
-            },
-            set: {
-                if let date = $0 {
-                    let dateString = ISO8601DateFormatter.backendDateFormatter.string(from: date)
-                    profile?[attribute] = dateString
-                } else {
-                    profile?[attribute] = nil
-                }
             })
     }
 
@@ -387,11 +334,9 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
     private func shouldDisplayAttribute(_ attribute: ProfileAttribute) -> Bool {
         guard let profile else { return false }
 
-        if attribute == .lastSeen {
-            return !isEditable
-        }
-
-        return profile[attribute] != nil || !hidesEmptyFields
+        return (
+            profile[attribute] != nil && profile[attribute]!.isNotEmpty
+        ) || !hidesEmptyFields
     }
 }
 
@@ -424,7 +369,6 @@ struct InfoButton: View {
     ProfileAttributesView(
         profile: .constant(.makeFake()),
         receiveBroadcasts: nil,
-        isEditable: true,
         profileImageStyle: .none
     )
 }
@@ -434,7 +378,6 @@ struct InfoButton: View {
     ProfileAttributesView(
         profile: .constant(.makeFake(awayWarning: "Away")),
         receiveBroadcasts: .constant(false),
-        isEditable: false,
         hidesEmptyFields: true,
         profileImageStyle: .shape()
     )
@@ -443,7 +386,6 @@ struct InfoButton: View {
     ProfileAttributesView(
         profile: .constant(.makeFake(awayWarning: "Away")),
         receiveBroadcasts: .constant(false),
-        isEditable: false,
         hidesEmptyFields: true,
         profileImageStyle: .fullWidthHeader(height: 500),
         actionButtonRow: {
