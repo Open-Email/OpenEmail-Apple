@@ -5,7 +5,7 @@ import Utils
 
 private struct SyncServiceKey: InjectionKey {
     #if DEBUG
-    static var currentValue: MessageSyncing = isPreview ? SyncServiceMock() : SyncService()
+    static var currentValue: MessageSyncing = isPreview ? SyncServiceMock() : SyncService.shared
     #else
     static var currentValue: MessageSyncing = SyncService()
     #endif

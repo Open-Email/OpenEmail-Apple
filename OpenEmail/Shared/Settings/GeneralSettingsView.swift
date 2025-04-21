@@ -18,7 +18,7 @@ struct GeneralSettingsView: View {
     @State private var showDeleteAccountConfirmation = false
     #endif
 
-    private let availableNotificationFetchingIntervals = [-1, 1, 5, 15, 30, 60]
+    private let availableNotificationFetchingIntervals = [-1, 10, 15, 30, 60]
     private let availableAutomaticTrashDeletionDays = [-1, 1, 7, 14, 30]
 
     var body: some View {

@@ -21,6 +21,9 @@ protocol MessageSyncing {
 
 @Observable
 class SyncService: MessageSyncing {
+    
+    static let shared = SyncService()
+    
     var isSyncing = false
 
     @ObservationIgnored
@@ -30,16 +33,30 @@ class SyncService: MessageSyncing {
     @Injected(\.messagesStore) private var messagesStore
 
     private var subscriptions = Set<AnyCancellable>()
-    private var syncTimer: Timer?
     private var outgoingMessageIds: [String] = []
+    private var scheduler: NSBackgroundActivityScheduler?
 
-    init() {
+    private init() {
         UserDefaults.standard.publisher(for: \.notificationFetchingInterval)
             .removeDuplicates()
-            .sink { _ in
-                self.rescheduleSync()
+            .sink { interval in
+                self.scheduler?.invalidate()
+                
+                let newScheduler = NSBackgroundActivityScheduler(
+                    identifier: "\(String(describing: Bundle.main.bundleIdentifier)).refreshState"
+                )
+                newScheduler.repeats = true
+                newScheduler.interval = Double(interval * 60)
+                newScheduler.schedule { completion in
+                    Task {
+                        await self.synchronize()
+                        completion(.finished)
+                    }
+                }
+                self.scheduler = newScheduler
             }
             .store(in: &subscriptions)
+        
 
         NotificationCenter.default.publisher(for: .didUpdateContacts)
             .sink { notification in
@@ -111,7 +128,6 @@ class SyncService: MessageSyncing {
 
             syncedAddresses = try await client.executeNotifications(localUser: localUser)
 
-            postMessagesSyncedNotification()
         } catch {
             Log.error("Error executing notifications: \(error)")
         }
@@ -142,7 +158,8 @@ class SyncService: MessageSyncing {
              
              await group.waitForAll()
         }
-
+        
+        postMessagesSyncedNotification()
         Log.info("Syncing complete")
     }
     
@@ -216,21 +233,6 @@ class SyncService: MessageSyncing {
             }
         } catch {
             Log.error("could not fetch messages from user \(profile.address.address): \(error)")
-        }
-    }
-
-    private func rescheduleSync() {
-        syncTimer?.invalidate()
-        syncTimer = nil
-
-        let interval = UserDefaults.standard.notificationFetchingInterval
-
-        if interval != -1 {
-            syncTimer = Timer.scheduledTimer(withTimeInterval: TimeInterval(interval * 60), repeats: true) { _ in
-                Task {
-                    await self.synchronize()
-                }
-            }
         }
     }
 
