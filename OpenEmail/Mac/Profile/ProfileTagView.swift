@@ -102,11 +102,23 @@ struct ProfileTagView: View {
                 )
             }
             
-            if let away = profileViewModel.profile?.away {
+            let seenRecently: Bool = if let lastSeen = profileViewModel.profile?.lastSeen,
+                                        let date = ISO8601DateFormatter.backendDateFormatter.date(
+                                            from: lastSeen
+                                        ) {
+                date.timeIntervalSinceNow.asHours < 1.0
+            } else {
+                false
+            }
+            
+            let away: Bool = profileViewModel.profile?.away ?? false
+            
+            if (seenRecently || away) {
                 Circle()
-                    .fill(away ? .themeRed : .themeGreen)
+                    .fill(seenRecently ? .themeGreen : .themeGreen)
                     .frame(width: 8, height: 8)
             }
+            
         }
         
     }

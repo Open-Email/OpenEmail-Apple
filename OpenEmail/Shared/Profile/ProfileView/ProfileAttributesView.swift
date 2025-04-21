@@ -273,25 +273,6 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
             })
     }
 
-    private func dateBinding(for attribute: ProfileAttribute) -> Binding<Date?> {
-        return Binding(
-            get: {
-                if let dateString = profile?[attribute] {
-                    return parseISO8601Date(dateString)
-                } else {
-                    return nil
-                }
-            },
-            set: {
-                if let date = $0 {
-                    let dateString = ISO8601DateFormatter.backendDateFormatter.string(from: date)
-                    profile?[attribute] = dateString
-                } else {
-                    profile?[attribute] = nil
-                }
-            })
-    }
-
     private func dateStringBinding(for attribute: ProfileAttribute, isRelative: Bool) -> Binding<String> {
         return Binding(
             get: {
