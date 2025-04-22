@@ -113,7 +113,7 @@ struct ProfileTagView: View {
             
             if (seenRecently || away) {
                 Circle()
-                    .fill(seenRecently ? .themeGreen : .themeGreen)
+                    .fill(away ? .themeRed : .themeGreen)
                     .frame(width: 8, height: 8)
             }
             
