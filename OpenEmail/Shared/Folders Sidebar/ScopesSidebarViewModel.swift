@@ -9,47 +9,55 @@ struct ScopeSidebarItem: Identifiable, Hashable {
     var id: String { scope.rawValue }
     let scope: SidebarScope
     let unreadCount: Int
-    var shouldShowNewMessageIndicator: Bool
-
-    var subtitle: String? {
-        if scope == .contacts && unreadCount > 0 {
-            // This should be cleaned up by using a string catalog with pluralization
-            if unreadCount == 1 {
-                return "\(unreadCount) request"
-            } else {
-                return "\(unreadCount) requests"
-            }
-        }
-        return nil
-    }
 }
 
-@MainActor
 @Observable
 class ScopesSidebarViewModel {
-    private var lastSeenUnreadCounts: [SidebarScope: Int] = [:]
-    private var currentUnreadCounts: [SidebarScope: Int] = [:]
-    private(set) var contactRequestsCount = 0
-
-    var selectedScope: SidebarScope = .inbox {
-        didSet {
-            // on scope change set last seen count to current so the badge disappears
-            lastSeenUnreadCounts[selectedScope] = currentUnreadCounts[selectedScope]
-        }
-    }
-
-    private(set) var items: [ScopeSidebarItem] = []
-
+    
     @ObservationIgnored
     @Injected(\.messagesStore) private var messagesStore
+    
+    init() {
+        NotificationCenter.default.publisher(for: .didUpdateNotifications).sink { notifications in
+            Task {
+                await self.reloadItems()
+            }
+        }.store(in: &subscriptions)
+        
+        NotificationCenter.default.publisher(for: .didUpdateMessages).sink { _ in
+            Task {
+                await self.reloadItems()
+            }
+        }.store(in: &subscriptions)
+        
+        NotificationCenter.default.publisher(for: .didUpdateContacts).sink { _ in
+            Task {
+                await self.reloadItems()
+            }
+        }.store(in: &subscriptions)
+        
+        UserDefaults.standard.publisher(for: \.registeredEmailAddress).sink { _ in
+            Task {
+                await self.reloadItems()
+            }
+        }.store(in: &subscriptions)
+        
+    }
+
+    var unreadCounts: [SidebarScope: Int] = [:]
+    var selectedScope: SidebarScope = .inbox
+    private var subscriptions = Set<AnyCancellable>()
+
+    private(set) var items: [ScopeSidebarItem] = []
 
     private let contactRequestsController = ContactRequestsController()
 
     private let triggerReloadSubject = PassthroughSubject<Void, Never>()
-    private var subscriptions = Set<AnyCancellable>()
+   
 
-    func reloadItems(isInitialUpdate: Bool) async {
-        await updateCounts(isInitialUpdate: isInitialUpdate)
+    @MainActor
+    private func reloadItems() async {
+        await updateUnreadCounts()
 
         items = SidebarScope.allCases.compactMap {
             #if os(iOS)
@@ -59,60 +67,20 @@ class ScopesSidebarViewModel {
 
             return ScopeSidebarItem(
                 scope: $0,
-                unreadCount: unreadCount(for: $0),
-                shouldShowNewMessageIndicator: shouldShowNewMessageIndicator(for: $0)
+                unreadCount: unreadCounts[$0] ?? 0
             )
         }
     }
 
-    private func updateCounts(isInitialUpdate: Bool) async {
-        await updateUnreadCounts(isInitialUpdate: isInitialUpdate)
-        await updateContactRequestsCount()
-    }
-
-    private func unreadCount(for scope: SidebarScope) -> Int {
-        if scope == .contacts {
-            return contactRequestsCount
-        }
-
-        return currentUnreadCounts[scope] ?? 0
-    }
-
-    private func shouldShowNewMessageIndicator(for scope: SidebarScope) -> Bool {
-        if scope == .contacts {
-            return contactRequestsCount > 0
-        }
-
-        guard
-            let lastSeenUnreadCount = lastSeenUnreadCounts[scope],
-            let currentUnreadCount = currentUnreadCounts[scope]
-        else {
-            return false
-        }
-
-        return currentUnreadCount > lastSeenUnreadCount
-    }
-
-    func updateUnreadCounts(isInitialUpdate: Bool) async {
-        guard
-            let localUser = LocalUser.current
-        else {
-            // clear counts if there is no user (e.g. after logout)
-            lastSeenUnreadCounts = [:]
-            currentUnreadCounts = [:]
+    private func updateUnreadCounts() async {
+        unreadCounts = [:]
+        
+        guard let localUser = LocalUser.current else {
             return
         }
 
-        guard let unreadCounts = await fetchUnreadCounts(localUser: localUser) else { return }
-        if isInitialUpdate {
-            lastSeenUnreadCounts = unreadCounts
-        } else {
-            if let currentScopeCount = unreadCounts[selectedScope] {
-                lastSeenUnreadCounts[selectedScope] = currentScopeCount
-            }
-        }
-
-        currentUnreadCounts = unreadCounts
+        guard let newUnreadCounts = await fetchUnreadCounts(localUser: localUser) else { return }
+        unreadCounts = newUnreadCounts
     }
 
     private func fetchUnreadCounts(localUser: LocalUser) async -> [SidebarScope: Int]? {
@@ -122,11 +90,8 @@ class ScopesSidebarViewModel {
 
         return [
             .broadcasts: allUnreadMessages.filteredBy(scope: .broadcasts, localUser: localUser).count,
-            .inbox: allUnreadMessages.filteredBy(scope: .inbox, localUser: localUser).count
+            .inbox: allUnreadMessages.filteredBy(scope: .inbox, localUser: localUser).count,
+            .contacts: await contactRequestsController.contactRequests.count
         ]
-    }
-
-    private func updateContactRequestsCount() async {
-        contactRequestsCount = await contactRequestsController.contactRequests.count
     }
 }
