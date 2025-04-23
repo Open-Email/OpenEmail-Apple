@@ -178,9 +178,9 @@ struct MessageView: View {
 
                 VStack(alignment: .leading, spacing: .Spacing.xSmall) {
                     HStack {
-                        if message != nil, let address = viewModel.authorProfile?.address {
+                        if message != nil, let profile = viewModel.authorProfile {
                             ProfileTagView(
-                                emailAddress: address,
+                                emailAddress: profile.address,
                                 isSelected: false,
                                 automaticallyShowProfileIfNotInContacts: false,
                                 canRemoveReader: false,
@@ -188,7 +188,7 @@ struct MessageView: View {
                                 onShowProfile: { address in
                                     selectedMessageProfileAddress = EmailAddress(address)
                                 }
-                            ).id(address)
+                            ).id(profile.address)
                         }
                     }
 
@@ -196,14 +196,7 @@ struct MessageView: View {
                         HStack(alignment: .firstTextBaseline, spacing: .Spacing.xSmall) {
                             ReadersLabelView()
 
-                            let readersBinding = Binding<[EmailAddress]>(
-                                get: {
-                                    viewModel.message?.readers.compactMap {
-                                        EmailAddress($0)
-                                    } ?? []
-                                },
-                                set: { _ in /* read only */ }
-                            )
+                            
                             let deliveries = Binding<[String]>(
                                 get: {
                                     viewModel.message?.deliveries ?? []
@@ -213,7 +206,12 @@ struct MessageView: View {
 
                             ReadersView(
                                 isEditable: false,
-                                readers: readersBinding,
+                                readers: Binding<[EmailAddress]>(
+                                    get: {
+                                        viewModel.readers.map { $0.address }
+                                    },
+                                    set: { _ in }
+                                ),
                                 tickedReaders: deliveries,
                                 hasInvalidReader: .constant(false),
                                 showProfileType: .callback(onShowProfile: { address in
