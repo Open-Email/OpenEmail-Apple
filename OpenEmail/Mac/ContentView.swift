@@ -11,9 +11,7 @@ struct ContentView: View {
 
     private let contactRequestsController = ContactRequestsController()
     @Injected(\.syncService) private var syncService
-
-    @State private var hasContactRequests = false
-
+    
     @State private var scope: SidebarScope = .inbox
     @State private var fetchButtonRotation = 0.0
     @State private var searchText: String = ""
@@ -28,11 +26,10 @@ struct ContentView: View {
     ).eraseToAnyPublisher()
 
     var body: some View {
-        NavigationSplitView {
-            let width: CGFloat = .sidebarWidth + .Spacing.default
+        NavigationView {
             SidebarView()
-                .navigationSplitViewColumnWidth(min: width, ideal: width, max: width)
-        } content: {
+                .listStyle(SidebarListStyle())
+                .frame(minWidth: 200)
             Group {
                 if scope == .contacts {
                     ContactsListView(selectedContactListItem: $selectedContactListItem)
@@ -40,8 +37,7 @@ struct ContentView: View {
                     MessagesListView()
                 }
             }
-            .navigationSplitViewColumnWidth(min: 280, ideal: 320, max: 500)
-        } detail: {
+            .frame(minWidth: 250)
             Group {
                 if scope == .contacts {
                     contactsDetailView
@@ -49,45 +45,19 @@ struct ContentView: View {
                     messagesDetailView
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(.themeViewBackground)
-            .navigationSplitViewColumnWidth(min: 300, ideal: 400)
-            .toolbar {
-                detailsToolbarContent()
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .onReceive(contactsOrNotificationsUpdatedPublisher) { _ in
-            Task {
-                await updateContactRequests()
-            }
-        }
-        .task {
-            await updateContactRequests()
-            await triggerSync()
-        }
-        .onChange(of: registeredEmailAddress) {
-            Task {
-                await triggerSync()
-            }
-        }
-        .onChange(of: navigationState.selectedScope) {
-            scope = navigationState.selectedScope
-            selectedProfileViewModel = nil
-            selectedContactListItem = nil
-        }
-        .onChange(of: selectedMessageProfileAddress) {
-            if let selectedMessageProfileAddress {
-                selectedProfileViewModel = ProfileViewModel(emailAddress: selectedMessageProfileAddress)
-            } else {
-                selectedProfileViewModel = nil
-            }
-        }
-        .onChange(of: selectedContactListItem) {
-            if let selectedContactListItem, let emailAddress = EmailAddress(selectedContactListItem.email) {
-                selectedProfileViewModel = ProfileViewModel(emailAddress: emailAddress)
-            } else {
-                selectedProfileViewModel = nil
+            .frame(minWidth: 300)
+        }.toolbar {
+            ToolbarItem(placement: .navigation) {
+                Button(action: {
+                    NSApp.keyWindow?
+                        .firstResponder?
+                        .tryToPerform(
+                            #selector(NSSplitViewController.toggleSidebar(_:)),
+                            with: nil
+                        )
+                }) {
+                    Image(systemName: "sidebar.left")
+                }
             }
         }
     }
@@ -155,10 +125,6 @@ struct ContentView: View {
                 .bold()
                 .foregroundStyle(.tertiary)
         }
-    }
-
-    private func updateContactRequests() async {
-        hasContactRequests = await contactRequestsController.hasContactRequests
     }
 
     private func triggerSync() async {

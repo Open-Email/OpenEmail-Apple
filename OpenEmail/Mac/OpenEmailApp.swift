@@ -26,7 +26,7 @@ struct OpenEmailApp: App {
         Window("Message Viewer", id: WindowIDs.main) {
             if hasCompletedOnboarding {
                 ContentView()
-                    .frame(minWidth: 1100, maxWidth: .infinity, minHeight: 600, maxHeight: .infinity)
+                    .frame( maxWidth: .infinity, maxHeight: .infinity)
                     .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
                         closeAllWindowOnTerminate()
                     }
@@ -45,6 +45,7 @@ struct OpenEmailApp: App {
                 }
                 .keyboardShortcut(.init("0", modifiers: .command))
             }
+            SidebarCommands()  
         }
 
         WindowGroup("Write Message", id: WindowIDs.compose, for: ComposeAction.self) { action in
