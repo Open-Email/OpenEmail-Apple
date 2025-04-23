@@ -20,16 +20,11 @@ struct SidebarView: View {
                 .padding(.bottom, .Spacing.xSmall)
 
             ForEach(viewModel.items) { item in
-                if item.scope == .contacts {
-                    Spacer()
-                }
-
                 SidebarItemView(
                     icon: item.scope.imageResource,
                     title: item.scope.displayName,
-                    subtitle: item.subtitle,
-                    isSelected: item.scope.id == navigationState.selectedScope.id,
-                    showsNewMessagesIndicator: item.shouldShowNewMessageIndicator
+                    isSelected: item.scope.id == viewModel.selectedScope.id,
+                    unreadCount: item.unreadCount
                 ) {
                     navigationState.selectedScope = item.scope
                 }
@@ -44,36 +39,14 @@ struct SidebarView: View {
         .onChange(of: navigationState.selectedScope) {
             viewModel.selectedScope = navigationState.selectedScope
         }
-        .onChange(of: registeredEmailAddress) {
-            reloadItems()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .didUpdateNotifications)) { _ in
-            reloadItems()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .didUpdateMessages)) { _ in
-            reloadItems()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .didUpdateContacts)) { _ in
-            reloadItems()
-        }
-        .task {
-            await viewModel.reloadItems(isInitialUpdate: true)
-        }
-    }
-
-    private func reloadItems() {
-        Task {
-            await viewModel.reloadItems(isInitialUpdate: false)
-        }
     }
 }
 
 private struct SidebarItemView: View {
     let icon: ImageResource
     let title: String
-    let subtitle: String?
     let isSelected: Bool
-    let showsNewMessagesIndicator: Bool
+    let unreadCount: Int
     let onSelection: () -> Void
 
     var body: some View {
@@ -84,15 +57,12 @@ private struct SidebarItemView: View {
                 .scaledToFit()
                 .frame(width: iconSize, height: iconSize)
 
-            VStack(alignment: .leading, spacing: 0) {
-                Text(title)
-                    .fontWeight(.medium)
-
-                if let subtitle {
-                    Text(subtitle)
-                        .foregroundStyle(.accent)
-                        .font(.footnote)
-                }
+            Text(title)
+                .fontWeight(.medium)
+            
+            Spacer()
+            if unreadCount > 0 {
+                Text("\(unreadCount)")
             }
         }
         .foregroundStyle(isSelected ? .themePrimary : .themeSecondary)
@@ -103,14 +73,6 @@ private struct SidebarItemView: View {
             if isSelected {
                 RoundedRectangle(cornerRadius: .CornerRadii.default, style: .circular)
                     .fill(.themeIconBackground)
-            }
-        }
-        .overlay(alignment: .trailing) {
-            if showsNewMessagesIndicator {
-                Circle()
-                    .fill(.accent)
-                    .frame(width: 8)
-                    .offset(x: -.Spacing.small)
             }
         }
         .contentShape(Rectangle())
