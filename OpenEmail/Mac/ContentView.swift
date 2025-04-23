@@ -34,7 +34,7 @@ struct ContentView: View {
                 if scope == .contacts {
                     ContactsListView(selectedContactListItem: $selectedContactListItem)
                 } else {
-                    MessagesListView()
+                    MessagesListView(searchText: $searchText)
                 }
             }
             .frame(minWidth: 250)
@@ -47,23 +47,25 @@ struct ContentView: View {
             }
             .frame(minWidth: 300)
         }.toolbar {
-            ToolbarItem(placement: .navigation) {
-                Button(action: {
-                    NSApp.keyWindow?
-                        .firstResponder?
-                        .tryToPerform(
-                            #selector(NSSplitViewController.toggleSidebar(_:)),
-                            with: nil
-                        )
-                }) {
-                    Image(systemName: "sidebar.left")
-                }
-            }
-        }
+            detailsToolbarContent()
+        }.searchable(text: $searchText)
+            
     }
 
     @ToolbarContentBuilder
     private func detailsToolbarContent() -> some ToolbarContent {
+        ToolbarItem(placement: .navigation) {
+            Button(action: {
+                NSApp.keyWindow?
+                    .firstResponder?
+                    .tryToPerform(
+                        #selector(NSSplitViewController.toggleSidebar(_:)),
+                        with: nil
+                    )
+            }) {
+                Image(systemName: "sidebar.left")
+            }
+        }
         ToolbarItem {
             AsyncButton {
                 await triggerSync()
@@ -71,11 +73,6 @@ struct ContentView: View {
                 SyncProgressView()
             }
         }
-        
-        ToolbarItem {
-            Spacer()
-        }
-        
         ToolbarItem(placement: .primaryAction) {
             Button {
                 guard let registeredEmailAddress else { return }
@@ -93,11 +90,6 @@ struct ContentView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-        }
-        
-
-        ToolbarItem(placement: .confirmationAction) {
-            ProfileButton()
         }
     }
 
@@ -161,47 +153,6 @@ private extension Date {
         } else {
             return "\(minutes) min"
         }
-    }
-}
-
-private struct ProfileButton: View {
-    @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
-    @AppStorage(UserDefaultsKeys.profileName) private var profileName: String?
-
-    @Environment(\.openWindow) private var openWindow
-
-    @State private var isHovering = false
-    @State private var isPressed = false
-
-    var body: some View {
-        Button {
-            openWindow(id: WindowIDs.profileEditor)
-        } label: {
-            HStack(spacing: .Spacing.small) {
-                ProfileImageView(emailAddress: registeredEmailAddress, size: 26)
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(profileName ?? "No Name").bold()
-                        .foregroundStyle(.primary)
-                    Text(registeredEmailAddress ?? "").font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .padding(4)
-            .background {
-                if isHovering {
-                    RoundedRectangle(cornerRadius: .CornerRadii.small)
-                        .foregroundStyle(.tertiary)
-                }
-            }
-            .animation(.default, value: isHovering)
-            .onHover {
-                isHovering = $0
-                if !isHovering {
-                    isPressed = false
-                }
-            }
-        }
-        .buttonStyle(.plain)
     }
 }
 

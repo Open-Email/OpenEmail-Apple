@@ -8,62 +8,58 @@ struct MessagesListView: View {
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
 
     @State private var viewModel = MessagesListViewModel()
-    @State private var searchText: String = ""
+    @Binding private var searchText: String
+    
+    init (searchText: Binding<String>) {
+        _searchText = searchText
+    }
 
     var body: some View {
         @Bindable var navigationState = navigationState
 
-        VStack(alignment: .leading, spacing: 0) {
-            SearchField(text: $searchText)
-                .padding(.vertical, .Spacing.small)
-                .padding(.horizontal, .Spacing.default)
-
-            Divider()
-
-            List(selection: $navigationState.selectedMessageIDs) {
-                Section {
-                    if viewModel.messages.isEmpty && searchText.isEmpty {
-                        EmptyListView(
-                            icon: navigationState.selectedScope.imageResource,
-                            text: "Your \(navigationState.selectedScope.displayName) message list is empty."
-                        )
-                    }
-
-                    ForEach(viewModel.messages) { message in
-                        MessageListItemView(
-                            message: message,
-                            scope: navigationState.selectedScope
-                        )
-                        .padding(.Spacing.default)
-                        .listRowSeparator(.hidden)
-                    }
-                } header: {
-                    Text(navigationState.selectedScope.displayName)
-                        .font(.title)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.primary)
-                        .padding(.Spacing.default)
+        List(selection: $navigationState.selectedMessageIDs) {
+            Section {
+                if viewModel.messages.isEmpty && searchText.isEmpty {
+                    EmptyListView(
+                        icon: navigationState.selectedScope.imageResource,
+                        text: "Your \(navigationState.selectedScope.displayName) message list is empty."
+                    )
                 }
-            }
-            .listStyle(.plain)
-            .scrollBounceBehavior(.basedOnSize)
-            .contextMenu(forSelectionType: String.self) { messageIDs in
-                if !messageIDs.isEmpty {
-                    let allMessages = viewModel.messages
-                        .filter {
-                            messageIDs.contains($0.id)
-                            && $0.author != registeredEmailAddress // ignore messages from self
-                        }
 
-                    if !allMessages.isEmpty {
-                        if allMessages.unreadCount == 0 {
-                            Button("Mark as Unread") {
-                                viewModel.markAsUnread(messageIDs: messageIDs)
-                            }
-                        } else {
-                            Button("Mark as Read") {
-                                viewModel.markAsRead(messageIDs: messageIDs)
-                            }
+                ForEach(viewModel.messages) { message in
+                    MessageListItemView(
+                        message: message,
+                        scope: navigationState.selectedScope
+                    )
+                    .padding(.Spacing.default)
+                    .listRowSeparator(.hidden)
+                }
+            } header: {
+                Text(navigationState.selectedScope.displayName)
+                    .font(.title)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.primary)
+                    .padding(.Spacing.default)
+            }
+        }
+        .listStyle(.plain)
+        .scrollBounceBehavior(.basedOnSize)
+        .contextMenu(forSelectionType: String.self) { messageIDs in
+            if !messageIDs.isEmpty {
+                let allMessages = viewModel.messages
+                    .filter {
+                        messageIDs.contains($0.id)
+                        && $0.author != registeredEmailAddress // ignore messages from self
+                    }
+
+                if !allMessages.isEmpty {
+                    if allMessages.unreadCount == 0 {
+                        Button("Mark as Unread") {
+                            viewModel.markAsUnread(messageIDs: messageIDs)
+                        }
+                    } else {
+                        Button("Mark as Read") {
+                            viewModel.markAsRead(messageIDs: messageIDs)
                         }
                     }
                 }
@@ -119,7 +115,9 @@ struct MessagesListView: View {
 
 #if DEBUG
 #Preview {
-    MessagesListView()
+    MessagesListView(searchText: Binding<String>(
+        get: { "" }, set: { _ in }
+    ))
         .frame(width: 400, height: 500)
         .environment(NavigationState())
 }
@@ -131,7 +129,9 @@ private struct PreviewContainer {
 #Preview("empty") {
     let container = PreviewContainer()
 
-    MessagesListView()
+    MessagesListView(searchText: Binding<String>(
+        get: { "" }, set: { _ in }
+    ))
         .environment(NavigationState())
         .onAppear {
             let mockStore = container.messagesStore as? MessageStoreMock
