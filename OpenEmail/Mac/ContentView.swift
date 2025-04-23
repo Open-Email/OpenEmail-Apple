@@ -149,6 +149,7 @@ struct ContentView: View {
         if let selectedProfileViewModel, let selectedContactListItem {
             ProfileView(viewModel: selectedProfileViewModel, isContactRequest: selectedContactListItem.isContactRequest)
                 .frame(minWidth: 600)
+                .id(selectedProfileViewModel.emailAddress.address)
         } else {
             Text("No selection")
                 .bold()
