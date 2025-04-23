@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct MessagesTabView: View {
-    @State private var selectedScope: SidebarScope? = .inbox
     @State private var selectedMessageID: String?
     @State var tabBarVisibility: Visibility = .visible
 

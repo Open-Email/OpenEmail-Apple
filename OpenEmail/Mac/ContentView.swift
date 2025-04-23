@@ -12,7 +12,6 @@ struct ContentView: View {
     private let contactRequestsController = ContactRequestsController()
     @Injected(\.syncService) private var syncService
     
-    @State private var scope: SidebarScope = .inbox
     @State private var fetchButtonRotation = 0.0
     @State private var searchText: String = ""
 
@@ -31,7 +30,7 @@ struct ContentView: View {
                 .listStyle(SidebarListStyle())
                 .frame(minWidth: 200)
             Group {
-                if scope == .contacts {
+                if navigationState.selectedScope == .contacts {
                     ContactsListView(selectedContactListItem: $selectedContactListItem)
                 } else {
                     MessagesListView(searchText: $searchText)
@@ -39,7 +38,7 @@ struct ContentView: View {
             }
             .frame(minWidth: 250)
             Group {
-                if scope == .contacts {
+                if navigationState.selectedScope == .contacts {
                     contactsDetailView
                 } else {
                     messagesDetailView
