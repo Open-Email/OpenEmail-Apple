@@ -26,7 +26,6 @@ struct MessageView: View {
         viewModel = MessageViewModel(messageID: messageID)
         self.selectedProfileViewModel = selectedProfileViewModel
         _selectedMessageProfileAddress = selectedMessageProfileAddress
-        _selectedMessageProfileAddress = selectedMessageProfileAddress
     }
 
     var body: some View {
