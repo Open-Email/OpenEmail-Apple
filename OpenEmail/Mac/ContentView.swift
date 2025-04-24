@@ -15,9 +15,6 @@ struct ContentView: View {
     @State private var fetchButtonRotation = 0.0
     @State private var searchText: String = ""
 
-    @State private var selectedMessageProfileAddress: EmailAddress?
-    @State private var selectedProfileViewModel: ProfileViewModel?
-
     private let contactsOrNotificationsUpdatedPublisher = Publishers.Merge(
         NotificationCenter.default.publisher(for: .didUpdateContacts),
         NotificationCenter.default.publisher(for: .didUpdateNotifications)
@@ -100,8 +97,6 @@ struct ContentView: View {
         } else {
             MessageView(
                 messageID: navigationState.selectedMessageIDs.first,
-                selectedProfileViewModel: selectedProfileViewModel,
-                selectedMessageProfileAddress: $selectedMessageProfileAddress
             )
         }
     }

@@ -8,10 +8,10 @@ import AppKit
 @MainActor
 struct ReadersView: View {
     enum ShowProfileType {
-        case callback(onShowProfile: (String) -> Void)
+        case callback(onShowProfile: (Profile) -> Void)
         case popover
 
-        fileprivate var onShowProfile: ((String) -> Void)? {
+        fileprivate var onShowProfile: ((Profile) -> Void)? {
             switch self {
             case .callback(let onShowProfile):
                 return onShowProfile

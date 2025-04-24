@@ -17,15 +17,10 @@ struct MessageView: View {
 
     @State private var showDeleteConfirmationAlert = false
     @State private var showRecallConfirmationAlert = false
+    @State private var selectedProfile: Profile?
 
-    @Binding private var selectedMessageProfileAddress: EmailAddress?
-
-    private let selectedProfileViewModel: ProfileViewModel?
-
-    init(messageID: String?, selectedProfileViewModel: ProfileViewModel?, selectedMessageProfileAddress: Binding<EmailAddress?>) {
+    init(messageID: String?) {
         viewModel = MessageViewModel(messageID: messageID)
-        self.selectedProfileViewModel = selectedProfileViewModel
-        _selectedMessageProfileAddress = selectedMessageProfileAddress
     }
 
     var body: some View {
@@ -75,9 +70,7 @@ struct MessageView: View {
                     }
                 }
                 .onTapGesture {
-                    if selectedMessageProfileAddress != nil {
-                        selectedMessageProfileAddress = nil
-                    }
+                    selectedProfile = nil
                 }
                 .blur(radius: viewModel.showProgress ? 4 : 0)
                 .overlay {
@@ -88,13 +81,13 @@ struct MessageView: View {
                     }
                 }
                 .overlay(alignment: .trailing) {
-                    if let selectedProfileViewModel {
+                    if let selectedProfile {
                         ProfileView(
-                            profile: selectedProfileViewModel.profile,
+                            profile: selectedProfile,
                             showActionButtons: false,
                             verticalLayout: true,
                             onClose: {
-                                self.selectedMessageProfileAddress = nil
+                                self.selectedProfile = nil
                             }
                         )
                         .frame(width: 320)
@@ -140,7 +133,7 @@ struct MessageView: View {
         }
         .onChange(of: navigationState.selectedMessageIDs) {
             viewModel.messageID = navigationState.selectedMessageIDs.first
-            selectedMessageProfileAddress = nil
+            selectedProfile = nil
         }
         .onReceive(NotificationCenter.default.publisher(for: .didSynchronizeMessages)) { _ in
             viewModel.fetchMessage()
@@ -172,7 +165,8 @@ struct MessageView: View {
             HStack(alignment: .top, spacing: .Spacing.small) {
                 ProfileImageView(emailAddress: message?.author)
                     .onTapGesture {
-                        selectedMessageProfileAddress = EmailAddress(message?.author)
+                        //TODO replace ProfileImageView param with Profile object
+                        //selectedProfile = EmailAddress(message?.author)
                     }
 
                 VStack(alignment: .leading, spacing: .Spacing.xSmall) {
@@ -184,8 +178,8 @@ struct MessageView: View {
                                 automaticallyShowProfileIfNotInContacts: false,
                                 canRemoveReader: false,
                                 showsActionButtons: true,
-                                onShowProfile: { address in
-                                    selectedMessageProfileAddress = EmailAddress(address)
+                                onShowProfile: { profile in
+                                    selectedProfile = profile
                                 }
                             ).id(profile.address)
                         }
@@ -213,8 +207,8 @@ struct MessageView: View {
                                 ),
                                 tickedReaders: deliveries,
                                 hasInvalidReader: .constant(false),
-                                showProfileType: .callback(onShowProfile: { address in
-                                    selectedMessageProfileAddress = EmailAddress(address)
+                                showProfileType: .callback(onShowProfile: { profile in
+                                    selectedProfile = profile
                                 })
                             )
                         }
@@ -468,7 +462,7 @@ struct MessageView: View {
     ]
     InjectedValues[\.messagesStore] = messageStore
 
-    return MessageView(messageID: "1", selectedProfileViewModel: nil, selectedMessageProfileAddress: .constant(nil))
+    return MessageView(messageID: "1")
         .frame(width: 800, height: 600)
         .background(.themeViewBackground)
         .environment(NavigationState())
@@ -481,7 +475,7 @@ struct MessageView: View {
     ]
     InjectedValues[\.messagesStore] = messageStore
 
-    return MessageView(messageID: "1", selectedProfileViewModel: nil, selectedMessageProfileAddress: .constant(nil))
+    return MessageView(messageID: "1")
         .frame(width: 800, height: 600)
         .background(.themeViewBackground)
         .environment(NavigationState())
@@ -494,7 +488,7 @@ struct MessageView: View {
     ]
     InjectedValues[\.messagesStore] = messageStore
 
-    return MessageView(messageID: "1", selectedProfileViewModel: nil, selectedMessageProfileAddress: .constant(nil))
+    return MessageView(messageID: "1")
         .frame(width: 800, height: 600)
         .background(.themeViewBackground)
         .environment(NavigationState())
@@ -504,7 +498,7 @@ struct MessageView: View {
     let messageStore = MessageStoreMock()
     InjectedValues[\.messagesStore] = messageStore
 
-    return MessageView(messageID: nil, selectedProfileViewModel: nil, selectedMessageProfileAddress: .constant(nil))
+    return MessageView(messageID: nil)
         .frame(width: 800, height: 600)
         .background(.themeViewBackground)
         .environment(NavigationState())

@@ -20,7 +20,7 @@ struct ProfileTagView: View {
     let automaticallyShowProfileIfNotInContacts: Bool
     let canRemoveReader: Bool
     let showsActionButtons: Bool
-    let onClick: ((String) -> Void)?
+    let onClick: ((Profile) -> Void)?
 
     init(
         profile: Profile,
@@ -30,7 +30,7 @@ struct ProfileTagView: View {
         automaticallyShowProfileIfNotInContacts: Bool,
         canRemoveReader: Bool,
         showsActionButtons: Bool,
-        onShowProfile: ((String) -> Void)? = nil
+        onShowProfile: ((Profile) -> Void)? = nil
     ) {
         profileViewModel = ProfileViewModel(profile: profile)
         self.isSelected = isSelected
@@ -115,7 +115,7 @@ struct ProfileTagView: View {
 
     private func showProfile() {
         if let onShowProfile = onClick {
-            onShowProfile(profileViewModel.profile.address.address)
+            onShowProfile(profileViewModel.profile)
         } else {
             showContactPopover = true
         }
