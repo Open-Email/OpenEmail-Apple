@@ -20,7 +20,10 @@ struct ContactsListView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            List {
+            List(selection: Binding(
+                get:   { navigationState.selectedContact },
+                set:   { navigationState.selectedContact = $0 }
+            )) {
                 Section {
                     if viewModel.contactRequestItems.isEmpty && viewModel.contactsCount == 0 && searchText.isEmpty {
                         EmptyListView(
@@ -38,7 +41,8 @@ struct ContactsListView: View {
                             .padding(.horizontal, .Spacing.xSmall)
                         
                         ForEach(viewModel.contactRequestItems) { item in
-                            ContactListItemView(item: item).tag(item)
+                            ContactListItemView(item: item)
+                                .tag(item)
                         }
                     }
                     
@@ -50,7 +54,8 @@ struct ContactsListView: View {
                         }
                         
                         ForEach(viewModel.contactItems) { item in
-                            ContactListItemView(item: item).tag(item)
+                            ContactListItemView(item: item)
+                                .tag(item)
                         }
                     }
                 } header: {
@@ -101,42 +106,27 @@ struct ContactsListView: View {
             }
         })
         .alert("Contact already exists", isPresented: $viewModel.showsContactExistsError, actions: {})
-                
-//        VStack(alignment: .leading, spacing: 0) {
-//
-//
-//        }
-
-//        .onChange(of: viewModel.contactsCount) {
-//            // deselect contact if it has been removed
-//            if let selectedContactListItem {
-//                self.selectedContactListItem = viewModel.contactListItem(with: selectedContactListItem.email)
-//            }
-//        }
-//
-//        .sheet(isPresented: Binding<Bool>(
-//            get: {
-//                $viewModel.contactToAdd != nil
-//            },
-//            set: { _ in }
-//        )) {
-//            ProfilePreviewSheetView(
-//                profile: $viewModel.contactToAdd!,
-//                onAddContactClicked: { address in
-//                    Task {
-//                        do {
-//                            try await viewModel.addContact()
-//                        } catch {
-//                            Log.error("Error while adding contact: \(error)")
-//                            addContactError = error
-//                            showsAddContactError = true
-//                        }
-//                    }
-//                }
-//            )
-//            
-//        }
-//
+        .sheet(isPresented: Binding<Bool>(
+            get: {
+                viewModel.contactToAdd != nil
+            },
+            set: { _ in }
+        )) {
+            ProfilePreviewSheetView(
+                profile: viewModel.contactToAdd!,
+                onAddContactClicked: { address in
+                    Task {
+                        do {
+                            try await viewModel.addContact()
+                        } catch {
+                            Log.error("Error while adding contact: \(error)")
+                            addContactError = error
+                            showsAddContactError = true
+                        }
+                    }
+                }
+            )
+        }
     }
 
     private struct ProfilePreviewSheetView: View {
@@ -187,11 +177,9 @@ struct ContactsListView: View {
                 .padding(.horizontal, .Spacing.default)
                 .padding(.bottom, .Spacing.default)
             }
-            //.frame(width: 600, height: 600)
             .background(.themeViewBackground)
         }
     }
-
 }
 
 #if DEBUG
