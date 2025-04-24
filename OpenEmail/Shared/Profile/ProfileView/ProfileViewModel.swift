@@ -9,8 +9,6 @@ import Logging
 @Observable
 class ProfileViewModel {
     var profile: Profile
-    var profileLoadingError: Error?
-    var isLoadingProfile = false
     
     var isInContacts: Bool = false
     var isInOtherContacts: Bool?
@@ -25,20 +23,6 @@ class ProfileViewModel {
     @ObservationIgnored
     @Injected(\.syncService) private var syncService
 
-    var errorText: String {
-        if let userError = profileLoadingError as? UserError {
-            switch userError {
-            case .emailV2notSupported:
-                return "Email V2 protocol not supported"
-            case .profileNotFound:
-                return "No such user found"
-            default:
-                break
-            }
-        }
-
-        return "Could not load user profile"
-    }
 
     var receiveBroadcasts: Bool? = nil
     
@@ -79,11 +63,6 @@ class ProfileViewModel {
     
     @MainActor
     private func updateProfile() async {
-        guard !isLoadingProfile else { return }
-
-        isLoadingProfile = true
-        profileLoadingError = nil
-        
         await withTaskGroup { group in
             group.addTask {
                 await self.updateIsInContacts()
@@ -99,8 +78,6 @@ class ProfileViewModel {
             
             await group.waitForAll()
         }
-
-        isLoadingProfile = false
     }
     
     @MainActor

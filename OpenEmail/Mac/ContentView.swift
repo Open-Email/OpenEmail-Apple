@@ -37,7 +37,7 @@ struct ContentView: View {
                 if navigationState.selectedScope == .contacts {
                     ContactDetailView(
                         selectedContact: navigationState.selectedContact
-                    )
+                    ).id(navigationState.selectedContact?.id)
                 } else {
                     messagesDetailView
                 }

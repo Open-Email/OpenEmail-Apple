@@ -22,37 +22,25 @@ struct ProfileView: View {
     }
 
     var body: some View {
-        if viewModel.isLoadingProfile {
-            ProgressView()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding()
-        } else {
-            if !viewModel.isLoadingProfile {
-                let canEditReceiveBroadcasts = !viewModel.isSelf && viewModel.isInContacts
-                ProfileAttributesView(
-                    profile: $viewModel.profile,
-                    receiveBroadcasts: canEditReceiveBroadcasts && viewModel.receiveBroadcasts != nil ? Binding(
-                        get: {
-                            viewModel.receiveBroadcasts ?? true
-                        },
-                        set: { newValue in
-                            Task {
-                                await viewModel.updateReceiveBroadcasts(newValue)
-                            }
-                        }) : nil,
-                    hidesEmptyFields: true,
-                    profileImageStyle: .fullWidthHeader(height: 450),
-                    actionButtonRow: actionButtons
-                )
-                .sheet(isPresented: $showsComposeView) {
-                    if let registeredEmailAddress {
-                        ComposeMessageView(action: .newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: viewModel.profile.address.address))
+        let canEditReceiveBroadcasts = !viewModel.isSelf && viewModel.isInContacts
+        ProfileAttributesView(
+            profile: $viewModel.profile,
+            receiveBroadcasts: canEditReceiveBroadcasts && viewModel.receiveBroadcasts != nil ? Binding(
+                get: {
+                    viewModel.receiveBroadcasts ?? true
+                },
+                set: { newValue in
+                    Task {
+                        await viewModel.updateReceiveBroadcasts(newValue)
                     }
-                }
-            } else {
-                errorView
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding()
+                }) : nil,
+            hidesEmptyFields: true,
+            profileImageStyle: .fullWidthHeader(height: 450),
+            actionButtonRow: actionButtons
+        )
+        .sheet(isPresented: $showsComposeView) {
+            if let registeredEmailAddress {
+                ComposeMessageView(action: .newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: viewModel.profile.address.address))
             }
         }
     }
@@ -95,33 +83,6 @@ struct ProfileView: View {
                     }
                 }
             }
-        }
-    }
-
-    @ViewBuilder
-    private var errorView: some View {
-        VStack {
-            HStack(spacing: .Spacing.xxxSmall) {
-                WarningIcon()
-                Text(viewModel.errorText)
-                    .foregroundStyle(.secondary)
-            }
-
-            HStack {
-                Button("Retry") {
-                    viewModel.refreshProfile()
-                }
-                .buttonStyle(.borderedProminent)
-
-                if viewModel.isInContacts && !viewModel.isSelf {
-                    AsyncButton("Remove User", role: .destructive) {
-                        await removeUser()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.red)
-                }
-            }
-            .controlSize(.small)
         }
     }
 

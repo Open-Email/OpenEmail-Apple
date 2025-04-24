@@ -148,8 +148,6 @@ struct ContactsListView: View {
         
         var body: some View {
             
-            let profileLoaded = profileViewModel.profileLoadingError == nil
-            
             VStack(alignment: .leading, spacing: 0) {
                 ProfileView(
                     profile: profileViewModel.profile,
@@ -165,14 +163,12 @@ struct ContactsListView: View {
                         dismiss()
                     }
 
-                    if profileLoaded {
-                        Button("Add", role: .cancel) {
-                            onAddContactClicked(profile)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .keyboardShortcut(.defaultAction)
-                        .disabled(profileViewModel.profile.address == LocalUser.current?.address)
+                    Button("Add", role: .cancel) {
+                        onAddContactClicked(profile)
                     }
+                    .buttonStyle(.borderedProminent)
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(profileViewModel.profile.address == LocalUser.current?.address)
                 }
                 .padding(.horizontal, .Spacing.default)
                 .padding(.bottom, .Spacing.default)
