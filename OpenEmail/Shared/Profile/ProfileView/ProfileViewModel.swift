@@ -8,11 +8,10 @@ import Logging
 
 @Observable
 class ProfileViewModel {
-    var profile: Profile?
+    var profile: Profile
     var profileLoadingError: Error?
     var isLoadingProfile = false
     
-    var emailAddress: EmailAddress
     var isInContacts: Bool = false
     var isInOtherContacts: Bool?
     var isSelf: Bool = false
@@ -44,13 +43,11 @@ class ProfileViewModel {
     var receiveBroadcasts: Bool? = nil
     
     init(
-        emailAddress: EmailAddress, 
-        profile: Profile? = nil,
+        profile: Profile,
         shouldRefreshProfile: Bool = true,
     ) {
-        self.emailAddress = emailAddress
         self.profile = profile
-        self.isSelf = LocalUser.current?.address == emailAddress
+        self.isSelf = LocalUser.current?.address == profile.address
 
         Task {
             if shouldRefreshProfile {
@@ -69,7 +66,7 @@ class ProfileViewModel {
         do {
             try await client.updateBroadcastsForContact(
                 localUser: LocalUser.current!,
-                address: emailAddress,
+                address: profile.address,
                 allowBroadcasts: newValue
             )
         } catch {
@@ -88,10 +85,6 @@ class ProfileViewModel {
         profileLoadingError = nil
         
         await withTaskGroup { group in
-            group.addTask {
-                await self.fetchProfile()
-            }
-            
             group.addTask {
                 await self.updateIsInContacts()
             }
@@ -113,25 +106,13 @@ class ProfileViewModel {
     @MainActor
     private func checkOtherContacts() async {
         if let localUser = LocalUser.current {
-            isInOtherContacts = try? await client.isAddressInContacts(localUser: localUser, address: emailAddress)
-        }
-    }
-    
-    @MainActor
-    private func fetchProfile() async {
-        do {
-            self.profile = try await self.client.fetchProfile(address: self.emailAddress, force: true)
-            self.profileLoadingError = nil
-        } catch {
-            self.profile = nil
-            self.profileLoadingError = error
-            Log.error("Could not load profile: \(error)")
+            isInOtherContacts = try? await client.isAddressInContacts(localUser: localUser, address: profile.address)
         }
     }
 
     @MainActor
     private func updateIsInContacts() async {
-        isInContacts = (try? await contactsStore.contact(address: emailAddress.address)) != nil
+        isInContacts = (try? await contactsStore.contact(address: profile.address.address)) != nil
     }
 
     @MainActor
@@ -139,9 +120,9 @@ class ProfileViewModel {
         if let currentUser = LocalUser.current {
             let links = try? await client.getLinks(localUser: currentUser)
             let currentLink = links?.first {link in
-                link.address == emailAddress
+                link.address == profile.address
             }
-            guard var contact = (try? await contactsStore.contact(address: emailAddress.address)) else {
+            guard var contact = (try? await contactsStore.contact(address: profile.address.address)) else {
                 return
             }
 
@@ -154,12 +135,12 @@ class ProfileViewModel {
 
     func addToContacts() async throws {
         let usecase = AddToContactsUseCase()
-        try await usecase.add(emailAddress: emailAddress, cachedName: profile?[.name])
+        try await usecase.add(emailAddress: profile.address, cachedName: profile[.name])
         await updateIsInContacts()
     }
 
     func removeFromContacts() async throws {
-        try await DeleteContactUseCase().deleteContact(emailAddress: emailAddress)
+        try await DeleteContactUseCase().deleteContact(emailAddress: profile.address)
 
         await updateIsInContacts()
     }
@@ -171,8 +152,7 @@ class ProfileViewModel {
     }
 
     func fetchMessages() async {
-        guard let profile else { return }
-        let contact = (try? await contactsStore.contact(address: emailAddress.address))
+        let contact = (try? await contactsStore.contact(address: profile.address.address))
         await syncService.fetchAuthorMessages(profile: profile, includeBroadcasts: contact?.receiveBroadcasts ?? false)
     }
 }

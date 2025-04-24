@@ -16,7 +16,7 @@ struct ProfileView: View {
     private let onClose: (() -> Void)?
 
     init(
-        address: EmailAddress,
+        profile: Profile,
         showActionButtons: Bool = true,
         isContactRequest: Bool = false,
         verticalLayout: Bool = false,
@@ -28,14 +28,14 @@ struct ProfileView: View {
         self.verticalLayout = verticalLayout
         self.onClose = onClose
         self.profileImageSize = profileImageSize
-        self.viewModel = ProfileViewModel(emailAddress: address)
+        self.viewModel = ProfileViewModel(profile: profile)
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: .Spacing.large) {
             closeButton
 
-            if !viewModel.isLoadingProfile && viewModel.profile != nil {
+            if !viewModel.isLoadingProfile {
                 if !viewModel.isSelf, showActionButtons {
                     actionButtons
                         .padding(.horizontal, .Spacing.default)
@@ -63,7 +63,7 @@ struct ProfileView: View {
                 } else {
                     HStack(alignment: .top, spacing: .Spacing.default) {
                         ProfileImageView(
-                            emailAddress: viewModel.emailAddress.address,
+                            emailAddress: viewModel.profile.address.address,
                             shape: .roundedRectangle(cornerRadius: .CornerRadii.default),
                             size: profileImageSize ?? 288
                         )
@@ -123,84 +123,85 @@ struct ProfileView: View {
     }
 
     private var actionButtons: some View {
-        HStack(spacing: .Spacing.xSmall) {
-            if viewModel.isInContacts {
-                AsyncButton {
-                    await viewModel.fetchMessages()
-                } label: {
-                    HStack(spacing: .Spacing.xxSmall) {
-                        Image(.downloadMessages)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 18, height: 18)
-
-                        Text("Fetch messages")
-                    }
-                }
-            }
-
-            Button {
-                viewModel.refreshProfile()
-            } label: {
-                HStack(spacing: .Spacing.xxSmall) {
-                    Image(.reload)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 18, height: 18)
-
-                    Text("Refresh")
-                }
-            }
-
-            if viewModel.isInContacts {
-                Button {
-                    showRemoveContactConfirmationAlert = true
-                } label: {
-                    Image(.delete)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                }
-                .buttonStyle(ActionButtonStyle(isImageOnly: true, height: 32))
-                .help("Remove from contacts")
-                .alert("Are you sure you want to remove this contact?", isPresented: $showRemoveContactConfirmationAlert) {
-                    Button("Cancel", role: .cancel) {}
-                    AsyncButton("Remove", role: .destructive) {
-                        await removeUser()
-                    }
-                } message: {
-                    Text("This action cannot be undone.")
-                }
-            }
-
-            Spacer()
-
-            if viewModel.isInContacts {
-                Button {
-                    guard let registeredEmailAddress else { return }
-                    openWindow(id: WindowIDs.compose, value: ComposeAction.newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: viewModel.emailAddress.address))
-                } label: {
-                    HStack(spacing: .Spacing.xxSmall) {
-                        Image(.createMessage)
-                        Text("Create message")
-                    }
-                }
-                .buttonStyle(ActionButtonStyle(height: 32, isProminent: true))
-            } else if !viewModel.isSelf {
-                AsyncButton {
-                    await addToContacts()
-                } label: {
-                    HStack(spacing: .Spacing.xxSmall) {
-                        Image(.addToContacts)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 18, height: 18)
-
-                        Text("Add to Contacts")
-                    }
-                }
-            }
-        }
-        .buttonStyle(ActionButtonStyle(height: 32))
+        HStack {}
+//        HStack(spacing: .Spacing.xSmall) {
+//            if viewModel.isInContacts {
+//                AsyncButton {
+//                    await viewModel.fetchMessages()
+//                } label: {
+//                    HStack(spacing: .Spacing.xxSmall) {
+//                        Image(.downloadMessages)
+//                            .resizable()
+//                            .aspectRatio(contentMode: .fit)
+//                            .frame(width: 18, height: 18)
+//
+//                        Text("Fetch messages")
+//                    }
+//                }
+//            }
+//
+//            Button {
+//                viewModel.refreshProfile()
+//            } label: {
+//                HStack(spacing: .Spacing.xxSmall) {
+//                    Image(.reload)
+//                        .resizable()
+//                        .aspectRatio(contentMode: .fit)
+//                        .frame(width: 18, height: 18)
+//
+//                    Text("Refresh")
+//                }
+//            }
+//
+//            if viewModel.isInContacts {
+//                Button {
+//                    showRemoveContactConfirmationAlert = true
+//                } label: {
+//                    Image(.delete)
+//                        .resizable()
+//                        .aspectRatio(contentMode: .fit)
+//                }
+//                .buttonStyle(ActionButtonStyle(isImageOnly: true, height: 32))
+//                .help("Remove from contacts")
+//                .alert("Are you sure you want to remove this contact?", isPresented: $showRemoveContactConfirmationAlert) {
+//                    Button("Cancel", role: .cancel) {}
+//                    AsyncButton("Remove", role: .destructive) {
+//                        await removeUser()
+//                    }
+//                } message: {
+//                    Text("This action cannot be undone.")
+//                }
+//            }
+//
+//            Spacer()
+//
+//            if viewModel.isInContacts {
+//                Button {
+//                    guard let registeredEmailAddress else { return }
+//                    openWindow(id: WindowIDs.compose, value: ComposeAction.newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: viewModel.emailAddress.address))
+//                } label: {
+//                    HStack(spacing: .Spacing.xxSmall) {
+//                        Image(.createMessage)
+//                        Text("Create message")
+//                    }
+//                }
+//                .buttonStyle(ActionButtonStyle(height: 32, isProminent: true))
+//            } else if !viewModel.isSelf {
+//                AsyncButton {
+//                    await addToContacts()
+//                } label: {
+//                    HStack(spacing: .Spacing.xxSmall) {
+//                        Image(.addToContacts)
+//                            .resizable()
+//                            .aspectRatio(contentMode: .fit)
+//                            .frame(width: 18, height: 18)
+//
+//                        Text("Add to Contacts")
+//                    }
+//                }
+//            }
+//        }
+//        .buttonStyle(ActionButtonStyle(height: 32))
     }
 
     private var errorView: some View {
@@ -254,7 +255,7 @@ struct ProfileView: View {
     InjectedValues[\.client] = client
 
     return ProfileView(
-        address: .init("mickey@mouse.com")!,
+        profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
         showActionButtons: true,
         isContactRequest: false
     )
@@ -267,7 +268,7 @@ struct ProfileView: View {
     InjectedValues[\.client] = client
 
     return ProfileView(
-        address: .init("mickey@mouse.com")!,
+        profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
         showActionButtons: false,
         isContactRequest: false,
         verticalLayout: false,
@@ -284,7 +285,7 @@ struct ProfileView: View {
     InjectedValues[\.client] = client
 
     return ProfileView(
-        address: .init("mickey@mouse.com")!,
+        profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
         showActionButtons: true,
         isContactRequest: false
     )
@@ -297,7 +298,7 @@ struct ProfileView: View {
     InjectedValues[\.client] = client
 
     return ProfileView(
-        address: .init("mickey@mouse.com")!,
+        profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
         showActionButtons: true,
         isContactRequest: false
     )
@@ -310,7 +311,7 @@ struct ProfileView: View {
     InjectedValues[\.client] = client
 
     return ProfileView(
-        address: .init("mickey@mouse.com")!,
+        profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
         showActionButtons: false,
         isContactRequest: false
     )
@@ -323,7 +324,7 @@ struct ProfileView: View {
     InjectedValues[\.client] = client
 
     return ProfileView(
-        address: .init("mickey@mouse.com")!,
+        profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
         showActionButtons: true,
         isContactRequest: true
     )

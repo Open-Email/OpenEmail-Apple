@@ -21,14 +21,14 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
         }
     }
 
-    @Binding private var profile: Profile?
+    @Binding private var profile: Profile
     private let receiveBroadcasts: Binding<Bool>?
     private let hidesEmptyFields: Bool
     private let profileImageStyle: ProfileImageStyle
     @ViewBuilder private var actionButtonRow: () -> ActionButtonRow
 
     init(
-        profile: Binding<Profile?>,
+        profile: Binding<Profile>,
         receiveBroadcasts: Binding<Bool>?,
         hidesEmptyFields: Bool = false,
         profileImageStyle: ProfileImageStyle,
@@ -48,92 +48,88 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
 #endif
 
     var body: some View {
-        if let profile {
-            List {
-                Section {
-                    profileImage(profile: profile)
+        List {
+            Section {
+                profileImage(profile: profile)
 
-                    // name and address
-                    VStack(alignment: .leading, spacing: .Spacing.xxxSmall) {
-                        awayMessage
-                            .padding(.bottom, .Spacing.default)
+                // name and address
+                VStack(alignment: .leading, spacing: .Spacing.xxxSmall) {
+                    awayMessage
+                        .padding(.bottom, .Spacing.default)
 
-                        if let name = profile[.name], !name.isEmpty {
-                            Text(name).font(.title)
-                                .textSelection(.enabled)
-                        }
-                        Text(profile.address.address).font(.title2)
+                    if let name = profile[.name], !name.isEmpty {
+                        Text(name).font(.title)
                             .textSelection(.enabled)
-                            .foregroundStyle(.secondary)
                     }
-                    .padding(.bottom, .Spacing.xSmall)
+                    Text(profile.address.address).font(.title2)
+                        .textSelection(.enabled)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.bottom, .Spacing.xSmall)
+                .listRowSeparator(.hidden)
+            }
+
+            // broadcasts
+            if let receiveBroadcasts {
+                Section {
+                    VStack(alignment: .leading, spacing: .Spacing.default) {
+                        Divider()
+                        Toggle(isOn: receiveBroadcasts) {
+                            HStack(spacing: .Spacing.xSmall) {
+                                Image(.scopeBroadcasts)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 16, height: 16)
+                                Text("Broadcast")
+                            }
+                        }
+                        .toggleStyle(.switch)
+                        .tint(.accentColor)
+                        Divider()
+                    }
+                    .padding(.vertical, .Spacing.xxxSmall)
+                    #if os(macOS)
+                    .listRowInsets(.init())
+                    #endif
                     .listRowSeparator(.hidden)
                 }
+            }
 
-                // broadcasts
-                if let receiveBroadcasts {
+            ForEach(profile.groupedAttributes) { group in
+                if shouldDisplayGroup(group) {
                     Section {
-                        VStack(alignment: .leading, spacing: .Spacing.default) {
-                            Divider()
-                            Toggle(isOn: receiveBroadcasts) {
-                                HStack(spacing: .Spacing.xSmall) {
-                                    Image(.scopeBroadcasts)
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(width: 16, height: 16)
-                                    Text("Broadcast")
-                                }
+                        ForEach(group.attributes, id: \.self) { attribute in
+                            if shouldDisplayAttribute(attribute) {
+                                component(for: attribute)
+                                    .listRowSeparator(.hidden)
                             }
-                            .toggleStyle(.switch)
-                            .tint(.accentColor)
-                            Divider()
                         }
-                        .padding(.vertical, .Spacing.xxxSmall)
-                        #if os(macOS)
-                        .listRowInsets(.init())
-                        #endif
-                        .listRowSeparator(.hidden)
-                    }
-                }
-
-                ForEach(profile.groupedAttributes) { group in
-                    if shouldDisplayGroup(group) {
-                        Section {
-                            ForEach(group.attributes, id: \.self) { attribute in
-                                if shouldDisplayAttribute(attribute) {
-                                    component(for: attribute)
-                                        .listRowSeparator(.hidden)
-                                }
-                            }
-                        } header: {
-                            if (group.groupType.shouldShowInPreview) {
-                                Text(group.groupType.displayName)
-                                    .font(.title2)
-                                    .foregroundStyle(.primary)
-                                    .padding(.top, .Spacing.xSmall)
-                            } else {
-                                Spacer()
-                            }
+                    } header: {
+                        if (group.groupType.shouldShowInPreview) {
+                            Text(group.groupType.displayName)
+                                .font(.title2)
+                                .foregroundStyle(.primary)
+                                .padding(.top, .Spacing.xSmall)
+                        } else {
+                            Spacer()
                         }
                     }
                 }
             }
-#if os(macOS)
-            .inspect { tableView in
-                tableView.floatsGroupRows = false
-            }
-#endif
-            .listStyle(.plain)
-#if os(iOS)
-            .if(profileImageStyle.shouldIgnoreSafeArea) {
-                $0.ignoresSafeArea(.container, edges: .top)
-            }
-#endif
-            .scrollContentBackground(.hidden)
-            .scrollBounceBehavior(.basedOnSize)
-        } else {
-            EmptyView()
         }
+#if os(macOS)
+        .inspect { tableView in
+            tableView.floatsGroupRows = false
+        }
+#endif
+        .listStyle(.plain)
+#if os(iOS)
+        .if(profileImageStyle.shouldIgnoreSafeArea) {
+            $0.ignoresSafeArea(.container, edges: .top)
+        }
+#endif
+        .scrollContentBackground(.hidden)
+        .scrollBounceBehavior(.basedOnSize)
     }
 
     @ViewBuilder
@@ -188,7 +184,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
 
     private func textField(for attribute: ProfileAttribute, isMultiline: Bool = false) -> some View {
         LabeledContent {
-            Text(profile?[attribute] ?? "")
+            Text(profile[attribute] ?? "")
                 .textSelection(.enabled)
                 .foregroundStyle(.primary)
         } label: {
@@ -221,7 +217,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
 
     @ViewBuilder
     private var awayMessage: some View {
-        if profile?[boolean: .away] == true {
+        if profile[boolean: .away] == true {
             HStack(alignment: .firstTextBaseline, spacing: .Spacing.xSmall) {
                 Text("away")
                     .textCase(.uppercase)
@@ -235,7 +231,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                             .foregroundStyle(.themeBlue)
                     }
 
-                if let awayWarning = profile?[.awayWarning] {
+                if let awayWarning = profile[.awayWarning] {
                     Text(awayWarning)
                         .multilineTextAlignment(.leading)
                         .lineLimit(2)
@@ -256,20 +252,20 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
     private func toggleBinding(for attribute: ProfileAttribute, defaultValue: Bool) -> Binding<Bool> {
         return Binding<Bool>(
             get: {
-                return profile?[boolean: attribute] ?? defaultValue
+                return profile[boolean: attribute] ?? defaultValue
             },
             set: {
-                profile?[boolean: attribute] = $0
+                profile[boolean: attribute] = $0
             })
     }
 
     private func stringBinding(for attribute: ProfileAttribute) -> Binding<String> {
         return Binding(
             get: {
-                return profile?[attribute] ?? ""
+                return profile[attribute] ?? ""
             },
             set: {
-                profile?[attribute] = $0.isEmpty ? nil : $0
+                profile[attribute] = $0.isEmpty ? nil : $0
             })
     }
 
@@ -285,7 +281,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
 
     private func dateString(for attribute: ProfileAttribute, isRelative: Bool) -> String {
         if
-            let dateString = profile?[attribute],
+            let dateString = profile[attribute],
             let date = ISO8601DateFormatter.backendDateFormatter.date(from: dateString)
         {
             if isRelative {
@@ -302,7 +298,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
 
     private func booleanSign(for attribute: ProfileAttribute, defaultValue: Bool) -> some View {
         LabeledContent {
-            let value = profile?[boolean: attribute] ?? defaultValue
+            let value = profile[boolean: attribute] ?? defaultValue
             Image(systemName: value ? "checkmark" : "xmark")
                 .foregroundStyle(.themeBlue)
         } label: {
@@ -318,7 +314,6 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
     }
 
     private func shouldDisplayGroup(_ group: ProfileAttributesGroup) -> Bool {
-        guard let profile else { return false }
 
         if profile.isGroupEmpty(group: group) {
             return !hidesEmptyFields
@@ -332,7 +327,6 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
     }
 
     private func shouldDisplayAttribute(_ attribute: ProfileAttribute) -> Bool {
-        guard let profile else { return false }
 
         return (
             profile[attribute] != nil && profile[attribute]!.isNotEmpty

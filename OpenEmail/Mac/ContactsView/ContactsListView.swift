@@ -142,7 +142,7 @@ struct ContactsListView: View {
             self.profile = profile
             self.onAddContactClicked = onAddContactClicked
             profileViewModel = ProfileViewModel(
-                emailAddress: profile.address,
+                profile: profile,
             )
         }
         
@@ -152,7 +152,7 @@ struct ContactsListView: View {
             
             VStack(alignment: .leading, spacing: 0) {
                 ProfileView(
-                    address: profileViewModel.emailAddress,
+                    profile: profileViewModel.profile,
                     showActionButtons: false,
                     profileImageSize: 240
                 )
@@ -171,7 +171,7 @@ struct ContactsListView: View {
                         }
                         .buttonStyle(.borderedProminent)
                         .keyboardShortcut(.defaultAction)
-                        .disabled(profileViewModel.profile!.address == LocalUser.current?.address)
+                        .disabled(profileViewModel.profile.address == LocalUser.current?.address)
                     }
                 }
                 .padding(.horizontal, .Spacing.default)

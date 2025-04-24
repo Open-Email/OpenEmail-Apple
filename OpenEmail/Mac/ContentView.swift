@@ -38,7 +38,9 @@ struct ContentView: View {
             .frame(minWidth: 250)
             Group {
                 if navigationState.selectedScope == .contacts {
-                    contactsDetailView
+                    ContactDetailView(
+                        selectedContact: navigationState.selectedContact
+                    )
                 } else {
                     messagesDetailView
                 }
@@ -104,25 +106,43 @@ struct ContentView: View {
         }
     }
 
-    @ViewBuilder
-    private var contactsDetailView: some View {
-        if let selectedContactListItem = navigationState.selectedContact,
-           let email = EmailAddress(selectedContactListItem.email) {
-            ProfileView(
-                address: email,
-                isContactRequest: selectedContactListItem.isContactRequest
-            )
-            .frame(minWidth: 600)
-            .id(selectedContactListItem.email)
-        } else {
-            Text("No selection")
-                .bold()
-                .foregroundStyle(.tertiary)
-        }
-    }
-
     private func triggerSync() async {
         await syncService.synchronize()
+    }
+}
+
+struct ContactDetailView: View {
+    @Injected(\.client) private var client
+    @State private var profile: Profile?
+    private let selectedContactListItem: ContactListItem?
+    
+    init(selectedContact: ContactListItem?) {
+        self.selectedContactListItem = selectedContact
+    }
+    
+    var body: some View {
+        VStack {
+            if let profile = profile {
+                ProfileView(
+                    profile: profile,
+                    isContactRequest: selectedContactListItem?.isContactRequest ?? false
+                )
+                .frame(minWidth: 600)
+                .id(profile.address.address)
+            } else {
+                Text("No selection")
+                    .bold()
+                    .foregroundStyle(.tertiary)
+            }
+        }.task {
+            if let contact = selectedContactListItem, let address = EmailAddress(
+                contact.email
+            ) {
+                profile = try? await client.fetchProfile(address: address, force: false)
+            } else {
+                profile = nil
+            }
+        }
     }
 }
 

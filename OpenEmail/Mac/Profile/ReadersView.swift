@@ -24,7 +24,7 @@ struct ReadersView: View {
     private static let zeroWidthSpace = "\u{200B}"
 
     private let isEditable: Bool
-    @Binding private var readers: [EmailAddress]
+    @Binding private var readers: [Profile]
     @Binding private var tickedReaders: [String]
     @Binding private var hasInvalidReader: Bool
 
@@ -47,13 +47,14 @@ struct ReadersView: View {
     @State private var profilesShown = Set<EmailAddress>()
 
     @Injected(\.contactsStore) private var contactsStore: ContactStoring
+    @Injected(\.client) private var client
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
 
     private let showProfileType: ShowProfileType
 
     init(
         isEditable: Bool,
-        readers: Binding<[EmailAddress]>,
+        readers: Binding<[Profile]>,
         tickedReaders: Binding<[String]>,
         hasInvalidReader: Binding<Bool>,
         showProfileType: ShowProfileType
@@ -69,20 +70,19 @@ struct ReadersView: View {
         // TODO: only display first 10 readers with option to expand to see all
         HFlow(itemSpacing: 4, rowSpacing: 2) {
             ForEach(Array(readers.enumerated()), id: \.offset) { index, reader in
-                // don't show reader if it is myself, except when I am the only reader or when composing a message
-                if reader.address != registeredEmailAddress || readers.count == 1 || isEditable {
+                if reader.address.address != registeredEmailAddress || readers.count == 1 || isEditable {
                     ProfileTagView(
-                        emailAddress: reader,
+                        profile: reader,
                         isSelected: selectedReaderIndexes.contains(index),
-                        isTicked: tickedReaders.contains(reader.address),
+                        isTicked: tickedReaders.contains(reader.address.address),
                         onRemoveReader: {
                             readers.remove(at: index)
                         },
-                        automaticallyShowProfileIfNotInContacts: isEditable && !profilesShown.contains(reader),
+                        automaticallyShowProfileIfNotInContacts: isEditable && !profilesShown.contains(reader.address),
                         canRemoveReader: isEditable,
                         showsActionButtons: !isEditable,
                         onShowProfile: showProfileType.onShowProfile
-                    ).id(reader)
+                    ).id(reader.address.address)
                 }
             }
 
@@ -101,7 +101,7 @@ struct ReadersView: View {
                     .onChange(of: inputText) {
                         if !readers.isEmpty && inputText.isEmpty {
                             let last = readers.removeLast()
-                            inputText = ReadersView.zeroWidthSpace + last.address
+                            inputText = ReadersView.zeroWidthSpace + last.address.address
                         }
 
                         let trimmed = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -243,18 +243,20 @@ struct ReadersView: View {
         let address = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
 
         if let emailAddress = EmailAddress(address) {
-            if readers.contains(emailAddress) {
+            if readers
+                .contains(where: { reader in reader.address == emailAddress }) {
                 showAlreadyAddedAlert = true
             } else {
-                readers.append(emailAddress)
-                inputText = ReadersView.zeroWidthSpace
+                Task {
+                    inputText = ReadersView.zeroWidthSpace
+                    if let profile = try? await client.fetchProfile(
+                        address: emailAddress,
+                        force: false
+                    ) {
+                        readers.append(profile)
+                    }
+                }
             }
-        } else {
-            #if canImport(AppKit)
-            if !address.isEmpty {
-                NSSound.beep()
-            }
-            #endif
         }
     }
 
@@ -343,7 +345,7 @@ struct ReadersView: View {
 
 #Preview("1 reader") {
     VStack(alignment: .leading) {
-        ReadersView(isEditable: false, readers: .constant([EmailAddress("mickey.mouse@disneymail.com")].compactMap { $0 }), tickedReaders: .constant([]), hasInvalidReader: .constant(false), showProfileType: .popover)
+        ReadersView(isEditable: false, readers: .constant([Profile(address: EmailAddress("mickey.mouse@disneymail.com")!, profileData: [:])].compactMap { $0 }), tickedReaders: .constant([]), hasInvalidReader: .constant(false), showProfileType: .popover)
     }
     .padding()
     .frame(width: 500)
@@ -355,17 +357,17 @@ struct ReadersView: View {
         ReadersView(
             isEditable: false,
             readers: .constant([
-                EmailAddress("mickey.mouse@disneymail.com"),
-                EmailAddress("minnie.mouse@magicmail.com"),
-                EmailAddress("donald.duck@quackmail.com"),
-                EmailAddress("daisy.duck@flowerpowermail.com"),
-                EmailAddress("goofy.goof@laughtermail.com"),
-                EmailAddress("pluto.pup@starstruckmail.com"),
-                EmailAddress("cinderella.princess@fairytalemail.com"),
-                EmailAddress("buzz.lightyear@toinfinitymail.com"),
-                EmailAddress("ariel.mermaid@undertheseamail.com"),
-                EmailAddress("simba.lionking@savannahmail.com"),
-            ].compactMap { $0 }),
+                Profile(address: EmailAddress("mickey.mouse@disneymail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("minnie.mouse@magicmail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("donald.duck@quackmail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("daisy.duck@flowerpowermail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("goofy.goof@laughtermail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("pluto.pup@starstruckmail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("cinderella.princess@fairytalemail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("buzz.lightyear@toinfinitymail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("ariel.mermaid@undertheseamail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("simba.lionking@savannahmail.com")!, profileData: [:]),
+            ]),
             tickedReaders: .constant([
                 "mickey.mouse@disneymail.com",
                 "minnie.mouse@magicmail.com"
@@ -383,27 +385,27 @@ struct ReadersView: View {
         ReadersView(
             isEditable: false,
             readers: .constant([
-                EmailAddress("mickey.mouse@disneymail.com"),
-                EmailAddress("minnie.mouse@magicmail.com"),
-                EmailAddress("donald.duck@quackmail.com"),
-                EmailAddress("daisy.duck@flowerpowermail.com"),
-                EmailAddress("goofy.goof@laughtermail.com"),
-                EmailAddress("pluto.pup@starstruckmail.com"),
-                EmailAddress("cinderella.princess@fairytalemail.com"),
-                EmailAddress("buzz.lightyear@toinfinitymail.com"),
-                EmailAddress("ariel.mermaid@undertheseamail.com"),
-                EmailAddress("simba.lionking@savannahmail.com"),
-                EmailAddress("woody.cowboy@toystorymail.com"),
-                EmailAddress("jessie.cowgirl@yeehawmail.com"),
-                EmailAddress("aladdin.streetrat@agrabahmail.com"),
-                EmailAddress("jasmine.princess@palacemail.com"),
-                EmailAddress("pocahontas.naturelover@windmail.com"),
-                EmailAddress("mulan.warrior@honoratemail.com"),
-                EmailAddress("frozen.anna@snowqueenmail.com"),
-                EmailAddress("elsa.icequeen@frozenmail.com"),
-                EmailAddress("rapunzel.longhair@towermail.com"),
-                EmailAddress("genie.freewisher@magiclampmail.com"),
-            ].compactMap { $0 }),
+                Profile(address: EmailAddress("mickey.mouse@disneymail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("minnie.mouse@magicmail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("donald.duck@quackmail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("daisy.duck@flowerpowermail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("goofy.goof@laughtermail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("pluto.pup@starstruckmail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("cinderella.princess@fairytalemail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("buzz.lightyear@toinfinitymail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("ariel.mermaid@undertheseamail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("simba.lionking@savannahmail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("woody.cowboy@toystorymail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("jessie.cowgirl@yeehawmail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("aladdin.streetrat@agrabahmail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("jasmine.princess@palacemail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("pocahontas.naturelover@windmail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("mulan.warrior@honoratemail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("frozen.anna@snowqueenmail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("elsa.icequeen@frozenmail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("rapunzel.longhair@towermail.com")!, profileData: [:]),
+                Profile(address: EmailAddress("genie.freewisher@magiclampmail.com")!, profileData: [:])
+            ]),
             tickedReaders: .constant([
                 "mickey.mouse@disneymail.com",
                 "minnie.mouse@magicmail.com"

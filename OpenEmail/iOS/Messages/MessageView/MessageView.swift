@@ -356,7 +356,7 @@ struct MessageView: View {
         VStack(alignment: .leading, spacing: .Spacing.small) {
             ReadersView(
                 isEditable: false,
-                readers: .constant(viewModel.readersAddresses),
+                readers: viewModel.readers,
                 tickedReaders: .constant(viewModel.message?.deliveries ?? []),
                 hasInvalidReader: .constant(false)
             )

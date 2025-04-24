@@ -3,7 +3,7 @@ import OpenEmailCore
 import Logging
 
 struct ProfileView: View {
-    @ObservedObject private var viewModel: ProfileViewModel
+    @State private var viewModel: ProfileViewModel
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) var registeredEmailAddress: String?
 
     private let showActionButtons: Bool
@@ -12,13 +12,13 @@ struct ProfileView: View {
     @State private var showsComposeView = false
 
     init(
-        emailAddress: EmailAddress,
+        profile: Profile,
         showActionButtons: Bool = true,
         isContactRequest: Bool = false,
     ) {
         self.showActionButtons = showActionButtons
         self.isContactRequest = isContactRequest
-        viewModel = ProfileViewModel(emailAddress: emailAddress)
+        viewModel = ProfileViewModel(profile: profile)
     }
 
     var body: some View {
@@ -27,7 +27,7 @@ struct ProfileView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding()
         } else {
-            if !viewModel.isLoadingProfile && viewModel.profile != nil {
+            if !viewModel.isLoadingProfile {
                 let canEditReceiveBroadcasts = !viewModel.isSelf && viewModel.isInContacts
                 ProfileAttributesView(
                     profile: $viewModel.profile,
@@ -46,7 +46,7 @@ struct ProfileView: View {
                 )
                 .sheet(isPresented: $showsComposeView) {
                     if let registeredEmailAddress {
-                        ComposeMessageView(action: .newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: viewModel.emailAddress.address))
+                        ComposeMessageView(action: .newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: viewModel.profile.address.address))
                     }
                 }
             } else {
@@ -152,7 +152,7 @@ struct ProfileView: View {
     InjectedValues[\.client] = client
 
     return ProfileView(
-        emailAddress: .init("mickey@mouse.com")!,
+        profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
         showActionButtons: true,
         isContactRequest: false,
     )
@@ -164,7 +164,7 @@ struct ProfileView: View {
     InjectedValues[\.client] = client
 
     return ProfileView(
-        emailAddress: .init("mickey@mouse.com")!,
+        profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
         showActionButtons: true,
         isContactRequest: false,
     )
@@ -176,7 +176,7 @@ struct ProfileView: View {
     InjectedValues[\.client] = client
 
     return ProfileView(
-        emailAddress: .init("mickey@mouse.com")!,
+        profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
         showActionButtons: true,
         isContactRequest: false,
     )
@@ -191,7 +191,7 @@ struct ProfileView: View {
     InjectedValues[\.contactsStore] = contactsStore
 
     return ProfileView(
-        emailAddress: .init("mickey@mouse.com")!,
+        profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
         showActionButtons: false,
         isContactRequest: false,
     )

@@ -29,8 +29,10 @@ struct SidebarView: View {
                     navigationState.selectedScope = item.scope
                 }
             }
+            
+            Spacer()
+            ProfileButton()
         }
-        //.listStyle(.sidebar)
         .padding(.horizontal, .Spacing.xSmall)
         .padding(.bottom, .Spacing.default)
         .frame(maxHeight: .infinity, alignment: .top)
@@ -39,6 +41,48 @@ struct SidebarView: View {
         }
     }
 }
+
+private struct ProfileButton: View {
+    @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
+    @AppStorage(UserDefaultsKeys.profileName) private var profileName: String?
+
+    @Environment(\.openWindow) private var openWindow
+
+    @State private var isHovering = false
+    @State private var isPressed = false
+
+    var body: some View {
+        Button {
+            openWindow(id: WindowIDs.profileEditor)
+        } label: {
+            HStack(spacing: .Spacing.small) {
+                ProfileImageView(emailAddress: registeredEmailAddress, size: 26)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(profileName ?? "No Name").bold()
+                        .foregroundStyle(.primary)
+                    Text(registeredEmailAddress ?? "").font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(4)
+            .background {
+                if isHovering {
+                    RoundedRectangle(cornerRadius: .CornerRadii.small)
+                        .foregroundStyle(.tertiary)
+                }
+            }
+            .animation(.default, value: isHovering)
+            .onHover {
+                isHovering = $0
+                if !isHovering {
+                    isPressed = false
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+}
+
 
 private struct SidebarItemView: View {
     let icon: ImageResource
@@ -67,7 +111,7 @@ private struct SidebarItemView: View {
         .frame(height: 28, alignment: .leading)
         .background {
             if isSelected {
-                RoundedRectangle(cornerRadius: .CornerRadii.default, style: .circular)
+                RoundedRectangle(cornerRadius: .CornerRadii.small, style: .circular)
                     .fill(.themeIconBackground)
             }
         }

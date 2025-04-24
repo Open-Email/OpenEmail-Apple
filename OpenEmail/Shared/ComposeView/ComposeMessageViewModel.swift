@@ -97,7 +97,7 @@ class ComposeMessageViewModel {
         return dateFormatter
     }()
 
-    var readers: [EmailAddress] = [] {
+    var readers: [Profile] = [] {
         didSet {
             updateDraft()
         }
@@ -213,7 +213,7 @@ class ComposeMessageViewModel {
                     self?.uploadProgress = progress
                 }
             } else {
-                let emailAddresses = Array(readers)
+                let emailAddresses = readers.map { reader in reader.address }
 
                 messageId = try await client.uploadPrivateMessage(
                     localUser: localUser,
@@ -252,16 +252,16 @@ class ComposeMessageViewModel {
         var missingContacts = [Contact]()
 
         for reader in readers {
-            let address = reader.address
-            if (try? await contactsStore.contact(address: address)) == nil {
-                let profile = try? await client.fetchProfile(address: reader, force: true)
+            let address = reader.address.address
+            if (try? await contactsStore.contact(address: address)) == nil,
+                let profile = try? await client.fetchProfile(address: reader.address, force: true) {
                 let id = localUser.connectionLinkFor(remoteAddress: address)
                 let contact = Contact(
                     id: id,
                     addedOn: Date(),
                     address: address,
                     receiveBroadcasts: true,
-                    cachedName: profile?[.name],
+                    cachedName: profile[.name],
                     cachedProfileImageURL: nil
                 )
                 missingContacts.append(contact)
@@ -409,19 +409,26 @@ class ComposeMessageViewModel {
         )
     }
 
+    
     func addReader(_ address: EmailAddress, ignoreAddress: EmailAddress? = nil) {
-        if address.address == ignoreAddress?.address {
-            return
+        Task {
+            if address.address == ignoreAddress?.address {
+                return
+            }
+            if isReaderPresent(address) {
+                return
+            }
+            if let profile = try? await client.fetchProfile(address: address, force: false) {
+                readers.append(profile)
+                updateDraft()
+            }
         }
-        if isReaderPresent(address) {
-            return
-        }
-        readers.append(address)
-        updateDraft()
+        
     }
 
     private func isReaderPresent(_ addr: EmailAddress) -> Bool {
-        return readers.first(where: { $0.address == addr.address }) != nil
+        return readers
+            .first(where: { $0.address.address == addr.address }) != nil
     }
 
     private func copyReadersFromMessage(_ message: Message, author: EmailAddress) {
@@ -685,7 +692,7 @@ class ComposeMessageViewModel {
 
             draftMessage.subject = subject
             draftMessage.body = fullText
-            draftMessage.readers = readers.map { $0.address }
+            draftMessage.readers = readers.map { $0.address.address }
             draftMessage.draftAttachmentUrls = attachedFileItems.map { $0.url }
             draftMessage.isBroadcast = isBroadcast
 
@@ -721,7 +728,9 @@ class ComposeMessageViewModel {
                 return false
             }
 
-            guard !readers.contains(address) else {
+            let readersListContains = readers.contains{ reader in reader.address == address }
+            
+            if !readersListContains {
                 return false
             }
 

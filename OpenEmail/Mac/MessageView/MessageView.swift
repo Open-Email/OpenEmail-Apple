@@ -91,7 +91,7 @@ struct MessageView: View {
                 .overlay(alignment: .trailing) {
                     if let selectedProfileViewModel {
                         ProfileView(
-                            address: selectedProfileViewModel.emailAddress,
+                            profile: selectedProfileViewModel.profile,
                             showActionButtons: false,
                             verticalLayout: true,
                             onClose: {
@@ -180,7 +180,7 @@ struct MessageView: View {
                     HStack {
                         if message != nil, let profile = viewModel.authorProfile {
                             ProfileTagView(
-                                emailAddress: profile.address,
+                                profile: profile,
                                 isSelected: false,
                                 automaticallyShowProfileIfNotInContacts: false,
                                 canRemoveReader: false,
@@ -206,9 +206,9 @@ struct MessageView: View {
 
                             ReadersView(
                                 isEditable: false,
-                                readers: Binding<[EmailAddress]>(
+                                readers: Binding<[Profile]>(
                                     get: {
-                                        viewModel.readers.map { $0.address }
+                                        viewModel.readers
                                     },
                                     set: { _ in }
                                 ),
