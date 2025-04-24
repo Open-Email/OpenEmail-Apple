@@ -39,10 +39,6 @@ struct ContactListItemView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        #if os(macOS)
-        .padding(.Spacing.default)
-        .listRowSeparator(.hidden)
-        #endif
     }
 }
 

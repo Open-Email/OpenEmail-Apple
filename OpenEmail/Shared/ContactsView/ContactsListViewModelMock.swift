@@ -1,9 +1,11 @@
 import OpenEmailModel
+import OpenEmailCore
 
-final class ContactsListViewModelMock: ContactsListViewModelProtocol {   
+final class ContactsListViewModelMock {   
     var contactRequestItems: [ContactListItem]
     var contactItems: [ContactListItem]
     var searchText: String
+    var contactToAdd: Profile?
     var contactsCount: Int {
         contactItems.count
     }
@@ -26,7 +28,7 @@ final class ContactsListViewModelMock: ContactsListViewModelProtocol {
         nil
     }
 
-    func addContact(address: String) async throws {}
+    func addContact() async throws {}
 
     static func makeMock() -> ContactsListViewModelMock {
         ContactsListViewModelMock(

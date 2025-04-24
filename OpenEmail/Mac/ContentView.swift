@@ -16,7 +16,6 @@ struct ContentView: View {
     @State private var searchText: String = ""
 
     @State private var selectedMessageProfileAddress: EmailAddress?
-    @State private var selectedContactListItem: ContactListItem?
     @State private var selectedProfileViewModel: ProfileViewModel?
 
     private let contactsOrNotificationsUpdatedPublisher = Publishers.Merge(
@@ -31,7 +30,7 @@ struct ContentView: View {
                 .frame(minWidth: 200)
             Group {
                 if navigationState.selectedScope == .contacts {
-                    ContactsListView(selectedContactListItem: $selectedContactListItem)
+                    ContactsListView(searchText: $searchText)
                 } else {
                     MessagesListView(searchText: $searchText)
                 }
@@ -107,10 +106,14 @@ struct ContentView: View {
 
     @ViewBuilder
     private var contactsDetailView: some View {
-        if let selectedProfileViewModel, let selectedContactListItem {
-            ProfileView(viewModel: selectedProfileViewModel, isContactRequest: selectedContactListItem.isContactRequest)
-                .frame(minWidth: 600)
-                .id(selectedProfileViewModel.emailAddress.address)
+        if let selectedContactListItem = navigationState.selectedContact,
+           let email = EmailAddress(selectedContactListItem.email) {
+            ProfileView(
+                address: email,
+                isContactRequest: selectedContactListItem.isContactRequest
+            )
+            .frame(minWidth: 600)
+            .id(selectedContactListItem.email)
         } else {
             Text("No selection")
                 .bold()

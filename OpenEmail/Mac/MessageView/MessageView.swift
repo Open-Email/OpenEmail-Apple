@@ -91,7 +91,7 @@ struct MessageView: View {
                 .overlay(alignment: .trailing) {
                     if let selectedProfileViewModel {
                         ProfileView(
-                            viewModel: selectedProfileViewModel,
+                            address: selectedProfileViewModel.emailAddress,
                             showActionButtons: false,
                             verticalLayout: true,
                             onClose: {

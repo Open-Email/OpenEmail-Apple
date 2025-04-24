@@ -5,35 +5,22 @@ import OpenEmailCore
 import Logging
 
 struct ContactsListView: View {
-    @State private var viewModel: ContactsListViewModelProtocol
-    @State private var searchText = ""
+    @State private var viewModel: ContactsListViewModel = ContactsListViewModel()
+    @Binding private var searchText: String
+    @Environment(NavigationState.self) private var navigationState
 
     @State private var showAddContactView = false
-    @State private var addressToAdd: String?
 
     @State private var showsAddContactError = false
-    @State private var showsContactExistsError = false
     @State private var addContactError: Error?
 
-    @Binding private var selectedContactListItem: ContactListItem?
-
-    init(
-        viewModel: ContactsListViewModelProtocol = ContactsListViewModel(),
-        selectedContactListItem: Binding<ContactListItem?>
-    ) {
-        _viewModel = .init(initialValue: viewModel)
-        _selectedContactListItem = selectedContactListItem
+    init(searchText: Binding<String>) {
+        _searchText = searchText
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            SearchField(text: $searchText)
-                .padding(.vertical, .Spacing.small)
-                .padding(.horizontal, .Spacing.default)
-
-            Divider()
-
-            List(selection: $selectedContactListItem) {
+            List {
                 Section {
                     if viewModel.contactRequestItems.isEmpty && viewModel.contactsCount == 0 && searchText.isEmpty {
                         EmptyListView(
@@ -72,9 +59,9 @@ struct ContactsListView: View {
                             .font(.title)
                             .fontWeight(.semibold)
                             .foregroundStyle(.primary)
-
+                        
                         Spacer()
-
+                        
                         Button {
                             showAddContactView = true
                         } label: {
@@ -93,54 +80,18 @@ struct ContactsListView: View {
             .listStyle(.plain)
             .scrollBounceBehavior(.basedOnSize)
         }
-        .background(Color(nsColor: .controlBackgroundColor))
         .onChange(of: searchText) {
             viewModel.searchText = searchText
         }
-        .onChange(of: viewModel.contactsCount) {
-            // deselect contact if it has been removed
-            if let selectedContactListItem {
-                self.selectedContactListItem = viewModel.contactListItem(with: selectedContactListItem.email)
-            }
-        }
         .sheet(isPresented: $showAddContactView) {
             ContactsAddressInputView { address in
-                if viewModel.hasContact(with: address) {
-                    showsContactExistsError = true
-                } else {
-                    addressToAdd = address
-                }
+                viewModel.onAddressSearch(address: address)
                 showAddContactView = false
             } onCancel: {
-                addressToAdd = nil
+                viewModel.onAddressSearchDismissed()
                 showAddContactView = false
             }
-        }
-        .sheet(isPresented: Binding(get: {
-            addressToAdd != nil
-        }, set: {
-            if $0 == false {
-                addressToAdd = nil
-            }
-        })) {
-            if let emailAddress = EmailAddress(addressToAdd) {
-                ProfilePreviewSheetView(
-                    emailAddress: emailAddress,
-                    onAddContactClicked: { address in
-                        Task {
-                            do {
-                                try await viewModel.addContact(address: emailAddress.address)
-                            } catch {
-                                Log.error("Error while adding contact: \(error)")
-                                addContactError = error
-                                showsAddContactError = true
-                            }
-                        }
-                    }
-                )
-            }
-        }
-        .alert("Could not add contact", isPresented: $showsAddContactError, actions: {
+        }.alert("Could not add contact", isPresented: $showsAddContactError, actions: {
             Button("OK") {
                 showAddContactView = true
             }
@@ -149,48 +100,69 @@ struct ContactsListView: View {
                 Text("Underlying error: \(String(describing: addContactError))")
             }
         })
-        .alert("Contact already exists", isPresented: $showsContactExistsError, actions: {})
-        .onReceive(NotificationCenter.default.publisher(for: .didUpdateContacts)) { notification in
-            // listen to contact add notification
-            guard
-                let userInfo = notification.userInfo,
-                let updateType = PersistedStore.UpdateType(rawValue: ((userInfo["type"] as? String) ?? "")),
-                updateType == .add,
-                let addresses = userInfo["addresses"] as? [String],
-                let addressToAdd,
-                addresses.contains(addressToAdd)
-            else {
-                return
-            }
+        .alert("Contact already exists", isPresented: $viewModel.showsContactExistsError, actions: {})
+                
+//        VStack(alignment: .leading, spacing: 0) {
+//
+//
+//        }
 
-            self.addressToAdd = nil
-        }
+//        .onChange(of: viewModel.contactsCount) {
+//            // deselect contact if it has been removed
+//            if let selectedContactListItem {
+//                self.selectedContactListItem = viewModel.contactListItem(with: selectedContactListItem.email)
+//            }
+//        }
+//
+//        .sheet(isPresented: Binding<Bool>(
+//            get: {
+//                $viewModel.contactToAdd != nil
+//            },
+//            set: { _ in }
+//        )) {
+//            ProfilePreviewSheetView(
+//                profile: $viewModel.contactToAdd!,
+//                onAddContactClicked: { address in
+//                    Task {
+//                        do {
+//                            try await viewModel.addContact()
+//                        } catch {
+//                            Log.error("Error while adding contact: \(error)")
+//                            addContactError = error
+//                            showsAddContactError = true
+//                        }
+//                    }
+//                }
+//            )
+//            
+//        }
+//
     }
 
-    struct ProfilePreviewSheetView: View {
+    private struct ProfilePreviewSheetView: View {
         @Environment(\.dismiss) private var dismiss
         @State var profileViewModel: ProfileViewModel
-        let emailAddress: EmailAddress
-        let onAddContactClicked: ((String) -> Void)
+        let profile: Profile
+        let onAddContactClicked: ((Profile) -> Void)
 
         init(
-            emailAddress: EmailAddress,
-            onAddContactClicked: @escaping ((String) -> Void)
+            profile: Profile,
+            onAddContactClicked: @escaping ((Profile) -> Void)
         ) {
-            self.emailAddress = emailAddress
+            self.profile = profile
             self.onAddContactClicked = onAddContactClicked
             profileViewModel = ProfileViewModel(
-                emailAddress: emailAddress,
+                emailAddress: profile.address,
             )
         }
         
         var body: some View {
             
-            let profileLoaded = profileViewModel.profile != nil && profileViewModel.profileLoadingError == nil
+            let profileLoaded = profileViewModel.profileLoadingError == nil
             
             VStack(alignment: .leading, spacing: 0) {
                 ProfileView(
-                    viewModel: profileViewModel,
+                    address: profileViewModel.emailAddress,
                     showActionButtons: false,
                     profileImageSize: 240
                 )
@@ -205,11 +177,11 @@ struct ContactsListView: View {
 
                     if profileLoaded {
                         Button("Add", role: .cancel) {
-                            onAddContactClicked(emailAddress.address)
+                            onAddContactClicked(profile)
                         }
                         .buttonStyle(.borderedProminent)
                         .keyboardShortcut(.defaultAction)
-                        .disabled(emailAddress.address == LocalUser.current?.address.address)
+                        .disabled(profileViewModel.profile!.address == LocalUser.current?.address)
                     }
                 }
                 .padding(.horizontal, .Spacing.default)
@@ -226,16 +198,21 @@ struct ContactsListView: View {
 
 #Preview {
     @Previewable @State var selectedContactListItem: ContactListItem?
-
-    let viewModel = ContactsListViewModelMock.makeMock()
-    ContactsListView(viewModel: viewModel, selectedContactListItem: $selectedContactListItem)
+    ContactsListView(
+        searchText: Binding<String>(
+            get: { "" }, set: { _ in }
+        )
+    )
         .frame(width: 300, height: 600)
 }
 
 #Preview("empty") {
     @Previewable @State var selectedContactListItem: ContactListItem?
-    let viewModel = ContactsListViewModelMock()
-    ContactsListView(viewModel: viewModel, selectedContactListItem: $selectedContactListItem)
+    ContactsListView(
+        searchText: Binding<String>(
+            get: { "" }, set: { _ in }
+        )
+    )
         .frame(width: 300, height: 600)
 }
 

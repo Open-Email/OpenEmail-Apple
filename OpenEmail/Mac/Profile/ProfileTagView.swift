@@ -90,7 +90,7 @@ struct ProfileTagView: View {
             }
             .popover(isPresented: $showContactPopover) {
                 ProfilePopover(
-                    profileViewModel: profileViewModel,
+                    address: profileViewModel.emailAddress,
                     onDismiss: {
                         showContactPopover = false
                     },
@@ -133,7 +133,6 @@ struct ProfileTagView: View {
 
 struct ProfilePopover: View {
     
-    
     let profileViewModel: ProfileViewModel
     let onRemoveReader: (() -> Void)?
     let onDismiss: (() -> Void)
@@ -141,13 +140,13 @@ struct ProfilePopover: View {
     let canRemoveReader: Bool
     
     init(
-        profileViewModel: ProfileViewModel,
+        address: EmailAddress,
         onDismiss: @escaping (() -> Void),
         onRemoveReader: (() -> Void)? = nil,
         showsActionButtons: Bool,
         canRemoveReader: Bool
     ) {
-        self.profileViewModel = profileViewModel
+        self.profileViewModel = ProfileViewModel(emailAddress: address)
         self.onRemoveReader = onRemoveReader
         self.onDismiss = onDismiss
         self.showsActionButtons = showsActionButtons
@@ -161,7 +160,7 @@ struct ProfilePopover: View {
         
         VStack {
             ProfileView(
-                viewModel: profileViewModel,
+                address: profileViewModel.emailAddress,
                 showActionButtons: showsActionButtons,
                 verticalLayout: false,
                 profileImageSize: 200

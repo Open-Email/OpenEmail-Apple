@@ -16,7 +16,7 @@ struct ProfileView: View {
     private let onClose: (() -> Void)?
 
     init(
-        viewModel: ProfileViewModel,
+        address: EmailAddress,
         showActionButtons: Bool = true,
         isContactRequest: Bool = false,
         verticalLayout: Bool = false,
@@ -28,7 +28,7 @@ struct ProfileView: View {
         self.verticalLayout = verticalLayout
         self.onClose = onClose
         self.profileImageSize = profileImageSize
-        self.viewModel = viewModel
+        self.viewModel = ProfileViewModel(emailAddress: address)
     }
 
     var body: some View {
@@ -254,7 +254,7 @@ struct ProfileView: View {
     InjectedValues[\.client] = client
 
     return ProfileView(
-        viewModel: ProfileViewModel(emailAddress: .init("mickey@mouse.com")!),
+        address: .init("mickey@mouse.com")!,
         showActionButtons: true,
         isContactRequest: false
     )
@@ -267,7 +267,7 @@ struct ProfileView: View {
     InjectedValues[\.client] = client
 
     return ProfileView(
-        viewModel: ProfileViewModel(emailAddress: .init("mickey@mouse.com")!),
+        address: .init("mickey@mouse.com")!,
         showActionButtons: false,
         isContactRequest: false,
         verticalLayout: false,
@@ -284,7 +284,7 @@ struct ProfileView: View {
     InjectedValues[\.client] = client
 
     return ProfileView(
-        viewModel: ProfileViewModel(emailAddress: .init("mickey@mouse.com")!),
+        address: .init("mickey@mouse.com")!,
         showActionButtons: true,
         isContactRequest: false
     )
@@ -297,7 +297,7 @@ struct ProfileView: View {
     InjectedValues[\.client] = client
 
     return ProfileView(
-        viewModel: ProfileViewModel(emailAddress: .init("mickey@mouse.com")!),
+        address: .init("mickey@mouse.com")!,
         showActionButtons: true,
         isContactRequest: false
     )
@@ -310,7 +310,7 @@ struct ProfileView: View {
     InjectedValues[\.client] = client
 
     return ProfileView(
-        viewModel: ProfileViewModel(emailAddress: .init("mickey@mouse.com")!),
+        address: .init("mickey@mouse.com")!,
         showActionButtons: false,
         isContactRequest: false
     )
@@ -323,7 +323,7 @@ struct ProfileView: View {
     InjectedValues[\.client] = client
 
     return ProfileView(
-        viewModel: ProfileViewModel(emailAddress: .init("mickey@mouse.com")!),
+        address: .init("mickey@mouse.com")!,
         showActionButtons: true,
         isContactRequest: true
     )
