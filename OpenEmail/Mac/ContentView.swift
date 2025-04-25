@@ -19,15 +19,42 @@ struct ContentView: View {
     @State private var showsAddContactError = false
     @State private var addContactError: Error?
     @State private var contactsListViewModel: ContactsListViewModel = ContactsListViewModel()
+    @State private var sidebarViewModel: ScopesSidebarViewModel = ScopesSidebarViewModel()
     
     private let contactsOrNotificationsUpdatedPublisher = Publishers.Merge(
         NotificationCenter.default.publisher(for: .didUpdateContacts),
         NotificationCenter.default.publisher(for: .didUpdateNotifications)
     ).eraseToAnyPublisher()
     
+    var amountLabel: String? {
+        switch sidebarViewModel.selectedScope {
+        case .broadcasts:
+            let broadcastsCount = sidebarViewModel.allCounts[.broadcasts] ?? 0
+            let unreadProadcastsCount = sidebarViewModel.unreadCounts[.broadcasts] ?? 0
+            return "\(broadcastsCount) broadcasts" + (unreadProadcastsCount > 0 ? " \(unreadProadcastsCount) unread" : "")
+        case .inbox:
+            let inboxCount = sidebarViewModel.allCounts[.inbox] ?? 0
+            let unreadInboxCount = sidebarViewModel.unreadCounts[.inbox] ?? 0
+            return "\(inboxCount) messages" + (unreadInboxCount > 0 ? " \(unreadInboxCount) unread" : "")
+        case .outbox:
+            let sentCount = sidebarViewModel.allCounts[.outbox] ?? 0
+            return "\(sentCount) messages"
+        case .drafts:
+            let draftsCount = sidebarViewModel.allCounts[.drafts] ?? 0
+            return "\(draftsCount) drafts"
+        case .trash:
+            let deletedCount = sidebarViewModel.allCounts[.trash] ?? 0
+            return "\(deletedCount) deleted messages"
+        case .contacts:
+            let contactsCount = sidebarViewModel.allCounts[.contacts] ?? 0
+            let requestsCount = sidebarViewModel.unreadCounts[.contacts] ?? 0
+            return "\(contactsCount) contacts" + (requestsCount > 0 ? " \(requestsCount) requests" : "")
+        }
+    }
+    
     var body: some View {
         NavigationSplitView {
-            SidebarView()
+            SidebarView(scopesSidebarViewModel: $sidebarViewModel)
         } content: {
             Group {
                 if navigationState.selectedScope == .contacts {
@@ -44,9 +71,22 @@ struct ContentView: View {
                     }
                 }
                 ToolbarItem {
-                    Text(navigationState.selectedScope.displayName)
-                        .font(.title3)
-                        .fontWeight(.semibold)
+                    VStack(alignment: .leading) {
+                        Text(navigationState.selectedScope.displayName)
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                        
+                        if let amountLabel = amountLabel {
+                            Text(amountLabel)
+                                .font(.subheadline)
+                                .lineLimit(1)
+                                .foregroundStyle(.secondary)
+                                .truncationMode(.tail)
+                        }
+                    }
+                    
                 }
                 
             }

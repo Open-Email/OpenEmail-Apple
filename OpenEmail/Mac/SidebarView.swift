@@ -5,7 +5,11 @@ import OpenEmailCore
 struct SidebarView: View {
     @Environment(NavigationState.self) private var navigationState
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
-    @State private var viewModel = ScopesSidebarViewModel()
+    @Binding private var viewModel: ScopesSidebarViewModel
+    
+    init (scopesSidebarViewModel: Binding<ScopesSidebarViewModel>) {
+        _viewModel = scopesSidebarViewModel
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: .Spacing.xxxxSmall) {
@@ -123,7 +127,12 @@ private struct SidebarItemView: View {
 }
 
 #Preview {
-        SidebarView()
-            .frame(height: 800)
-            .environment(NavigationState())
+    SidebarView(scopesSidebarViewModel: Binding<ScopesSidebarViewModel>(
+        get: {
+            ScopesSidebarViewModel()
+        },
+        set: { _ in }
+    ))
+    .frame(height: 800)
+    .environment(NavigationState())
 }
