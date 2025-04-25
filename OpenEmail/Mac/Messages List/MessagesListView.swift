@@ -17,22 +17,22 @@ struct MessagesListView: View {
     var body: some View {
         @Bindable var navigationState = navigationState
 
-        VStack(alignment: .leading) {
-            Text(navigationState.selectedScope.displayName)
-                .font(.title3)
-                .fontWeight(.semibold)
-                .foregroundStyle(.primary)
-                .padding(
-                    EdgeInsets(
-                        top: 20,
-                        leading: 20,
-                        bottom: .zero,
-                        trailing: 20,
-                        
-                    )
-                )
+        VStack(alignment: .leading, spacing: .zero) {
+            
             List(selection: $navigationState.selectedMessageIDs) {
-                
+                Text(navigationState.selectedScope.displayName)
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.primary)
+                    .padding(
+                        EdgeInsets(
+                            top: .zero,
+                            leading: .zero,
+                            bottom: .Spacing.xxSmall,
+                            trailing: .Spacing.xxSmall,
+                            
+                        )
+                    )
                 if viewModel.messages.isEmpty && searchText.isEmpty {
                     EmptyListView(
                         icon: navigationState.selectedScope.imageResource,
@@ -45,7 +45,13 @@ struct MessagesListView: View {
                         message: message,
                         scope: navigationState.selectedScope
                     )
-                    .padding(.Spacing.xxSmall)
+                    .padding(EdgeInsets(
+                        top: .Spacing.xxSmall,
+                        leading: .zero,
+                        bottom: .Spacing.xxSmall,
+                        trailing: .Spacing.xxSmall,
+                        
+                    ))
                 }
             }
             .listStyle(.automatic)

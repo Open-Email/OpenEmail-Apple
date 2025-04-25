@@ -50,70 +50,81 @@ struct MessageListItemView: View {
     
 
     var body: some View {
-        
-        VStack(alignment: .leading, spacing: 0) {
+        HStack(alignment: .top, spacing: 0) {
+            Circle()
+                .fill(message.isRead ? Color.clear :  Color.accentColor)
+                .frame(width: 8, height: 8)
+                .padding(EdgeInsets(
+                    top: .Spacing.xxxSmall,
+                    leading: .Spacing.xxxSmall,
+                    bottom: .Spacing.xxxSmall,
+                    trailing: .Spacing.xSmall,
+                    
+                ))
             
-            HStack {
-                Text(scope == .outbox ? formattedReadersLine : profileNames[message.author] ?? message.author)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                    .font(.headline)
-                    .padding(.bottom, 3)
-                
-                Spacer()
-                
-                if let boxLabel = boxLabel {
-                    Text(boxLabel)
+            VStack(alignment: .leading, spacing: 0) {
+                HStack {
+                    Text(scope == .outbox ? formattedReadersLine : profileNames[message.author] ?? message.author)
                         .lineLimit(1)
-                        .foregroundStyle(.secondary)
                         .truncationMode(.tail)
-                        .font(.subheadline)
-                }
-                
-                Text(message.formattedAuthoredOnDate)
-                    .foregroundStyle(.secondary)
-                    .font(.subheadline)
-#if os(iOS)
-                    .font(.subheadline)
-#endif
-            }
-            
-            HStack {
-                Text(message.displayedSubject)
-                    .lineLimit(1)
-                    .font(.subheadline)
-                    .truncationMode(.tail)
-                    .padding(.bottom, 3)
-                
-                Spacer()
-                if message.hasFiles || !message.draftAttachmentUrls.isEmpty {
-                    Image(systemName: "paperclip")
-                        .resizable()
-                        .scaledToFit()
+                        .font(.headline)
+                        .padding(.bottom, 3)
+                    
+                    Spacer()
+                    
+                    if let boxLabel = boxLabel {
+                        Text(boxLabel)
+                            .lineLimit(1)
+                            .foregroundStyle(.secondary)
+                            .truncationMode(.tail)
+                            .font(.subheadline)
+                    }
+                    
+                    Text(message.formattedAuthoredOnDate)
                         .foregroundStyle(.secondary)
-                        .frame(width:11)
+                        .font(.subheadline)
+    #if os(iOS)
+                        .font(.subheadline)
+    #endif
                 }
-            }
-            
-            Text(message.body?.cleaned ?? "")
-                .foregroundStyle(.secondary)
-                .font(.subheadline)
-                .lineLimit(3)
-                .truncationMode(.tail)
-            
-        }
-        .task {
-            // fetch cached profile names
-            if scope == .outbox {
-                // readers
-                message.readers.forEach { reader in
-                    Task {
-                        profileNames[reader] = (try? await contactsStore.contact(address: reader))?.cachedName
+                
+                HStack {
+                    Text(message.displayedSubject)
+                        .lineLimit(1)
+                        .font(.subheadline)
+                        .truncationMode(.tail)
+                        .padding(.bottom, 3)
+                    
+                    Spacer()
+                    if message.hasFiles || !message.draftAttachmentUrls.isEmpty {
+                        Image(systemName: "paperclip")
+                            .resizable()
+                            .scaledToFit()
+                            .foregroundStyle(.secondary)
+                            .frame(width:11)
                     }
                 }
-            } else {
-                // author
-                profileNames[message.author] = (try? await contactsStore.contact(address: message.author))?.cachedName
+                
+                Text(message.body?.cleaned ?? "")
+                    .foregroundStyle(.secondary)
+                    .font(.subheadline)
+                    .lineLimit(3)
+                    .truncationMode(.tail)
+                
+            }
+            .task {
+                // fetch cached profile names
+                if scope == .outbox {
+                    // readers
+                    message.readers.forEach { reader in
+                        Task {
+                            profileNames[reader] = (try? await contactsStore.contact(address: reader))?.cachedName
+                        }
+                    }
+                } else {
+                    // author
+                    profileNames[message.author] = (try? await contactsStore.contact(address: message.author))?.cachedName
+                }
             }
         }
     }
