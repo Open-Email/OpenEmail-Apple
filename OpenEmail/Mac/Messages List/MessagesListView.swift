@@ -17,94 +17,79 @@ struct MessagesListView: View {
     var body: some View {
         @Bindable var navigationState = navigationState
 
-        VStack(alignment: .leading, spacing: .zero) {
+        List(selection: $navigationState.selectedMessageIDs) {
             
-            List(selection: $navigationState.selectedMessageIDs) {
-                Text(navigationState.selectedScope.displayName)
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.primary)
-                    .padding(
-                        EdgeInsets(
-                            top: .zero,
-                            leading: .zero,
-                            bottom: .Spacing.xxSmall,
-                            trailing: .Spacing.xxSmall,
-                            
-                        )
-                    )
-                if viewModel.messages.isEmpty && searchText.isEmpty {
-                    EmptyListView(
-                        icon: navigationState.selectedScope.imageResource,
-                        text: "Your \(navigationState.selectedScope.displayName) message list is empty."
-                    )
-                }
-
-                ForEach(viewModel.messages) { message in
-                    MessageListItemView(
-                        message: message,
-                        scope: navigationState.selectedScope
-                    )
-                    .padding(EdgeInsets(
-                        top: .Spacing.xxSmall,
-                        leading: .zero,
-                        bottom: .Spacing.xxSmall,
-                        trailing: .Spacing.xxSmall,
-                        
-                    ))
-                }
+            if viewModel.messages.isEmpty && searchText.isEmpty {
+                EmptyListView(
+                    icon: navigationState.selectedScope.imageResource,
+                    text: "Your \(navigationState.selectedScope.displayName) message list is empty."
+                )
             }
-            .listStyle(.automatic)
-            .scrollBounceBehavior(.basedOnSize)
-            .contextMenu(forSelectionType: String.self) { messageIDs in
-                if !messageIDs.isEmpty {
-                    let allMessages = viewModel.messages
-                        .filter {
-                            messageIDs.contains($0.id)
-                            && $0.author != registeredEmailAddress // ignore messages from self
-                        }
 
-                    if !allMessages.isEmpty {
-                        if allMessages.unreadCount == 0 {
-                            Button("Mark as Unread") {
-                                viewModel.markAsUnread(messageIDs: messageIDs)
-                            }
-                        } else {
-                            Button("Mark as Read") {
-                                viewModel.markAsRead(messageIDs: messageIDs)
-                            }
+            ForEach(viewModel.messages) { message in
+                MessageListItemView(
+                    message: message,
+                    scope: navigationState.selectedScope
+                )
+                .padding(EdgeInsets(
+                    top: .Spacing.xxSmall,
+                    leading: .zero,
+                    bottom: .Spacing.xxSmall,
+                    trailing: .Spacing.xxSmall,
+                    
+                ))
+            }
+        }
+        .listStyle(.automatic)
+        .scrollBounceBehavior(.basedOnSize)
+        .contextMenu(forSelectionType: String.self) { messageIDs in
+            if !messageIDs.isEmpty {
+                let allMessages = viewModel.messages
+                    .filter {
+                        messageIDs.contains($0.id)
+                        && $0.author != registeredEmailAddress // ignore messages from self
+                    }
+
+                if !allMessages.isEmpty {
+                    if allMessages.unreadCount == 0 {
+                        Button("Mark as Unread") {
+                            viewModel.markAsUnread(messageIDs: messageIDs)
+                        }
+                    } else {
+                        Button("Mark as Read") {
+                            viewModel.markAsRead(messageIDs: messageIDs)
                         }
                     }
                 }
             }
-            .animation(.easeInOut(duration: viewModel.messages.isEmpty ? 0 : 0.2), value: viewModel.messages)
-            .onChange(of: navigationState.selectedMessageIDs) {
-                Log.debug("selected message ids: \(navigationState.selectedMessageIDs)")
-                
-                if
-                    navigationState.selectedMessageIDs.count == 1,
-                    let selectedMessageID = navigationState.selectedMessageIDs.first
-                {
-                    // Only if not read already, mark as read
-                    viewModel.markAsRead(messageIDs: [selectedMessageID])
-                }
+        }
+        .animation(.easeInOut(duration: viewModel.messages.isEmpty ? 0 : 0.2), value: viewModel.messages)
+        .onChange(of: navigationState.selectedMessageIDs) {
+            Log.debug("selected message ids: \(navigationState.selectedMessageIDs)")
+            
+            if
+                navigationState.selectedMessageIDs.count == 1,
+                let selectedMessageID = navigationState.selectedMessageIDs.first
+            {
+                // Only if not read already, mark as read
+                viewModel.markAsRead(messageIDs: [selectedMessageID])
             }
-            .onChange(of: navigationState.selectedScope) {
-                navigationState.selectedMessageIDs = []
-                reloadMessages()
-            }
-            .onChange(of: searchText) {
-                reloadMessages()
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .didSynchronizeMessages)) { _ in
-                reloadMessages()
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .didUpdateMessages)) { _ in
-                reloadMessages()
-            }
-            .onAppear {
-                reloadMessages()
-            }
+        }
+        .onChange(of: navigationState.selectedScope) {
+            navigationState.selectedMessageIDs = []
+            reloadMessages()
+        }
+        .onChange(of: searchText) {
+            reloadMessages()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .didSynchronizeMessages)) { _ in
+            reloadMessages()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .didUpdateMessages)) { _ in
+            reloadMessages()
+        }
+        .onAppear {
+            reloadMessages()
         }.background(Color(nsColor: .controlBackgroundColor))
     }
 

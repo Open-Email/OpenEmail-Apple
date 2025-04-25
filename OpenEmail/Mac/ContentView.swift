@@ -21,18 +21,23 @@ struct ContentView: View {
     ).eraseToAnyPublisher()
 
     var body: some View {
-        NavigationView {
+        NavigationSplitView {
             SidebarView()
-                .listStyle(SidebarListStyle())
-                .frame(minWidth: 200)
+        } content: {
             Group {
                 if navigationState.selectedScope == .contacts {
                     ContactsListView(searchText: $searchText)
                 } else {
                     MessagesListView(searchText: $searchText)
                 }
+            }.toolbar {
+                ToolbarItemGroup {
+                    Text(navigationState.selectedScope.displayName)
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                }
             }
-            .frame(minWidth: 250)
+        } detail: {
             Group {
                 if navigationState.selectedScope == .contacts {
                     ContactDetailView(
@@ -41,47 +46,26 @@ struct ContentView: View {
                 } else {
                     messagesDetailView
                 }
-            }
-            .frame(minWidth: 300)
-        }.toolbar {
-            detailsToolbarContent()
-        }.searchable(text: $searchText)
+            }.toolbar {
+                ToolbarItemGroup {
+                    AsyncButton {
+                        await triggerSync()
+                    } label: {
+                        SyncProgressView()
+                    }
+                    Button {
+                        guard let registeredEmailAddress else { return }
+                        openWindow(id: WindowIDs.compose, value: ComposeAction.newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: nil))
+                    } label: {
+                        Image(systemName: "square.and.pencil")
+                    }
+                }
+            }.searchable(text: $searchText)
+        }
             
     }
 
-    @ToolbarContentBuilder
-    private func detailsToolbarContent() -> some ToolbarContent {
-        ToolbarItem(placement: .navigation) {
-            HStack {
-                Button(action: {
-                    NSApp.keyWindow?
-                        .firstResponder?
-                        .tryToPerform(
-                            #selector(NSSplitViewController.toggleSidebar(_:)),
-                            with: nil
-                        )
-                }) {
-                    Image(systemName: "sidebar.left")
-                }
-                AsyncButton {
-                    await triggerSync()
-                } label: {
-                    SyncProgressView()
-                }
-                Divider()
-            }
-        }
-        
-        ToolbarItem(placement: .primaryAction)
-        {
-            Button {
-                guard let registeredEmailAddress else { return }
-                openWindow(id: WindowIDs.compose, value: ComposeAction.newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: nil))
-            } label: {
-                Image(systemName: "square.and.pencil")
-            }
-        }
-    }
+   
 
     @ViewBuilder
     private var messagesDetailView: some View {
