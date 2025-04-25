@@ -57,8 +57,7 @@ struct MessageListItemView: View {
                 Text(scope == .outbox ? formattedReadersLine : profileNames[message.author] ?? message.author)
                     .lineLimit(1)
                     .truncationMode(.tail)
-                    .font(.system(size: 13))
-                    .fontWeight(.semibold)
+                    .font(.headline)
                     .padding(.bottom, 3)
                 
                 Spacer()
@@ -68,12 +67,12 @@ struct MessageListItemView: View {
                         .lineLimit(1)
                         .foregroundStyle(.secondary)
                         .truncationMode(.tail)
-                        .font(.system(size: 11))
+                        .font(.subheadline)
                 }
                 
                 Text(message.formattedAuthoredOnDate)
                     .foregroundStyle(.secondary)
-                    .font(.system(size: 11))
+                    .font(.subheadline)
 #if os(iOS)
                     .font(.subheadline)
 #endif
@@ -82,7 +81,7 @@ struct MessageListItemView: View {
             HStack {
                 Text(message.displayedSubject)
                     .lineLimit(1)
-                    .font(.system(size: 11))
+                    .font(.subheadline)
                     .truncationMode(.tail)
                     .padding(.bottom, 3)
                 
@@ -98,7 +97,7 @@ struct MessageListItemView: View {
             
             Text(message.body?.cleaned ?? "")
                 .foregroundStyle(.secondary)
-                .font(.system(size: 11))
+                .font(.subheadline)
                 .lineLimit(3)
                 .truncationMode(.tail)
             

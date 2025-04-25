@@ -17,8 +17,22 @@ struct MessagesListView: View {
     var body: some View {
         @Bindable var navigationState = navigationState
 
-        List(selection: $navigationState.selectedMessageIDs) {
-            Section {
+        VStack(alignment: .leading) {
+            Text(navigationState.selectedScope.displayName)
+                .font(.title3)
+                .fontWeight(.semibold)
+                .foregroundStyle(.primary)
+                .padding(
+                    EdgeInsets(
+                        top: 20,
+                        leading: 20,
+                        bottom: .zero,
+                        trailing: 20,
+                        
+                    )
+                )
+            List(selection: $navigationState.selectedMessageIDs) {
+                
                 if viewModel.messages.isEmpty && searchText.isEmpty {
                     EmptyListView(
                         icon: navigationState.selectedScope.imageResource,
@@ -33,66 +47,59 @@ struct MessagesListView: View {
                     )
                     .padding(.Spacing.xxSmall)
                 }
-            } header: {
-                Text(navigationState.selectedScope.displayName)
-                    .font(.title)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.primary)
-                    .padding(.Spacing.default)
             }
-        }
-        .listStyle(.automatic)
-        .scrollBounceBehavior(.basedOnSize)
-        .contextMenu(forSelectionType: String.self) { messageIDs in
-            if !messageIDs.isEmpty {
-                let allMessages = viewModel.messages
-                    .filter {
-                        messageIDs.contains($0.id)
-                        && $0.author != registeredEmailAddress // ignore messages from self
-                    }
-
-                if !allMessages.isEmpty {
-                    if allMessages.unreadCount == 0 {
-                        Button("Mark as Unread") {
-                            viewModel.markAsUnread(messageIDs: messageIDs)
+            .listStyle(.automatic)
+            .scrollBounceBehavior(.basedOnSize)
+            .contextMenu(forSelectionType: String.self) { messageIDs in
+                if !messageIDs.isEmpty {
+                    let allMessages = viewModel.messages
+                        .filter {
+                            messageIDs.contains($0.id)
+                            && $0.author != registeredEmailAddress // ignore messages from self
                         }
-                    } else {
-                        Button("Mark as Read") {
-                            viewModel.markAsRead(messageIDs: messageIDs)
+
+                    if !allMessages.isEmpty {
+                        if allMessages.unreadCount == 0 {
+                            Button("Mark as Unread") {
+                                viewModel.markAsUnread(messageIDs: messageIDs)
+                            }
+                        } else {
+                            Button("Mark as Read") {
+                                viewModel.markAsRead(messageIDs: messageIDs)
+                            }
                         }
                     }
                 }
             }
-        }
-        .animation(.easeInOut(duration: viewModel.messages.isEmpty ? 0 : 0.2), value: viewModel.messages)
-        .background(Color(nsColor: .controlBackgroundColor))
-        .onChange(of: navigationState.selectedMessageIDs) {
-            Log.debug("selected message ids: \(navigationState.selectedMessageIDs)")
-            
-            if
-                navigationState.selectedMessageIDs.count == 1,
-                let selectedMessageID = navigationState.selectedMessageIDs.first
-            {
-                // Only if not read already, mark as read
-                viewModel.markAsRead(messageIDs: [selectedMessageID])
+            .animation(.easeInOut(duration: viewModel.messages.isEmpty ? 0 : 0.2), value: viewModel.messages)
+            .onChange(of: navigationState.selectedMessageIDs) {
+                Log.debug("selected message ids: \(navigationState.selectedMessageIDs)")
+                
+                if
+                    navigationState.selectedMessageIDs.count == 1,
+                    let selectedMessageID = navigationState.selectedMessageIDs.first
+                {
+                    // Only if not read already, mark as read
+                    viewModel.markAsRead(messageIDs: [selectedMessageID])
+                }
             }
-        }
-        .onChange(of: navigationState.selectedScope) {
-            navigationState.selectedMessageIDs = []
-            reloadMessages()
-        }
-        .onChange(of: searchText) {
-            reloadMessages()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .didSynchronizeMessages)) { _ in
-            reloadMessages()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .didUpdateMessages)) { _ in
-            reloadMessages()
-        }
-        .onAppear {
-            reloadMessages()
-        }
+            .onChange(of: navigationState.selectedScope) {
+                navigationState.selectedMessageIDs = []
+                reloadMessages()
+            }
+            .onChange(of: searchText) {
+                reloadMessages()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .didSynchronizeMessages)) { _ in
+                reloadMessages()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .didUpdateMessages)) { _ in
+                reloadMessages()
+            }
+            .onAppear {
+                reloadMessages()
+            }
+        }.background(Color(nsColor: .controlBackgroundColor))
     }
 
     private func reloadMessages() {
