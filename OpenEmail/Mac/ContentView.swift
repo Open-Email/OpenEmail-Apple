@@ -3,39 +3,52 @@ import Combine
 import OpenEmailCore
 import OpenEmailModel
 import OpenEmailPersistence
+import Logging
 
 struct ContentView: View {
     @Environment(NavigationState.self) private var navigationState
     @Environment(\.openWindow) private var openWindow
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
-
+    
     private let contactRequestsController = ContactRequestsController()
     @Injected(\.syncService) private var syncService
     
     @State private var fetchButtonRotation = 0.0
     @State private var searchText: String = ""
-
+    @State private var showAddContactView = false
+    @State private var showsAddContactError = false
+    @State private var addContactError: Error?
+    @State private var contactsListViewModel: ContactsListViewModel = ContactsListViewModel()
+    
     private let contactsOrNotificationsUpdatedPublisher = Publishers.Merge(
         NotificationCenter.default.publisher(for: .didUpdateContacts),
         NotificationCenter.default.publisher(for: .didUpdateNotifications)
     ).eraseToAnyPublisher()
-
+    
     var body: some View {
         NavigationSplitView {
             SidebarView()
         } content: {
             Group {
                 if navigationState.selectedScope == .contacts {
-                    ContactsListView(searchText: $searchText)
+                    ContactsListView(contactsListViewModel: $contactsListViewModel)
                 } else {
                     MessagesListView(searchText: $searchText)
                 }
             }.toolbar {
-                ToolbarItemGroup {
+                ToolbarItem(placement: ToolbarItemPlacement.primaryAction) {
+                    AsyncButton {
+                        await triggerSync()
+                    } label: {
+                        SyncProgressView()
+                    }
+                }
+                ToolbarItem {
                     Text(navigationState.selectedScope.displayName)
                         .font(.title3)
                         .fontWeight(.semibold)
                 }
+                
             }
         } detail: {
             Group {
@@ -47,26 +60,73 @@ struct ContentView: View {
                     messagesDetailView
                 }
             }.toolbar {
-                ToolbarItemGroup {
-                    AsyncButton {
-                        await triggerSync()
-                    } label: {
-                        SyncProgressView()
+                ToolbarItemGroup(placement: .primaryAction) {
+                    HStack {
+                        Button {
+                            guard let registeredEmailAddress else { return }
+                            openWindow(id: WindowIDs.compose, value: ComposeAction.newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: nil))
+                        } label: {
+                            Image(systemName: "square.and.pencil")
+                        }
+                        
+                        Button {
+                            showAddContactView = true
+                        } label: {
+                            Image(systemName: "person.badge.plus")
+                        }
+                        Divider()
                     }
-                    Button {
-                        guard let registeredEmailAddress else { return }
-                        openWindow(id: WindowIDs.compose, value: ComposeAction.newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: nil))
-                    } label: {
-                        Image(systemName: "square.and.pencil")
-                    }
+                    
                 }
-            }.searchable(text: $searchText)
-        }
-            
+                
+            }
+        }.searchable(text: $searchText)
+            .onChange(of: searchText) {
+                contactsListViewModel.searchText = searchText
+            }
+            .sheet(isPresented: $showAddContactView) {
+                ContactsAddressInputView { address in
+                    contactsListViewModel.onAddressSearch(address: address)
+                    showAddContactView = false
+                } onCancel: {
+                    contactsListViewModel.onAddressSearchDismissed()
+                    showAddContactView = false
+                }
+            }.alert("Could not add contact", isPresented: $showsAddContactError, actions: {
+                Button("OK") {
+                    showAddContactView = true
+                }
+            }, message: {
+                if let addContactError {
+                    Text("Underlying error: \(String(describing: addContactError))")
+                }
+            })
+            .alert("Contact already exists", isPresented: $contactsListViewModel.showsContactExistsError, actions: {})
+            .sheet(isPresented: Binding<Bool>(
+                get: {
+                    contactsListViewModel.contactToAdd != nil
+                },
+                set: { _ in }
+            )) {
+                ProfilePreviewSheetView(
+                    profile: contactsListViewModel.contactToAdd!,
+                    onAddContactClicked: { address in
+                        Task {
+                            do {
+                                try await contactsListViewModel.addContact()
+                            } catch {
+                                Log.error("Error while adding contact: \(error)")
+                                addContactError = error
+                                showsAddContactError = true
+                            }
+                        }
+                    }
+                )
+            }
     }
-
-   
-
+    
+    
+    
     @ViewBuilder
     private var messagesDetailView: some View {
         if navigationState.selectedMessageIDs.count > 1 {
@@ -77,9 +137,57 @@ struct ContentView: View {
             )
         }
     }
-
+    
     private func triggerSync() async {
         await syncService.synchronize()
+    }
+}
+
+struct ProfilePreviewSheetView: View {
+    @Environment(\.dismiss) private var dismiss
+    @State var profileViewModel: ProfileViewModel
+    let profile: Profile
+    let onAddContactClicked: ((Profile) -> Void)
+    
+    init(
+        profile: Profile,
+        onAddContactClicked: @escaping ((Profile) -> Void)
+    ) {
+        self.profile = profile
+        self.onAddContactClicked = onAddContactClicked
+        profileViewModel = ProfileViewModel(
+            profile: profile,
+        )
+    }
+    
+    var body: some View {
+        
+        VStack(alignment: .leading, spacing: 0) {
+            ProfileView(
+                profile: profileViewModel.profile,
+                showActionButtons: false,
+                profileImageSize: 240
+            )
+            .padding(.top, -.Spacing.xSmall)
+            
+            HStack {
+                Spacer()
+                
+                Button("Cancel", role: .cancel) {
+                    dismiss()
+                }
+                
+                Button("Add", role: .cancel) {
+                    onAddContactClicked(profile)
+                }
+                .buttonStyle(.borderedProminent)
+                .keyboardShortcut(.defaultAction)
+                .disabled(profileViewModel.profile.address == LocalUser.current?.address)
+            }
+            .padding(.horizontal, .Spacing.default)
+            .padding(.bottom, .Spacing.default)
+        }
+        .background(.themeViewBackground)
     }
 }
 
@@ -121,20 +229,20 @@ struct ContactDetailView: View {
 struct SyncProgressView: View {
     @State private var rotation: CGFloat = 0
     @Injected(\.syncService) private var syncService
-
+    
     var body: some View {
         Group {
             if syncService.isSyncing {
-        Image(systemName: "arrow.triangle.2.circlepath")
-            .rotationEffect(.degrees(rotation))
-            .animation(.linear(duration: 1).repeatForever(autoreverses: false), value: rotation)
+                Image(systemName: "arrow.triangle.2.circlepath")
+                    .rotationEffect(.degrees(rotation))
+                    .animation(.linear(duration: 1).repeatForever(autoreverses: false), value: rotation)
             } else {
                 Image(systemName: "arrow.triangle.2.circlepath")
             }
         }
-            .onChange(of: syncService.isSyncing) {
-                rotation = syncService.isSyncing ? 360 : 0
-            }
+        .onChange(of: syncService.isSyncing) {
+            rotation = syncService.isSyncing ? 360 : 0
+        }
     }
 }
 
