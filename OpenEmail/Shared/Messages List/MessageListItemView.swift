@@ -36,84 +36,72 @@ struct MessageListItemView: View {
             return "\(readerName(emailAddress: readers[0])) and \(readers.count - 1) others"
         }
     }
+    
+    private var boxLabel: String? {
+        switch scope {
+        case .inbox: "Inbox"
+        case .drafts: "Draft"
+        case .outbox: "Sent"
+        case .broadcasts: "Broadcast"
+        case .trash: "Trash"
+        case .contacts: nil
+        }
+    }
+    
 
     var body: some View {
-        HStack(alignment: .top, spacing: .Spacing.small) {
-            if scope == .outbox {
-                if message.readers.count > 1 {
-                    ProfileImageView(emailAddress: nil, multipleUsersCount: message.readers.count)
-                } else {
-                    ProfileImageView(emailAddress: message.readers.first)
+        
+        VStack(alignment: .leading, spacing: 0) {
+            
+            HStack {
+                Text(scope == .outbox ? formattedReadersLine : profileNames[message.author] ?? message.author)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .font(.system(size: 13))
+                    .fontWeight(.semibold)
+                    .padding(.bottom, 3)
+                
+                Spacer()
+                
+                if let boxLabel = boxLabel {
+                    Text(boxLabel)
+                        .lineLimit(1)
+                        .foregroundStyle(.secondary)
+                        .truncationMode(.tail)
+                        .font(.system(size: 11))
                 }
-            } else {
-                ProfileImageView(emailAddress: message.author)
-                    .overlay(alignment: .topLeading) {
-                        if !message.isRead {
-                            Circle()
-                                .fill(Color.accentColor)
-                                .frame(width: 12, height: 12)
-                        }
-                    }
+                
+                Text(message.formattedAuthoredOnDate)
+                    .foregroundStyle(.secondary)
+                    .font(.system(size: 11))
+#if os(iOS)
+                    .font(.subheadline)
+#endif
             }
-
-            VStack(alignment: .leading, spacing: 0) {
-                Group {
-                    if scope != .outbox {
-                        Text(profileNames[message.author] ?? message.author)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                            .font(.system(size: 16))
-                            .fontWeight(.semibold)
-                    } else {
-                        if message.isBroadcast {
-                            HStack(spacing: 2) {
-                                Image(systemName: "dot.radiowaves.left.and.right")
-                                Text("Broadcast".uppercased())
-                                    .bold()
-                            }
-                        } else {
-                            Text(formattedReadersLine)
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                                .font(.system(size: 16))
-                                .fontWeight(.semibold)
-                        }
-                    }
-                }
-                .padding(.bottom, .Spacing.xSmall)
-
+            
+            HStack {
                 Text(message.displayedSubject)
                     .lineLimit(1)
-                    .bold()
+                    .font(.system(size: 11))
                     .truncationMode(.tail)
-                    .padding(.bottom, .Spacing.xxSmall)
-
-                Text(message.body?.cleaned ?? "")
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-                    .truncationMode(.tail)
-
+                    .padding(.bottom, 3)
+                
+                Spacer()
                 if message.hasFiles || !message.draftAttachmentUrls.isEmpty {
-                    HStack(spacing: .Spacing.xxxSmall) {
-                        Image(.attachment)
-
-                        let count: Int = {
-                            message.isDraft ? message.draftAttachmentUrls.count : message.attachments.count
-                        }()
-                        Text("^[\(count) attached files](inflect: true)")
-                    }
-                    .foregroundStyle(.secondary)
-                    .padding(.top, .Spacing.default)
+                    Image(systemName: "paperclip")
+                        .resizable()
+                        .scaledToFit()
+                        .foregroundStyle(.secondary)
+                        .frame(width:11)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            Text(message.formattedAuthoredOnDate)
+            
+            Text(message.body?.cleaned ?? "")
                 .foregroundStyle(.secondary)
-                .monospacedDigit()
-            #if os(iOS)
-                .font(.subheadline)
-            #endif
+                .font(.system(size: 11))
+                .lineLimit(3)
+                .truncationMode(.tail)
+            
         }
         .task {
             // fetch cached profile names

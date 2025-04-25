@@ -28,7 +28,7 @@ extension CGFloat {
         static let small: CGFloat = 12
 
         /// 8px
-        static let xSmall: CGFloat = 10
+        static let xSmall: CGFloat = 8
 
         /// 6px
         static let xxSmall: CGFloat = 6

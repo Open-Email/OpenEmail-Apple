@@ -89,7 +89,7 @@ struct MessageView: View {
                             onClose: {
                                 self.selectedProfile = nil
                             }
-                        )
+                        ).id(selectedProfile.address.address)
                         .frame(width: 320)
                         .frame(maxHeight: .infinity)
                     }
@@ -165,8 +165,7 @@ struct MessageView: View {
             HStack(alignment: .top, spacing: .Spacing.small) {
                 ProfileImageView(emailAddress: message?.author)
                     .onTapGesture {
-                        //TODO replace ProfileImageView param with Profile object
-                        //selectedProfile = EmailAddress(message?.author)
+                        selectedProfile = viewModel.authorProfile
                     }
 
                 VStack(alignment: .leading, spacing: .Spacing.xSmall) {

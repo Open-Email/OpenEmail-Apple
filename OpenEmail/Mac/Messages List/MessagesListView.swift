@@ -31,8 +31,7 @@ struct MessagesListView: View {
                         message: message,
                         scope: navigationState.selectedScope
                     )
-                    .padding(.Spacing.default)
-                    .listRowSeparator(.hidden)
+                    .padding(.Spacing.xxSmall)
                 }
             } header: {
                 Text(navigationState.selectedScope.displayName)
@@ -42,7 +41,7 @@ struct MessagesListView: View {
                     .padding(.Spacing.default)
             }
         }
-        .listStyle(.plain)
+        .listStyle(.automatic)
         .scrollBounceBehavior(.basedOnSize)
         .contextMenu(forSelectionType: String.self) { messageIDs in
             if !messageIDs.isEmpty {
