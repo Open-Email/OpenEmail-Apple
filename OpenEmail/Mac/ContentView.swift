@@ -52,41 +52,34 @@ struct ContentView: View {
     @ToolbarContentBuilder
     private func detailsToolbarContent() -> some ToolbarContent {
         ToolbarItem(placement: .navigation) {
-            Button(action: {
-                NSApp.keyWindow?
-                    .firstResponder?
-                    .tryToPerform(
-                        #selector(NSSplitViewController.toggleSidebar(_:)),
-                        with: nil
-                    )
-            }) {
-                Image(systemName: "sidebar.left")
+            HStack {
+                Button(action: {
+                    NSApp.keyWindow?
+                        .firstResponder?
+                        .tryToPerform(
+                            #selector(NSSplitViewController.toggleSidebar(_:)),
+                            with: nil
+                        )
+                }) {
+                    Image(systemName: "sidebar.left")
+                }
+                AsyncButton {
+                    await triggerSync()
+                } label: {
+                    SyncProgressView()
+                }
+                Divider()
             }
         }
-        ToolbarItem {
-            AsyncButton {
-                await triggerSync()
-            } label: {
-                SyncProgressView()
-            }
-        }
-        ToolbarItem(placement: .primaryAction) {
+        
+        ToolbarItem(placement: .primaryAction)
+        {
             Button {
                 guard let registeredEmailAddress else { return }
                 openWindow(id: WindowIDs.compose, value: ComposeAction.newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: nil))
             } label: {
-                HStack {
-                    Image(.compose)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-
-                    Text("Create Message")
-                        .fontWeight(.semibold)
-                }
-                .foregroundStyle(.accent)
-                .contentShape(Rectangle())
+                Image(systemName: "square.and.pencil")
             }
-            .buttonStyle(.plain)
         }
     }
 
