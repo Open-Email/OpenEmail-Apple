@@ -6,23 +6,22 @@ import Logging
 
 @MainActor
 struct MessageView: View {
-    @State private var viewModel: MessageViewModel
+    @Binding private var viewModel: MessageViewModel
     @State private var attachmentsListViewModel: AttachmentsListViewModel?
-
+    
     @Environment(\.openWindow) private var openWindow
-
+    
     @MainActor
     @Environment(NavigationState.self) private var navigationState
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
-
-    @State private var showDeleteConfirmationAlert = false
+    
     @State private var showRecallConfirmationAlert = false
     @State private var selectedProfile: Profile?
-
-    init(messageID: String?) {
-        viewModel = MessageViewModel(messageID: messageID)
+    
+    init(messageViewModel: Binding<MessageViewModel>) {
+        _viewModel = messageViewModel
     }
-
+    
     var body: some View {
         Group {
             if
@@ -132,7 +131,6 @@ struct MessageView: View {
             }
         }
         .onChange(of: navigationState.selectedMessageIDs) {
-            viewModel.messageID = navigationState.selectedMessageIDs.first
             selectedProfile = nil
         }
         .onReceive(NotificationCenter.default.publisher(for: .didSynchronizeMessages)) { _ in
@@ -289,11 +287,11 @@ struct MessageView: View {
             if navigationState.selectedScope == .trash && message.author != registeredEmailAddress {
                 undeleteButton()
             }
-
-            deleteButton(message: message)
+            
+            //deleteButton(message: message)
         }
     }
-
+    
     @ViewBuilder
     private func draftActionButtons(message: Message) -> some View {
         if message.deletedAt == nil {
@@ -305,14 +303,14 @@ struct MessageView: View {
             .buttonStyle(ActionButtonStyle(isImageOnly: true))
             .help("Edit")
         }
-
+        
         if navigationState.selectedScope == .trash {
             undeleteButton()
         }
-
-        deleteButton(message: message)
+        
+        // deleteButton(message: message)
     }
-
+    
     @ViewBuilder
     private func recallButton(message: Message) -> some View {
         Button {
@@ -357,7 +355,7 @@ struct MessageView: View {
                 AsyncButton("Discard", role: .destructive) {
                     do {
                         try await viewModel.recallMessage()
-                        navigationState.selectedMessageIDs = []
+                        navigationState.clearSelection()
                     } catch {
                         // TODO: show error message
                         Log.error("Could not recall message: \(error)")
@@ -376,7 +374,7 @@ struct MessageView: View {
         AsyncButton {
             do {
                 try await viewModel.markAsDeleted(false)
-                navigationState.selectedMessageIDs = []
+                navigationState.clearSelection()
             } catch {
                 Log.error("Could not mark message as undeleted: \(error)")
             }
@@ -389,38 +387,8 @@ struct MessageView: View {
         .buttonStyle(ActionButtonStyle(isImageOnly: true))
         .help("Undelete message")
     }
-
-    @ViewBuilder
-    private func deleteButton(message: Message) -> some View {
-        AsyncButton {
-            if navigationState.selectedScope == .trash {
-                showDeleteConfirmationAlert = true
-            } else {
-                do {
-                    try await viewModel.markAsDeleted(true)
-                    navigationState.selectedMessageIDs = []
-                } catch {
-                    Log.error("Could not mark message as deleted: \(error)")
-                }
-            }
-        } label: {
-            Image(.scopeTrash)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 18, height: 18)
-        }
-        .buttonStyle(ActionButtonStyle(isImageOnly: true))
-        .help(message.isDraft ? "Delete draft" : "Delete message")
-        .alert("Are you sure you want to delete this message?", isPresented: $showDeleteConfirmationAlert) {
-            Button("Cancel", role: .cancel) {}
-            AsyncButton("Delete", role: .destructive) {
-                await permanentlyDelete()
-            }
-        } message: {
-            Text("This action cannot be undone.")
-        }
-    }
-
+    
+    
     @ViewBuilder
     private func messageBody(message: Message) -> some View {
         if let text = message.body {
@@ -439,16 +407,6 @@ struct MessageView: View {
             value: ComposeAction.editDraft(messageId: messageID)
         )
     }
-
-    private func permanentlyDelete() async {
-        do {
-            // TODO: Should the message also be recalled if outgoing and on server?
-            try await viewModel.permanentlyDeleteMessage()
-            navigationState.selectedMessageIDs = []
-        } catch {
-            Log.error("Could not delete message: \(error)")
-        }
-    }
 }
 
 #if DEBUG
@@ -460,11 +418,16 @@ struct MessageView: View {
         .makeRandom(id: "3")
     ]
     InjectedValues[\.messagesStore] = messageStore
-
-    return MessageView(messageID: "1")
-        .frame(width: 800, height: 600)
-        .background(.themeViewBackground)
-        .environment(NavigationState())
+    
+    return MessageView(messageViewModel: Binding<MessageViewModel>(
+        get: {
+            MessageViewModel(messageID: "1")
+        },
+        set: { _ in }
+    ))
+    .frame(width: 800, height: 600)
+    .background(.themeViewBackground)
+    .environment(NavigationState())
 }
 
 #Preview("Draft") {
@@ -473,11 +436,16 @@ struct MessageView: View {
         .makeRandom(id: "1", isDraft: true)
     ]
     InjectedValues[\.messagesStore] = messageStore
-
-    return MessageView(messageID: "1")
-        .frame(width: 800, height: 600)
-        .background(.themeViewBackground)
-        .environment(NavigationState())
+    
+    return MessageView(messageViewModel: Binding<MessageViewModel>(
+        get: {
+            MessageViewModel(messageID: "1")
+        },
+        set: { _ in }
+    ))
+    .frame(width: 800, height: 600)
+    .background(.themeViewBackground)
+    .environment(NavigationState())
 }
 
 #Preview("Draft Broadcast") {
@@ -486,20 +454,30 @@ struct MessageView: View {
         .makeRandom(id: "1", isDraft: true, isBroadcast: true)
     ]
     InjectedValues[\.messagesStore] = messageStore
-
-    return MessageView(messageID: "1")
-        .frame(width: 800, height: 600)
-        .background(.themeViewBackground)
-        .environment(NavigationState())
+    
+    return MessageView(messageViewModel: Binding<MessageViewModel>(
+        get: {
+            MessageViewModel(messageID: "1")
+        },
+        set: { _ in }
+    ))
+    .frame(width: 800, height: 600)
+    .background(.themeViewBackground)
+    .environment(NavigationState())
 }
 
 #Preview("Empty") {
     let messageStore = MessageStoreMock()
     InjectedValues[\.messagesStore] = messageStore
-
-    return MessageView(messageID: nil)
-        .frame(width: 800, height: 600)
-        .background(.themeViewBackground)
-        .environment(NavigationState())
+    
+    return MessageView(messageViewModel: Binding<MessageViewModel>(
+        get: {
+            MessageViewModel(messageID: "1")
+        },
+        set: { _ in }
+    ))
+    .frame(width: 800, height: 600)
+    .background(.themeViewBackground)
+    .environment(NavigationState())
 }
 #endif

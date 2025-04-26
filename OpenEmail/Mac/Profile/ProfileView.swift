@@ -140,25 +140,6 @@ struct ProfileView: View {
                 }
             }
 
-            if viewModel.isInContacts {
-                Button {
-                    showRemoveContactConfirmationAlert = true
-                } label: {
-                    Image(.delete)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                }
-                .buttonStyle(ActionButtonStyle(isImageOnly: true, height: 32))
-                .help("Remove from contacts")
-                .alert("Are you sure you want to remove this contact?", isPresented: $showRemoveContactConfirmationAlert) {
-                    Button("Cancel", role: .cancel) {}
-                    AsyncButton("Remove", role: .destructive) {
-                        await removeUser()
-                    }
-                } message: {
-                    Text("This action cannot be undone.")
-                }
-            }
 
             Spacer()
 

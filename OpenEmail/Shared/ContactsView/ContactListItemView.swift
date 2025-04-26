@@ -42,6 +42,7 @@ struct ContactListItemView: View {
             }
         }
         .padding(.vertical, .Spacing.xSmall)
+        .padding(.horizontal, .Spacing.xxSmall)
     }
 }
 

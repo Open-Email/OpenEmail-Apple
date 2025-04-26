@@ -40,7 +40,7 @@ struct OnboardingExistingAccountView: View {
             VStack(spacing: .Spacing.default) {
                 AsyncButton("Authenticate") {
                     // Clear up any previous state
-                    navigationState.selectedMessageIDs.removeAll()
+                    navigationState.clearSelection()
 
                     await viewModel.authenticate(emailAddress: emailAddress)
                 }

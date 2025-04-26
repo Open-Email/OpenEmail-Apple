@@ -175,7 +175,7 @@ struct DebugView: View {
                     AsyncButton("Delete all messages") {
                         do {
                             try await messagesStore.deleteAllMessages()
-                            navigationState.selectedMessageIDs.removeAll()
+                            navigationState.clearSelection()
                             Log.info("messages deleted")
                         } catch {
                             Log.error("Error: could not delete messages:", context: error)

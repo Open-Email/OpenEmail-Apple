@@ -98,7 +98,7 @@ struct GeneralSettingsView: View {
             dismissWindow(id: WindowIDs.profileEditor)
         }
 
-        navigationState.selectedMessageIDs.removeAll()
+        navigationState.clearSelection()
         LogoutUseCase().logout()
     }
     private func deleteAccount() async {

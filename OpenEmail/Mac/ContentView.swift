@@ -6,13 +6,15 @@ import OpenEmailPersistence
 import Logging
 
 struct ContentView: View {
+    @Injected(\.syncService) private var syncService
     @Environment(NavigationState.self) private var navigationState
     @Environment(\.openWindow) private var openWindow
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
     
     private let contactRequestsController = ContactRequestsController()
-    @Injected(\.syncService) private var syncService
     
+    @State private var showDeleteMessageConfirmationAlert = false
+    @State private var showDeleteContactConfirmationAlert = false
     @State private var fetchButtonRotation = 0.0
     @State private var searchText: String = ""
     @State private var showAddContactView = false
@@ -20,6 +22,9 @@ struct ContentView: View {
     @State private var addContactError: Error?
     @State private var contactsListViewModel: ContactsListViewModel = ContactsListViewModel()
     @State private var sidebarViewModel: ScopesSidebarViewModel = ScopesSidebarViewModel()
+    @State private var messageViewModel: MessageViewModel = MessageViewModel(
+        messageID: nil
+    )
     
     private let contactsOrNotificationsUpdatedPublisher = Publishers.Merge(
         NotificationCenter.default.publisher(for: .didUpdateContacts),
@@ -69,6 +74,7 @@ struct ContentView: View {
                     } label: {
                         SyncProgressView()
                     }
+                    .disabled(syncService.isSyncing)
                 }
                 ToolbarItem {
                     VStack(alignment: .leading) {
@@ -91,13 +97,19 @@ struct ContentView: View {
                 
             }
         } detail: {
-            Group {
-                if navigationState.selectedScope == .contacts {
-                    ContactDetailView(
-                        selectedContact: navigationState.selectedContact
-                    ).id(navigationState.selectedContact?.id)
+            VStack {
+                if navigationState.selectedContact == nil && navigationState.selectedMessageIDs.isEmpty {
+                    Text("No selection")
+                        .bold()
+                        .foregroundStyle(.tertiary)
                 } else {
-                    messagesDetailView
+                    if navigationState.selectedScope == .contacts {
+                        ContactDetailView(
+                            selectedContact: navigationState.selectedContact
+                        ).id(navigationState.selectedContact?.id)
+                    } else {
+                        messagesDetailView
+                    }
                 }
             }.toolbar {
                 ToolbarItemGroup(placement: .primaryAction) {
@@ -115,66 +127,149 @@ struct ContentView: View {
                             Image(systemName: "person.badge.plus")
                         }
                         Divider()
+                        AsyncButton {
+                            switch navigationState.selectedScope {
+                            case .trash:
+                                showDeleteMessageConfirmationAlert = true
+                            case .outbox, .drafts:
+                                do {
+                                    try await messageViewModel.markAsDeleted(true)
+                                    navigationState.clearSelection()
+                                } catch {
+                                    Log.error("Could not mark message as deleted: \(error)")
+                                }
+                            case .contacts:
+                                if let _ = navigationState.selectedContact {
+                                    showDeleteContactConfirmationAlert = true
+                                }
+                            default:
+                                Log.error("Non-deletable item selected")
+                            }
+                        } label: {
+                            Image(systemName: "trash")
+                        }.disabled(
+                            (navigationState.selectedScope != .trash &&
+                             navigationState.selectedScope != .outbox &&
+                             navigationState.selectedScope != .drafts &&
+                             navigationState.selectedScope != .contacts
+                            ) ||
+                            (
+                                navigationState.selectedMessageIDs.isEmpty &&
+                                navigationState.selectedContact == nil
+                            )
+                        )
+                        //TODO adjust help according to selected element. Could be contact as well
+                        .help((messageViewModel.message?.isDraft ?? false) ? "Delete draft" : "Delete message")
                     }
-                    
                 }
-                
             }
-        }.searchable(text: $searchText)
-            .onChange(of: searchText) {
-                contactsListViewModel.searchText = searchText
-            }
-            .sheet(isPresented: $showAddContactView) {
-                ContactsAddressInputView { address in
-                    contactsListViewModel.onAddressSearch(address: address)
-                    showAddContactView = false
-                } onCancel: {
-                    contactsListViewModel.onAddressSearchDismissed()
-                    showAddContactView = false
-                }
-            }.alert("Could not add contact", isPresented: $showsAddContactError, actions: {
-                Button("OK") {
-                    showAddContactView = true
-                }
-            }, message: {
-                if let addContactError {
-                    Text("Underlying error: \(String(describing: addContactError))")
-                }
-            })
-            .alert("Contact already exists", isPresented: $contactsListViewModel.showsContactExistsError, actions: {})
-            .sheet(isPresented: Binding<Bool>(
-                get: {
-                    contactsListViewModel.contactToAdd != nil
-                },
-                set: { _ in }
-            )) {
-                ProfilePreviewSheetView(
-                    profile: contactsListViewModel.contactToAdd!,
-                    onAddContactClicked: { address in
-                        Task {
+        }
+        .searchable(text: $searchText)
+        .alert(
+            navigationState.selectedContact?.isContactRequest == true ?
+            "Are you sure you want to dismiss this contact request?" :
+                "Are you sure you want to delete this contact?",
+            isPresented: $showDeleteContactConfirmationAlert
+        ) {
+            Button("Cancel", role: .cancel) {}
+            AsyncButton(navigationState.selectedContact?.isContactRequest == true ? "Dismiss" : "Delete", role: .destructive) {
+                if let contact = navigationState.selectedContact {
+                    if (contact.isContactRequest) {
+                        //TODO dismiss notification
+                    } else {
+                        if let email = EmailAddress(
+                            contact.email
+                        ) {
                             do {
-                                try await contactsListViewModel.addContact()
+                                try await DeleteContactUseCase().deleteContact(emailAddress: email)
+                                navigationState.clearSelection()
                             } catch {
-                                Log.error("Error while adding contact: \(error)")
-                                addContactError = error
-                                showsAddContactError = true
+                                Log.error("Could not delete contact \(email): \(error)")
                             }
                         }
                     }
-                )
+                }
             }
+        }
+        .alert("Are you sure you want to delete this message?", isPresented: $showDeleteMessageConfirmationAlert) {
+            Button("Cancel", role: .cancel) {}
+            AsyncButton("Delete", role: .destructive) {
+                await permanentlyDeleteSentMessage()
+            }
+        } message: {
+            Text("This action cannot be undone.")
+        }
+        .onChange(of: navigationState.selectedMessageIDs) {
+            if navigationState.selectedMessageIDs.count == 1 {
+                messageViewModel.messageID = navigationState.selectedMessageIDs.first
+            } else {
+                messageViewModel.messageID = nil
+            }
+            
+        }
+        .onChange(of: searchText) {
+            contactsListViewModel.searchText = searchText
+        }
+        .sheet(isPresented: $showAddContactView) {
+            ContactsAddressInputView { address in
+                contactsListViewModel.onAddressSearch(address: address)
+                showAddContactView = false
+            } onCancel: {
+                contactsListViewModel.onAddressSearchDismissed()
+                showAddContactView = false
+            }
+        }.alert("Could not add contact", isPresented: $showsAddContactError, actions: {
+            Button("OK") {
+                showAddContactView = true
+            }
+        }, message: {
+            if let addContactError {
+                Text("Underlying error: \(String(describing: addContactError))")
+            }
+        })
+        .alert("Contact already exists", isPresented: $contactsListViewModel.showsContactExistsError, actions: {})
+        .sheet(isPresented: Binding<Bool>(
+            get: {
+                contactsListViewModel.contactToAdd != nil
+            },
+            set: { _ in }
+        )) {
+            ProfilePreviewSheetView(
+                profile: contactsListViewModel.contactToAdd!,
+                onAddContactClicked: { address in
+                    Task {
+                        do {
+                            try await contactsListViewModel.addContact()
+                        } catch {
+                            Log.error("Error while adding contact: \(error)")
+                            addContactError = error
+                            showsAddContactError = true
+                        }
+                    }
+                }
+            )
+        }
     }
     
-    
+    private func permanentlyDeleteSentMessage() async {
+        do {
+            try await messageViewModel.permanentlyDeleteMessage()
+            navigationState.clearSelection()
+        } catch {
+            Log.error("Could not delete message: \(error)")
+        }
+    }
     
     @ViewBuilder
     private var messagesDetailView: some View {
         if navigationState.selectedMessageIDs.count > 1 {
             MultipleMessagesView()
         } else {
-            MessageView(
-                messageID: navigationState.selectedMessageIDs.first,
-            )
+            if let _ = messageViewModel.message {
+                MessageView(
+                    messageViewModel: $messageViewModel,
+                ).id(navigationState.selectedMessageIDs.first)
+            }
         }
     }
     
@@ -249,10 +344,6 @@ struct ContactDetailView: View {
                 )
                 .frame(minWidth: 600)
                 .id(profile.address.address)
-            } else {
-                Text("No selection")
-                    .bold()
-                    .foregroundStyle(.tertiary)
             }
         }.task {
             if let contact = selectedContactListItem, let address = EmailAddress(

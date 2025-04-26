@@ -82,7 +82,7 @@ struct OnboardingNewAccountView: View {
             // buttons
             VStack(spacing: .Spacing.default) {
                 AsyncButton {
-                    navigationState.selectedMessageIDs.removeAll()
+                    navigationState.clearSelection()
                     await viewModel.register()
                 } label: {
                     Text("Register")

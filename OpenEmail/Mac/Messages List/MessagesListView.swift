@@ -76,7 +76,6 @@ struct MessagesListView: View {
             }
         }
         .onChange(of: navigationState.selectedScope) {
-            navigationState.selectedMessageIDs = []
             reloadMessages()
         }
         .onChange(of: searchText) {

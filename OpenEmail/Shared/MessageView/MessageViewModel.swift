@@ -116,6 +116,7 @@ class MessageViewModel {
     }
 
     func permanentlyDeleteMessage() async throws {
+        try await client.recallAuthoredMessage(localUser: .current!, messageId: message!.id)
         try await message?.permentlyDelete(messageStore: messagesStore)
     }
 
