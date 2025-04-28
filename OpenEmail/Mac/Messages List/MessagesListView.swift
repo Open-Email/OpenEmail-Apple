@@ -65,12 +65,8 @@ struct MessagesListView: View {
                 
                 if (navigationState.selectedScope == .trash) {
                     Button("Restore") {
-                        do {
-                            try viewModel.markAsDeleted(messageIDs: messageIDs, isDeleted: false)
-                            navigationState.clearSelection()
-                        } catch {
-                            Log.error("Could not restore messages: \(error)")
-                        }
+                        viewModel.markAsDeleted(messageIDs: messageIDs, isDeleted: false)
+                        navigationState.clearSelection()
                     }
                 }
             }

@@ -4,14 +4,12 @@ import OpenEmailCore
 import OpenEmailPersistence
 import Logging
 
-@MainActor
 struct MessageView: View {
     @Binding private var viewModel: MessageViewModel
     @State private var attachmentsListViewModel: AttachmentsListViewModel?
     
     @Environment(\.openWindow) private var openWindow
     
-    @MainActor
     @Environment(NavigationState.self) private var navigationState
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
     
