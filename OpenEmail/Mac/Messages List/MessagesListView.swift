@@ -5,6 +5,7 @@ import OpenEmailCore
 
 struct MessagesListView: View {
     @Environment(NavigationState.self) private var navigationState
+    @Environment(\.openWindow) private var openWindow
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
 
     @State private var viewModel = MessagesListViewModel()
@@ -25,7 +26,7 @@ struct MessagesListView: View {
                     text: "Your \(navigationState.selectedScope.displayName) message list is empty."
                 )
             }
-
+            
             ForEach(viewModel.messages) { message in
                 MessageListItemView(
                     message: message,
@@ -42,7 +43,7 @@ struct MessagesListView: View {
         }
         .listStyle(.automatic)
         .scrollBounceBehavior(.basedOnSize)
-        .contextMenu(forSelectionType: String.self) { messageIDs in
+        .contextMenu(forSelectionType: String.self, menu: { messageIDs in
             if !messageIDs.isEmpty {
                 let allMessages = viewModel.messages
                     .filter {
@@ -62,7 +63,17 @@ struct MessagesListView: View {
                     }
                 }
             }
-        }
+        }, primaryAction: { messageIDs in
+            // this runs on double-click of a selected row
+            if let id = messageIDs.first,
+               let msg = viewModel.messages.first(where: { $0.id == id }) {
+                if msg.isDraft {
+                    openWindow(id: WindowIDs.compose, value: ComposeAction.editDraft(messageId: msg.id))
+                } else {
+                    // preview logic here
+                }
+            }
+        })
         .animation(.easeInOut(duration: viewModel.messages.isEmpty ? 0 : 0.2), value: viewModel.messages)
         .onChange(of: navigationState.selectedMessageIDs) {
             Log.debug("selected message ids: \(navigationState.selectedMessageIDs)")

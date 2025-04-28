@@ -40,8 +40,7 @@ struct MessageView: View {
                             HStack {
                                 Spacer()
                                 if message.isDraft {
-                                    draftActionButtons(message: message)
-                                        .fixedSize()
+                                   // draftActionButtons(message: message)    .fixedSize()
                                 } else {
                                     actionButtons(message: message)
                                 }
@@ -292,24 +291,6 @@ struct MessageView: View {
         }
     }
     
-    @ViewBuilder
-    private func draftActionButtons(message: Message) -> some View {
-        if message.deletedAt == nil {
-            Button {
-                editDraft()
-            } label: {
-                Image(.editDraft)
-            }
-            .buttonStyle(ActionButtonStyle(isImageOnly: true))
-            .help("Edit")
-        }
-        
-        if navigationState.selectedScope == .trash {
-            undeleteButton()
-        }
-        
-        // deleteButton(message: message)
-    }
     
     @ViewBuilder
     private func recallButton(message: Message) -> some View {
@@ -328,30 +309,7 @@ struct MessageView: View {
             "Do you want to edit or discard this message?",
             isPresented: $showRecallConfirmationAlert,
             actions: {
-                AsyncButton("Edit") {
-                    do {
-                        if let draftMessage = try await viewModel.convertToDraft() {
-                            try await viewModel.recallMessage()
-
-                            DispatchQueue.main.async {
-                                navigationState.selectedScope = .drafts
-
-                                DispatchQueue.main.async {
-                                    navigationState.selectedMessageIDs = [draftMessage.id]
-                                }
-
-                                openWindow(
-                                    id: WindowIDs.compose,
-                                    value: ComposeAction.editDraft(messageId: draftMessage.id)
-                                )
-                            }
-                        }
-                    } catch {
-                        // TODO: show error message
-                        Log.error("Could not convert to draft: \(error)")
-                    }
-                }
-
+                
                 AsyncButton("Discard", role: .destructive) {
                     do {
                         try await viewModel.recallMessage()
@@ -399,14 +357,7 @@ struct MessageView: View {
         }
     }
 
-    private func editDraft() {
-        guard let messageID = viewModel.messageID else { return }
-
-        openWindow(
-            id: WindowIDs.compose,
-            value: ComposeAction.editDraft(messageId: messageID)
-        )
-    }
+    
 }
 
 #if DEBUG

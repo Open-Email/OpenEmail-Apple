@@ -116,7 +116,16 @@ struct ContentView: View {
                     HStack {
                         Button {
                             guard let registeredEmailAddress else { return }
-                            openWindow(id: WindowIDs.compose, value: ComposeAction.newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: nil))
+                           
+                            if messageViewModel.message?.isDraft == true {
+                                openWindow(
+                                    id: WindowIDs.compose,
+                                    value: ComposeAction.editDraft(messageId: messageViewModel.messageID!)
+                                )
+                            } else {
+                                openWindow(id: WindowIDs.compose, value: ComposeAction.newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: nil))
+                            }
+                            
                         } label: {
                             Image(systemName: "square.and.pencil")
                         }
