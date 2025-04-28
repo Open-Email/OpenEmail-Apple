@@ -169,6 +169,64 @@ struct ContentView: View {
                         )
                         //TODO adjust help according to selected element. Could be contact as well
                         .help((messageViewModel.message?.isDraft ?? false) ? "Delete draft" : "Delete message")
+                        Divider()
+                        
+                        Button {
+                            guard let registeredEmailAddress else { return }
+                            if let message = messageViewModel.message {
+                                openWindow(
+                                    id: WindowIDs.compose,
+                                    value: ComposeAction.reply(
+                                        id: UUID(),
+                                        authorAddress: registeredEmailAddress,
+                                        messageId: message.id,
+                                        quotedText: message.body
+                                    )
+                                )
+                            }
+                        } label: {
+                            Image(systemName: "arrowshape.turn.up.left")
+                        }.disabled(
+                            messageViewModel.message == nil || messageViewModel.message!.isDraft
+                        )
+                        
+                        Button {
+                            guard let registeredEmailAddress else { return }
+                            if let message = messageViewModel.message {
+                                openWindow(
+                                    id: WindowIDs.compose,
+                                    value: ComposeAction.replyAll(
+                                        id: UUID(),
+                                        authorAddress: registeredEmailAddress,
+                                        messageId: message.id,
+                                        quotedText: message.body
+                                    )
+                                )
+                            }
+                            
+                        } label: {
+                            Image(systemName: "arrowshape.turn.up.left.2")
+                        }.disabled(
+                            messageViewModel.message == nil || messageViewModel.message!.isDraft
+                        )
+                        
+                        Button {
+                            guard let registeredEmailAddress else { return }
+                            if let message = messageViewModel.message {
+                                openWindow(
+                                    id: WindowIDs.compose,
+                                    value: ComposeAction.forward(
+                                        id: UUID(),
+                                        authorAddress: registeredEmailAddress,
+                                        messageId: message.id
+                                    )
+                                )
+                            }
+                        } label: {
+                            Image(systemName: "arrowshape.turn.up.right")
+                        }.disabled(
+                            messageViewModel.message == nil || messageViewModel.message!.isDraft
+                        )
                     }
                 }
             }

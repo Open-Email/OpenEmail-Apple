@@ -33,23 +33,7 @@ struct MessageView: View {
                     header(message: message)
 
                     if let message {
-                        // action buttons
-                        ZStack {
-                            Divider()
-
-                            HStack {
-                                Spacer()
-                                if message.isDraft {
-                                   // draftActionButtons(message: message)    .fixedSize()
-                                } else {
-                                    actionButtons(message: message)
-                                }
-                            }
-                            .buttonStyle(ActionButtonStyle())
-                            .padding(.horizontal, .Spacing.default)
-                        }
-                        .background(.themeViewBackground)
-
+                       
                         // body
                         ScrollView {
                             VStack(alignment: .leading, spacing: .Spacing.large) {
@@ -225,72 +209,6 @@ struct MessageView: View {
         .padding(.Spacing.default)
     }
 
-    @ViewBuilder
-    private func actionButtons(message: Message) -> some View {
-        if message.readers.count > 1 {
-            Button {
-                openWindow(
-                    id: WindowIDs.compose,
-                    value: ComposeAction.replyAll(
-                        id: UUID(),
-                        authorAddress: registeredEmailAddress!,
-                        messageId: message.id,
-                        quotedText: message.body
-                    )
-                )
-            } label: {
-                HStack(spacing: .Spacing.xxSmall) {
-                    Image(.replyAll)
-                    Text("Reply All")
-                }
-            }
-        }
-        
-        Button {
-            guard let registeredEmailAddress else { return }
-            openWindow(
-                id: WindowIDs.compose,
-                value: ComposeAction.reply(
-                    id: UUID(),
-                    authorAddress: registeredEmailAddress,
-                    messageId: message.id,
-                    quotedText: message.body
-                )
-            )
-        } label: {
-            HStack(spacing: .Spacing.xxSmall) {
-                Image(.reply)
-                Text("Reply")
-            }
-        }
-
-        Button {
-            openWindow(
-                id: WindowIDs.compose,
-                value: ComposeAction.forward(
-                    id: UUID(),
-                    authorAddress: registeredEmailAddress!,
-                    messageId: message.id
-                )
-            )
-        } label: {
-            HStack(spacing: .Spacing.xxSmall) {
-                Image(.forward)
-                Text("Forward")
-            }
-        }
-
-        if navigationState.selectedScope == .outbox {
-            recallButton(message: message)
-        } else {
-            if navigationState.selectedScope == .trash && message.author != registeredEmailAddress {
-                undeleteButton()
-            }
-            
-            //deleteButton(message: message)
-        }
-    }
-    
     
     @ViewBuilder
     private func recallButton(message: Message) -> some View {
@@ -327,26 +245,6 @@ struct MessageView: View {
         .dialogSeverity(viewModel.allAttachmentsDownloaded ? .standard : .critical)
     }
 
-    @ViewBuilder
-    private func undeleteButton() -> some View {
-        AsyncButton {
-            do {
-                try await viewModel.markAsDeleted(false)
-                navigationState.clearSelection()
-            } catch {
-                Log.error("Could not mark message as undeleted: \(error)")
-            }
-        } label: {
-            Image(.undelete)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 18, height: 18)
-        }
-        .buttonStyle(ActionButtonStyle(isImageOnly: true))
-        .help("Undelete message")
-    }
-    
-    
     @ViewBuilder
     private func messageBody(message: Message) -> some View {
         if let text = message.body {
