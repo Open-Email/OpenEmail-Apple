@@ -7,196 +7,39 @@ struct ProfileView: View {
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) var registeredEmailAddress: String?
     @Environment(\.openWindow) private var openWindow
 
-    private let showActionButtons: Bool
-    private let isContactRequest: Bool
-    private let verticalLayout: Bool
-    private let profileImageSize: CGFloat?
     @State private var showRemoveContactConfirmationAlert = false
 
-    private let onClose: (() -> Void)?
-
     init(
-        profile: Profile,
-        showActionButtons: Bool = true,
-        isContactRequest: Bool = false,
-        verticalLayout: Bool = false,
-        profileImageSize: CGFloat? = nil,
-        onClose: (() -> Void)? = nil
+        profile: Profile
     ) {
-        self.showActionButtons = showActionButtons
-        self.isContactRequest = isContactRequest
-        self.verticalLayout = verticalLayout
-        self.onClose = onClose
-        self.profileImageSize = profileImageSize
         self.viewModel = ProfileViewModel(profile: profile)
     }
-
     var body: some View {
-        VStack(alignment: .leading, spacing: .Spacing.large) {
-            closeButton
-
-            if !viewModel.isSelf, showActionButtons {
-                actionButtons
-                    .padding(.horizontal, .Spacing.default)
-                    .padding(.vertical, .Spacing.xSmall)
-            }
-            
-            let canEditReceiveBroadcasts = !viewModel.isSelf && viewModel.isInContacts
-            let receiveBroadcastsBinding = canEditReceiveBroadcasts && viewModel.receiveBroadcasts != nil ? Binding(
-                get: {
-                    viewModel.receiveBroadcasts ?? true
-                },
-                set: { newValue in
-                    Task {
-                        await viewModel.updateReceiveBroadcasts(newValue)
-                    }
-                }) : nil
-            
-            if verticalLayout {
-                ProfileAttributesView(
-                    profile: $viewModel.profile,
-                    receiveBroadcasts: receiveBroadcastsBinding,
-                    hidesEmptyFields: true,
-                    profileImageStyle: .shape()
-                )
-            } else {
-                HStack(alignment: .top, spacing: .Spacing.default) {
-                    ProfileImageView(
-                        emailAddress: viewModel.profile.address.address,
-                        shape: .roundedRectangle(cornerRadius: .CornerRadii.default),
-                        size: .large
-                    )
-
-                    ProfileAttributesView(
-                        profile: $viewModel.profile,
-                        receiveBroadcasts: receiveBroadcastsBinding,
-                        hidesEmptyFields: true,
-                        profileImageStyle: .none
-                    )
+        
+        let canEditReceiveBroadcasts = !viewModel.isSelf && viewModel.isInContacts
+        let receiveBroadcastsBinding = canEditReceiveBroadcasts && viewModel.receiveBroadcasts != nil ? Binding(
+            get: {
+                viewModel.receiveBroadcasts ?? true
+            },
+            set: { newValue in
+                Task {
+                    await viewModel.updateReceiveBroadcasts(newValue)
                 }
-                .padding(.leading, .Spacing.default)
-                .padding(.top, .Spacing.xSmall)
-            }
-        }
-        .padding(.top, .Spacing.xSmall)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background{
-            Color.themeViewBackground
-                .if(verticalLayout) {
-                    $0.shadow(color: .black.opacity(0.1), radius: 12, x: -4)
-                }
-        }
-    }
-
-    @ViewBuilder
-    private var closeButton: some View {
-        if verticalLayout, let onClose {
-            HStack {
-                Spacer()
-                Button {
-                    onClose()
-                } label: {
-                    Image(systemName: "xmark")
-                        .frame(width: 24, height: 24)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .fontWeight(.medium)
-                .foregroundStyle(.themeSecondary)
-                .help("Close")
-            }
-            .padding(.bottom, -.Spacing.small)
-            .padding(.horizontal, .Spacing.small)
-        }
-    }
-
-    private var actionButtons: some View {
-        HStack(spacing: .Spacing.xSmall) {
-            if viewModel.isInContacts {
-                AsyncButton {
-                    await viewModel.fetchMessages()
-                } label: {
-                    HStack(spacing: .Spacing.xxSmall) {
-                        Image(.downloadMessages)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 18, height: 18)
-
-                        Text("Fetch messages")
-                    }
-                }
-            }
-
-            Button {
-                viewModel.refreshProfile()
-            } label: {
-                HStack(spacing: .Spacing.xxSmall) {
-                    Image(.reload)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 18, height: 18)
-
-                    Text("Refresh")
-                }
-            }
-
-
-            Spacer()
-
-            if viewModel.isInContacts {
-                Button {
-                    guard let registeredEmailAddress else { return }
-                    openWindow(
-                        id: WindowIDs.compose,
-                        value: ComposeAction
-                            .newMessage(
-                                id: UUID(),
-                                authorAddress: registeredEmailAddress,
-                                readerAddress: viewModel.profile
-                                    .address.address)
-                    )
-                } label: {
-                    HStack(spacing: .Spacing.xxSmall) {
-                        Image(.createMessage)
-                        Text("Create message")
-                    }
-                }
-                .buttonStyle(ActionButtonStyle(height: 32, isProminent: true))
-            } else if !viewModel.isSelf {
-                AsyncButton {
-                    await addToContacts()
-                } label: {
-                    HStack(spacing: .Spacing.xxSmall) {
-                        Image(.addToContacts)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 18, height: 18)
-
-                        Text("Add to Contacts")
-                    }
-                }
-            }
-        }
-        .buttonStyle(ActionButtonStyle(height: 32))
-    }
-
-    
-
-    private func removeUser() async {
-        do {
-            try await viewModel.removeFromContacts()
-        } catch {
-            // TODO: show error
-            Log.error("Could not remove contact:", context: error)
-        }
-    }
-
-    private func addToContacts() async {
-        do {
-            try await viewModel.addToContacts()
-        } catch {
-            // TODO: show error
-            Log.error("Could not add contact:", context: error)
+            }) : nil
+        
+        HStack(alignment: .top, spacing: .Spacing.default) {
+            ProfileImageView(
+                emailAddress: viewModel.profile.address.address,
+                shape: .roundedRectangle(cornerRadius: .CornerRadii.default),
+                size: .huge
+            )
+            .frame(width: 250, height: 250)
+            ProfileAttributesView(
+                profile: $viewModel.profile,
+                receiveBroadcasts: receiveBroadcastsBinding,
+                hidesEmptyFields: true,
+                profileImageStyle: .none
+            )
         }
     }
 }
@@ -210,8 +53,6 @@ struct ProfileView: View {
 
     return ProfileView(
         profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
-        showActionButtons: true,
-        isContactRequest: false
     )
     .frame(width: 700, height: 500)
 }
@@ -223,10 +64,6 @@ struct ProfileView: View {
 
     return ProfileView(
         profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
-        showActionButtons: false,
-        isContactRequest: false,
-        verticalLayout: false,
-        onClose: {}
     )
     .frame(width: 330, height: 600)
     .fixedSize()
@@ -240,8 +77,6 @@ struct ProfileView: View {
 
     return ProfileView(
         profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
-        showActionButtons: true,
-        isContactRequest: false
     )
     .frame(width: 700, height: 500)
 }
@@ -253,8 +88,6 @@ struct ProfileView: View {
 
     return ProfileView(
         profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
-        showActionButtons: true,
-        isContactRequest: false
     )
     .frame(width: 700, height: 500)
 }
@@ -266,8 +99,6 @@ struct ProfileView: View {
 
     return ProfileView(
         profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
-        showActionButtons: false,
-        isContactRequest: false
     )
     .frame(width: 700, height: 500)
 }
@@ -279,8 +110,6 @@ struct ProfileView: View {
 
     return ProfileView(
         profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
-        showActionButtons: true,
-        isContactRequest: true
     )
     .frame(width: 700, height: 500)
 }

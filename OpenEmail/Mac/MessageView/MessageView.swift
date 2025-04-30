@@ -115,7 +115,7 @@ struct MessageView: View {
             HStack(spacing: .Spacing.xxSmall) {
                 ProfileImageView(emailAddress: message?.author, size: .medium)
 
-                VStack(alignment: .leading, spacing: 0) {
+                VStack(alignment: .leading, spacing: .Spacing.xxSmall) {
                     HStack {
                         if message != nil, let profile = viewModel.authorProfile {
                             ProfileTagView(

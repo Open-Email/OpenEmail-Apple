@@ -92,7 +92,7 @@ struct GeneralProfileAttributesEditorView: View {
         ProfileImageView(
             emailAddress: profile.address.address,
             shape: .roundedRectangle(cornerRadius: .CornerRadii.small),
-            size: .large
+            size: .huge
         )
         .overlay(alignment: .topTrailing) {
             HStack(spacing: .Spacing.small) {

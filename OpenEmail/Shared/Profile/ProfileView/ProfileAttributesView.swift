@@ -58,10 +58,10 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                         .padding(.bottom, .Spacing.default)
 
                     if let name = profile[.name], !name.isEmpty {
-                        Text(name).font(.title)
+                        Text(name).font(.title2)
                             .textSelection(.enabled)
                     }
-                    Text(profile.address.address).font(.title2)
+                    Text(profile.address.address).font(.headline)
                         .textSelection(.enabled)
                         .foregroundStyle(.secondary)
                 }
@@ -107,7 +107,8 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                     } header: {
                         if (group.groupType.shouldShowInPreview) {
                             Text(group.groupType.displayName)
-                                .font(.title2)
+                                .font(.title3)
+                                .fontWeight(.semibold)
                                 .foregroundStyle(.primary)
                                 .padding(.top, .Spacing.xSmall)
                         } else {
@@ -179,6 +180,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
     private func textField(for attribute: ProfileAttribute, isMultiline: Bool = false) -> some View {
         LabeledContent {
             Text(profile[attribute] ?? "")
+                .font(.body)
                 .textSelection(.enabled)
                 .foregroundStyle(.primary)
         } label: {
@@ -188,6 +190,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                 }
 
                 Text("\(attribute.displayTitle):")
+                    .font(.body)
                     .foregroundStyle(.secondary)
             }
         }
@@ -196,6 +199,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
     private func dateTextField(for attribute: ProfileAttribute, isRelative: Bool) -> some View {
         LabeledContent {
             Text(dateString(for: attribute, isRelative: isRelative))
+                .font(.body)
                 .foregroundStyle(.primary)
         } label: {
             HStack(spacing: .Spacing.xSmall) {
@@ -204,6 +208,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                 }
 
                 Text("\(attribute.displayTitle):")
+                    .font(.body)
                     .foregroundStyle(.secondary)
             }
         }
@@ -302,6 +307,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                 }
 
                 Text("\(attribute.displayTitle):")
+                    .font(.body)
                     .foregroundStyle(.secondary)
             }
         }

@@ -225,7 +225,6 @@ struct ReadersView: View {
             VStack(spacing: 0) {
                 ProfileView(
                     profile: profile,
-                    showActionButtons: false,
                     )
 
                 if

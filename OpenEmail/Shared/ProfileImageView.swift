@@ -12,12 +12,14 @@ enum ProfileImageSize {
     case small
     case medium
     case large
+    case huge
     
     var size: CGFloat {
            switch self {
            case .small:  return 32.0
            case .medium: return 40.0
            case .large:  return 64.0
+           case .huge:  return 250.0
            }
        }
 }
@@ -88,16 +90,16 @@ struct ProfileImageView: View {
                 .shadow(color: .themeShadow, radius: 4, y: 2)
             case .rectangle:
                 Color.clear
-                    .frame(height: size.size)
+                    .frame(width: size.size, height: size.size)
                     .background {
                         makeImage()
                     }
             case .roundedRectangle(let cornerRadius):
                 makeImage()
-                    .frame(maxWidth: .infinity)
-                    .frame(height: size.size)
-                    .background(Color.themeSecondary)
+                    .frame(width: size.size, height: size.size)
+                    .background()
                     .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+                    .shadow(color: .themeShadow, radius: 10, y: 2)
             }
         }
         .blur(radius: isLoading ? 4 : 0)
@@ -143,14 +145,16 @@ struct ProfileImageView: View {
     }
 
     @ViewBuilder
-    private func makeImage(contentMode: ContentMode = .fill) -> some View {
+    private func makeImage() -> some View {
         if let image = image {
             image
                 .resizable()
-                .aspectRatio(contentMode: contentMode)
+                .aspectRatio(contentMode: .fill)
+                .frame(width: size.size, height: size.size)
         } else {
             Image(.logoSmall)
                 .resizable()
+                .frame(maxWidth: 64, maxHeight: 64)
                 .aspectRatio(contentMode: .fit)
                 .padding( .Spacing.xxxSmall)
         }

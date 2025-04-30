@@ -313,7 +313,7 @@ struct MessageView: View {
             .popover(isPresented: $showAuthorProfilePopover) {
                 if let emailAddress = EmailAddress(address) {
                     NavigationStack {
-                        ProfileView(emailAddress: emailAddress, showActionButtons: false)
+                        ProfileView(emailAddress: emailAddress)
                             .profilePopoverToolbar {
                                 showAuthorProfilePopover = false
                             }

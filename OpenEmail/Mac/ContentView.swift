@@ -305,6 +305,9 @@ struct ContentView: View {
         )) {
             ProfilePreviewSheetView(
                 profile: contactsListViewModel.contactToAdd!,
+                onCancelled: {
+                    contactsListViewModel.onAddressSearchDismissed()
+                },
                 onAddContactClicked: { address in
                     Task {
                         do {
@@ -348,37 +351,32 @@ struct ContentView: View {
 }
 
 struct ProfilePreviewSheetView: View {
-    @Environment(\.dismiss) private var dismiss
-    @State var profileViewModel: ProfileViewModel
     let profile: Profile
-    let onAddContactClicked: ((Profile) -> Void)
+    let onCancelled: () -> Void
+    let onAddContactClicked: (Profile) -> Void
     
     init(
         profile: Profile,
-        onAddContactClicked: @escaping ((Profile) -> Void)
+        onCancelled: @escaping () -> Void,
+        onAddContactClicked: @escaping (Profile) -> Void
     ) {
         self.profile = profile
         self.onAddContactClicked = onAddContactClicked
-        profileViewModel = ProfileViewModel(
-            profile: profile,
-        )
+        self.onCancelled = onCancelled
     }
     
     var body: some View {
         
         VStack(alignment: .leading, spacing: 0) {
             ProfileView(
-                profile: profileViewModel.profile,
-                showActionButtons: false,
-                profileImageSize: 240
+                profile: profile,
             )
-            .padding(.top, -.Spacing.xSmall)
             
             HStack {
                 Spacer()
                 
                 Button("Cancel", role: .cancel) {
-                    dismiss()
+                    onCancelled()
                 }
                 
                 Button("Add", role: .cancel) {
@@ -386,12 +384,9 @@ struct ProfilePreviewSheetView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .keyboardShortcut(.defaultAction)
-                .disabled(profileViewModel.profile.address == LocalUser.current?.address)
+                .disabled(profile.address == LocalUser.current?.address)
             }
-            .padding(.horizontal, .Spacing.default)
-            .padding(.bottom, .Spacing.default)
-        }
-        .background(.themeViewBackground)
+        }.frame(minHeight: 400)
     }
 }
 
@@ -409,9 +404,7 @@ struct ContactDetailView: View {
             if let profile = profile {
                 ProfileView(
                     profile: profile,
-                    isContactRequest: selectedContactListItem?.isContactRequest ?? false
                 )
-                .frame(minWidth: 600)
                 .id(profile.address.address)
             }
         }.task {
