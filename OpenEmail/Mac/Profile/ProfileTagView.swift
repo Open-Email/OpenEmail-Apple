@@ -92,7 +92,7 @@ struct ProfileTagView: View {
                     onRemoveReader: self.onRemoveReader,
                     showsActionButtons: showsActionButtons,
                     canRemoveReader: canRemoveReader
-                ).padding(.Spacing.default)
+                )
             }
             
             let seenRecently: Bool = if let date = ISO8601DateFormatter.backendDateFormatter.date(
@@ -152,7 +152,10 @@ struct ProfilePopover: View {
             ProfileView(
                 profile: profileViewModel.profile,
             )
-            .frame(minWidth: 550, minHeight: 250)
+            .frame(
+                minWidth: 550,
+                minHeight: ProfileImageSize.huge.size + 2 * .Spacing.default
+            )
 
             if canRemoveReader && (
                 !profileViewModel.isInContacts || indicateThatNotInOthersContacts

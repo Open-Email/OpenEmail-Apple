@@ -5,7 +5,6 @@ import OpenEmailCore
 extension ProfileAttribute {
     var info: String? {
         switch self {
-        case .about: return "A brief description"
         case .organization: return "The associated organization"
         case .jobTitle: return "Position or role description"
         case .publicAccess: return "When disabled, contact requests are automatically ignored."

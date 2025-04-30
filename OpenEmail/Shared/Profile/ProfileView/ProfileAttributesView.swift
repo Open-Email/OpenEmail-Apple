@@ -49,74 +49,80 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
 
     var body: some View {
         List {
-            Section {
-                profileImage(profile: profile)
-
-                // name and address
-                VStack(alignment: .leading, spacing: .Spacing.xxxSmall) {
-                    awayMessage
-                        .padding(.bottom, .Spacing.default)
-
-                    if let name = profile[.name], !name.isEmpty {
-                        Text(name).font(.title2)
-                            .textSelection(.enabled)
-                    }
-                    Text(profile.address.address).font(.headline)
-                        .textSelection(.enabled)
-                        .foregroundStyle(.secondary)
-                }
-                .padding(.bottom, .Spacing.xSmall)
-                .listRowSeparator(.hidden)
-            }
-
-            // broadcasts
-            if let receiveBroadcasts {
+            VStack(alignment: .leading) {
                 Section {
-                    VStack(alignment: .leading, spacing: .Spacing.default) {
-                        Divider()
-                        Toggle(isOn: receiveBroadcasts) {
-                            HStack(spacing: .Spacing.xSmall) {
-                                Image(.scopeBroadcasts)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 16, height: 16)
-                                Text("Broadcast")
-                            }
+                    profileImage(profile: profile)
+
+                    // name and address
+                    VStack(alignment: .leading, spacing: .Spacing.xxxSmall) {
+                        awayMessage
+                            .padding(.bottom, .Spacing.default)
+
+                        if let name = profile[.name], !name.isEmpty {
+                            Text(name).font(.title2)
+                                .textSelection(.enabled)
                         }
-                        .toggleStyle(.switch)
-                        .tint(.accentColor)
-                        Divider()
+                        Text(profile.address.address).font(.headline)
+                            .textSelection(.enabled)
+                            .foregroundStyle(.secondary)
                     }
-                    .padding(.vertical, .Spacing.xxxSmall)
-                    #if os(macOS)
-                    .listRowInsets(.init())
-                    #endif
                     .listRowSeparator(.hidden)
                 }
-            }
 
-            ForEach(profile.groupedAttributes) { group in
-                if shouldDisplayGroup(group) {
+                // broadcasts
+                if let receiveBroadcasts {
                     Section {
-                        ForEach(group.attributes, id: \.self) { attribute in
-                            if shouldDisplayAttribute(attribute) {
-                                component(for: attribute)
-                                    .listRowSeparator(.hidden)
+                        VStack(alignment: .leading, spacing: .Spacing.default) {
+                            Divider()
+                            Toggle(isOn: receiveBroadcasts) {
+                                HStack(spacing: .Spacing.xSmall) {
+                                    Image(.scopeBroadcasts)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(width: 16, height: 16)
+                                    Text("Broadcast")
+                                }
                             }
+                            .toggleStyle(.switch)
+                            .tint(.accentColor)
+                            Divider()
                         }
-                    } header: {
-                        if (group.groupType.shouldShowInPreview) {
-                            Text(group.groupType.displayName)
-                                .font(.title3)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(.primary)
-                                .padding(.top, .Spacing.xSmall)
-                        } else {
-                            Spacer()
+                        .padding(.vertical, .Spacing.xxxSmall)
+                        #if os(macOS)
+                        .listRowInsets(.init())
+                        #endif
+                        .listRowSeparator(.hidden)
+                    }
+                }
+
+                ForEach(profile.groupedAttributes) { group in
+                    if shouldDisplayGroup(group) {
+                        Section {
+                            ForEach(group.attributes, id: \.self) { attribute in
+                                if shouldDisplayAttribute(attribute) {
+                                    component(for: attribute)
+                                        .listRowSeparator(.hidden)
+                                }
+                            }
+                        } header: {
+                            if (group.groupType.shouldShowInPreview) {
+                                Text(group.groupType.displayName)
+                                    .font(.title3)
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(.primary)
+                                    .padding(.top, .Spacing.xSmall)
+                            } else {
+                                Spacer()
+                            }
                         }
                     }
                 }
-            }
+            }.padding(EdgeInsets(
+                top: .Spacing.default,
+                leading: 0,
+                bottom: .Spacing.default,
+                trailing: .Spacing.default,
+            ))
         }
 #if os(macOS)
         .inspect { tableView in
@@ -161,8 +167,6 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                 shape: type,
                 size: .large
             )
-            .padding(.top, -.Spacing.xxxSmall)
-            .padding(.bottom, .Spacing.default)
         }
     }
 
@@ -236,13 +240,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                         .lineLimit(2)
                 }
             }
-            .padding(.vertical, .Spacing.xSmall)
-            .padding(.horizontal, .Spacing.xSmall)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background {
-                RoundedRectangle(cornerRadius: .CornerRadii.default)
-                    .fill(.themeBackground)
-            }
         }
     }
 

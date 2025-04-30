@@ -33,7 +33,12 @@ struct ProfileView: View {
                 shape: .roundedRectangle(cornerRadius: .CornerRadii.default),
                 size: .huge
             )
-            .frame(width: 250, height: 250)
+            .padding(EdgeInsets(
+                top: .Spacing.default,
+                leading: .Spacing.default,
+                bottom: 0,
+                trailing: 0,
+            ))
             ProfileAttributesView(
                 profile: $viewModel.profile,
                 receiveBroadcasts: receiveBroadcastsBinding,

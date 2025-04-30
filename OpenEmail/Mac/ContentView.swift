@@ -99,9 +99,12 @@ struct ContentView: View {
         } detail: {
             VStack {
                 if navigationState.selectedContact == nil && navigationState.selectedMessageIDs.isEmpty {
-                    Text("No selection")
-                        .bold()
-                        .foregroundStyle(.tertiary)
+                    Image(.logo)
+                        //.aspectRatio(contentMode: .fit)
+                        .saturation(0.0)
+                        .opacity(0.25)
+                        .frame(height: 32, alignment: .leading)
+                    
                 } else {
                     if navigationState.selectedScope == .contacts {
                         ContactDetailView(
@@ -407,7 +410,9 @@ struct ContactDetailView: View {
                 )
                 .id(profile.address.address)
             }
-        }.task {
+        }
+        .background()
+        .task {
             if let contact = selectedContactListItem, let address = EmailAddress(
                 contact.email
             ) {
