@@ -64,7 +64,7 @@ struct ProfileView: View {
                     ProfileImageView(
                         emailAddress: viewModel.profile.address.address,
                         shape: .roundedRectangle(cornerRadius: .CornerRadii.default),
-                        size: profileImageSize ?? 288
+                        size: .large
                     )
 
                     ProfileAttributesView(

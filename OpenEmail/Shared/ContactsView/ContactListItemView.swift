@@ -9,7 +9,7 @@ struct ContactListItemView: View {
 
     var body: some View {
         HStack {
-            ProfileImageView(emailAddress: item.email)
+            ProfileImageView(emailAddress: item.email, size: .medium)
 
             VStack(alignment: .leading, spacing: .zero) {
                 Text(item.title)

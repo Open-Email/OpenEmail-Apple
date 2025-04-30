@@ -23,7 +23,7 @@ struct OnboardingExistingAccountView: View {
                             .foregroundStyle(.secondary)
 
                         HStack(spacing: .Spacing.small) {
-                            ProfileImageView(emailAddress: emailAddress, size: .Spacing.xxxLarge)
+                            ProfileImageView(emailAddress: emailAddress, size: .medium)
                             Text(emailAddress)
                                 .font(.title3)
                         }
@@ -99,7 +99,7 @@ struct OnboardingExistingAccountView: View {
                             .frame(height: .Spacing.large)
 
                         HStack(spacing: .Spacing.small) {
-                            ProfileImageView(emailAddress: emailAddress, size: .Spacing.xLarge)
+                            ProfileImageView(emailAddress: emailAddress, size: .medium)
                             Text(emailAddress)
                                 .font(.callout)
                         }

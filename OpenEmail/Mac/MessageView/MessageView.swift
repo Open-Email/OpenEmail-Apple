@@ -14,7 +14,6 @@ struct MessageView: View {
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
     
     @State private var showRecallConfirmationAlert = false
-    @State private var selectedProfile: Profile?
     
     init(messageViewModel: Binding<MessageViewModel>) {
         _viewModel = messageViewModel
@@ -49,29 +48,12 @@ struct MessageView: View {
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                 }
-                .onTapGesture {
-                    selectedProfile = nil
-                }
                 .blur(radius: viewModel.showProgress ? 4 : 0)
                 .overlay {
                     if viewModel.showProgress {
                         ProgressView()
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .background(.background.opacity(0.75))
-                    }
-                }
-                .overlay(alignment: .trailing) {
-                    if let selectedProfile {
-                        ProfileView(
-                            profile: selectedProfile,
-                            showActionButtons: false,
-                            verticalLayout: true,
-                            onClose: {
-                                self.selectedProfile = nil
-                            }
-                        ).id(selectedProfile.address.address)
-                        .frame(width: 320)
-                        .frame(maxHeight: .infinity)
                     }
                 }
             } else {
@@ -111,9 +93,6 @@ struct MessageView: View {
                 )
             }
         }
-        .onChange(of: navigationState.selectedMessageIDs) {
-            selectedProfile = nil
-        }
         .onReceive(NotificationCenter.default.publisher(for: .didSynchronizeMessages)) { _ in
             viewModel.fetchMessage()
         }
@@ -142,10 +121,7 @@ struct MessageView: View {
             }
 
             HStack(alignment: .top, spacing: .Spacing.small) {
-                ProfileImageView(emailAddress: message?.author)
-                    .onTapGesture {
-                        selectedProfile = viewModel.authorProfile
-                    }
+                ProfileImageView(emailAddress: message?.author, size: .medium)
 
                 VStack(alignment: .leading, spacing: .Spacing.xSmall) {
                     HStack {
@@ -156,9 +132,6 @@ struct MessageView: View {
                                 automaticallyShowProfileIfNotInContacts: false,
                                 canRemoveReader: false,
                                 showsActionButtons: true,
-                                onShowProfile: { profile in
-                                    selectedProfile = profile
-                                }
                             ).id(profile.address)
                         }
                     }
@@ -166,7 +139,6 @@ struct MessageView: View {
                     if message?.isBroadcast == false {
                         HStack(alignment: .firstTextBaseline, spacing: .Spacing.xSmall) {
                             ReadersLabelView()
-
                             
                             let deliveries = Binding<[String]>(
                                 get: {
@@ -185,9 +157,7 @@ struct MessageView: View {
                                 ),
                                 tickedReaders: deliveries,
                                 hasInvalidReader: .constant(false),
-                                showProfileType: .callback(onShowProfile: { profile in
-                                    selectedProfile = profile
-                                })
+                                showProfileType: .popover
                             )
                         }
                         .padding(.bottom, 8)

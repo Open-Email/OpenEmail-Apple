@@ -8,15 +8,27 @@ enum ProfileImageShapeType {
     case roundedRectangle(cornerRadius: CGFloat)
 }
 
-struct ProfileImageView<Placeholder: View>: View {
+enum ProfileImageSize {
+    case small
+    case medium
+    case large
+    
+    var size: CGFloat {
+           switch self {
+           case .small:  return 32.0
+           case .medium: return 40.0
+           case .large:  return 64.0
+           }
+       }
+}
+
+struct ProfileImageView: View {
     private let emailAddress: String?
     @State private var name: String?
     @State private var image: Image?
-    private let overrideImage: Image?
     private let type: ProfileImageShapeType
-    private let size: CGFloat
+    private let size: ProfileImageSize
     private let multipleUsersCount: Int?
-    @ViewBuilder private var placeholder: (String) -> Placeholder
 
     @State private var isLoading = false
 
@@ -39,31 +51,20 @@ struct ProfileImageView<Placeholder: View>: View {
     ///   - emailAddress: The email address of the user profile
     ///   - multipleUsersCount: If present, displays a count instead of an individual user's profile image
     ///   - name: The name of the user, used for abbreviation placeholder when there is no image
-    ///   - overrideImage: If present, this is used as the image instead of the actual profile image
     ///   - shape: The shape of the profile image (circle or rounded rectangle)
     ///   - size: The bounding box size of the profile image (bounding box is always square)
-    ///   - placeholderModifier: A view modifier that can apply styles to the placeholder text
     init(
         emailAddress: String?,
         multipleUsersCount: Int? = nil,
         name: String? = nil,
-        overrideImage: Image? = nil,
         shape: ProfileImageShapeType = .circle,
-        size: CGFloat = 40,
-        @ViewBuilder placeholder: @escaping (String) -> Placeholder = {
-            Text($0)
-                .foregroundStyle(.themePrimary)
-                .font(.system(size: 14))
-                .fontWeight(.semibold)
-        }
+        size: ProfileImageSize,
     ) {
         self.type = shape
         self.size = size
         self.emailAddress = emailAddress
         self.name = name
-        self.overrideImage = overrideImage
         self.multipleUsersCount = multipleUsersCount
-        self.placeholder = placeholder
     }
 
     var body: some View {
@@ -73,7 +74,7 @@ struct ProfileImageView<Placeholder: View>: View {
                 ZStack {
                     Circle()
                         .fill(.themeIconBackground)
-                        .frame(width: size, height: size)
+                        .frame(width: size.size, height: size.size)
                         .overlay {
                             if colorScheme == .light {
                                 Circle().stroke(Color.themeLineGray)
@@ -82,19 +83,19 @@ struct ProfileImageView<Placeholder: View>: View {
 
                     makeImage()
                 }
-                .frame(width: size, height: size)
+                .frame(width: size.size, height: size.size)
                 .clipShape(Circle())
                 .shadow(color: .themeShadow, radius: 4, y: 2)
             case .rectangle:
                 Color.clear
-                    .frame(height: size)
+                    .frame(height: size.size)
                     .background {
                         makeImage()
                     }
             case .roundedRectangle(let cornerRadius):
                 makeImage()
                     .frame(maxWidth: .infinity)
-                    .frame(height: size)
+                    .frame(height: size.size)
                     .background(Color.themeSecondary)
                     .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
             }
@@ -122,7 +123,6 @@ struct ProfileImageView<Placeholder: View>: View {
     private func reloadImage() {
         guard
             multipleUsersCount == nil,
-            overrideImage == nil,
             let emailAddressStr = emailAddress,
             let emailAddress = EmailAddress(emailAddressStr)
         else {
@@ -144,12 +144,15 @@ struct ProfileImageView<Placeholder: View>: View {
 
     @ViewBuilder
     private func makeImage(contentMode: ContentMode = .fill) -> some View {
-        if let image = overrideImage ?? image {
+        if let image = image {
             image
                 .resizable()
                 .aspectRatio(contentMode: contentMode)
         } else {
-            placeholder(placeholderText)
+            Image(.logoSmall)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .padding( .Spacing.xxxSmall)
         }
     }
 }
@@ -182,10 +185,13 @@ private extension String {
 
 #Preview("Circle") {
     VStack {
-        ProfileImageView(emailAddress: "mickey@mouse.com", name: nil)
-        ProfileImageView(emailAddress: "mickey@mouse.com", name: "Mickey Mouse")
-        ProfileImageView(emailAddress: "mickey@mouse.com", name: "Mickey Mouse", overrideImage: Image("sample-profile-1"))
-        ProfileImageView(emailAddress: nil, multipleUsersCount: 3)
+        ProfileImageView(
+            emailAddress: "mickey@mouse.com",
+            name: nil,
+            size: .small
+        )
+        ProfileImageView(emailAddress: "mickey@mouse.com", name: "Mickey Mouse", size: .medium)
+        ProfileImageView(emailAddress: nil, multipleUsersCount: 3, size: .large)
     }
     .padding()
 }
@@ -194,7 +200,8 @@ private extension String {
     ProfileImageView(
         emailAddress: nil,
         name: nil,
-        shape: .roundedRectangle(cornerRadius: .CornerRadii.small)
+        shape: .roundedRectangle(cornerRadius: .CornerRadii.small),
+        size: .large
     )
     .padding()
 }
@@ -203,8 +210,8 @@ private extension String {
     ProfileImageView(
         emailAddress: "mickey@mouse.com",
         name: "Mickey Mouse",
-        overrideImage: Image("sample-profile-1"),
-        shape: .roundedRectangle(cornerRadius: .CornerRadii.small)
+        shape: .roundedRectangle(cornerRadius: .CornerRadii.small),
+        size: .large
     )
     .padding()
 }
@@ -213,9 +220,8 @@ private extension String {
     ProfileImageView(
         emailAddress: "mickey@mouse.com",
         name: "Mickey Mouse",
-        overrideImage: Image("sample-profile-1"),
         shape: .roundedRectangle(cornerRadius: .CornerRadii.default),
-        size: 288
+        size: .large
     )
     .padding()
 }
@@ -226,7 +232,7 @@ private extension String {
             emailAddress: "mickey@mouse.com",
             name: nil,
             shape: .roundedRectangle(cornerRadius: .CornerRadii.default),
-            size: 288
+            size: .large
         )
     }
     .frame(width: 320, height: 500)
@@ -238,9 +244,8 @@ private extension String {
         ProfileImageView(
             emailAddress: "mickey@mouse.com",
             name: "Mickey Mouse",
-            overrideImage: Image("sample-profile-1"),
             shape: .rectangle,
-            size: 500
+            size: .large
         )
         .padding()
     }

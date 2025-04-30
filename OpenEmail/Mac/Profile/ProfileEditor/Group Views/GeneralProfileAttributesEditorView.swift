@@ -91,9 +91,8 @@ struct GeneralProfileAttributesEditorView: View {
     private var profileImageView: some View {
         ProfileImageView(
             emailAddress: profile.address.address,
-            overrideImage: image?.swiftUIImage,
             shape: .roundedRectangle(cornerRadius: .CornerRadii.small),
-            size: 288
+            size: .large
         )
         .overlay(alignment: .topTrailing) {
             HStack(spacing: .Spacing.small) {

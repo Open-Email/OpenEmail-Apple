@@ -245,7 +245,10 @@ struct ComposeMessageView: View {
         LazyVStack {
             ForEach(viewModel.contactSuggestions) { contact in
                 HStack {
-                    ProfileImageView(emailAddress: contact.address, size: 30)
+                    ProfileImageView(
+                        emailAddress: contact.address,
+                        size: .medium
+                    )
 
                     VStack(alignment: .leading, spacing: 0) {
                         if let name = contact.cachedName {

@@ -137,17 +137,11 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
         switch profileImageStyle {
         case .none:
             EmptyView()
-        case .fullWidthHeader(let height):
+        case .fullWidthHeader(_):
             ProfileImageView(
                 emailAddress: profile.address.address,
                 shape: .rectangle,
-                size: height,
-                placeholder: {
-                    Text($0)
-                        .foregroundStyle(.white)
-                        .font(.system(size: 30))
-                        .fontWeight(.semibold)
-                }
+                size: .large
             )
             .background(.accent.gradient)
 #if os(iOS)
@@ -160,11 +154,11 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
             }
 #endif
 
-        case let .shape(type, size):
+        case let .shape(type, _):
             ProfileImageView(
                 emailAddress: profile.address.address,
                 shape: type,
-                size: size
+                size: .large
             )
             .padding(.top, -.Spacing.xxxSmall)
             .padding(.bottom, .Spacing.default)
@@ -373,7 +367,7 @@ struct InfoButton: View {
         profile: .constant(.makeFake(awayWarning: "Away")),
         receiveBroadcasts: .constant(false),
         hidesEmptyFields: true,
-        profileImageStyle: .shape()
+        profileImageStyle: .shape(),
     )
     .frame(width: 320, height: 500)
     #else

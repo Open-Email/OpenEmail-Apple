@@ -47,7 +47,7 @@ private struct SuggestionRowView: View {
                 ProfileImageView(
                     emailAddress: contact.address,
                     name: contact.cachedName,
-                    size: 30
+                    size: .medium
                 )
                 .padding(.horizontal, .Spacing.xxxSmall)
 

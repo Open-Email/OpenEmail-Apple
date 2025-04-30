@@ -306,7 +306,7 @@ struct MessageView: View {
 
     @ViewBuilder
     private func authorProfileImage(address: String) -> some View {
-        ProfileImageView(emailAddress: address, size: 40)
+        ProfileImageView(emailAddress: address, size: .medium)
             .onTapGesture {
                 showAuthorProfilePopover = true
             }

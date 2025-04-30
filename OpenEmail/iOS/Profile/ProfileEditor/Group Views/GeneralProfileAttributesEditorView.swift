@@ -54,15 +54,8 @@ struct GeneralProfileAttributesEditorView: View {
         VStack(spacing: .Spacing.large) {
             ProfileImageView(
                 emailAddress: profile.address.address,
-                overrideImage: image?.swiftUIImage,
                 shape: .circle,
-                size: 80,
-                placeholder: { _ in
-                    Image(.profileTab)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(height: .Spacing.xxLarge)
-                }
+                size: .medium
             )
 
             HStack(spacing: .Spacing.default) {

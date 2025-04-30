@@ -42,13 +42,17 @@ private struct ProfileButton: View {
     @AppStorage(UserDefaultsKeys.profileName) private var profileName: String?
 
     @Environment(\.openWindow) private var openWindow
+    @State var isHovering: Bool = false
 
     var body: some View {
         Button {
             openWindow(id: WindowIDs.profileEditor)
         } label: {
             HStack(spacing: .Spacing.small) {
-                ProfileImageView(emailAddress: registeredEmailAddress, size: 26)
+                ProfileImageView(
+                    emailAddress: registeredEmailAddress,
+                    size: .small
+                )
                 VStack(alignment: .leading, spacing: 0) {
                     if let name = profileName {
                         Text(name)
@@ -66,8 +70,18 @@ private struct ProfileButton: View {
                     }
                 }
             }
-            .padding(.vertical, .Spacing.xxxSmall)
-        }
+            .padding(.Spacing.xSmall)
+            .onHover { isHovering in
+                self.isHovering = isHovering
+            }
+            .background(
+                RoundedRectangle(cornerRadius: .CornerRadii.small, style: .circular)
+                    .fill(isHovering ? .themeIconBackground : Color.clear)
+            )
+            
+            
+        }.buttonStyle(.borderless)
+            
     }
 }
 

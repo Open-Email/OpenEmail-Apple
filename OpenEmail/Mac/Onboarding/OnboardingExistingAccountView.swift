@@ -18,7 +18,7 @@ struct OnboardingExistingAccountView: View {
 
             VStack(alignment: .leading, spacing: .Spacing.xSmall) {
                 HStack {
-                    ProfileImageView(emailAddress: emailAddress)
+                    ProfileImageView(emailAddress: emailAddress, size: .medium)
                     Text(emailAddress)
                         .font(.title)
                 }
