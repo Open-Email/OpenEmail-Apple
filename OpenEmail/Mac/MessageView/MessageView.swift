@@ -21,50 +21,31 @@ struct MessageView: View {
     
     var body: some View {
         Group {
-            if
-                let _ = viewModel.messageID,
-                let _ = registeredEmailAddress
-            {
-                let message = viewModel.message
-                VStack(alignment: .leading, spacing: 0) {
-                    header(message: message)
-
-                    if let message {
-                       
-                        // body
-                        ScrollView {
-                            VStack(alignment: .leading, spacing: .Spacing.large) {
-                                messageBody(message: message)
-
-                                if let attachmentsListViewModel, !attachmentsListViewModel.items.isEmpty {
-                                    Divider()
-                                    AttachmentsListView(viewModel: attachmentsListViewModel)
-                                }
-                            }
-                            .padding(.Spacing.default)
+            if let message = viewModel.message {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: .Spacing.large) {
+                        header(message: viewModel.message)
+                        messageBody(message: message)
+                        
+                        if let attachmentsListViewModel, !attachmentsListViewModel.items.isEmpty {
+                            Divider()
+                            AttachmentsListView(viewModel: attachmentsListViewModel)
                         }
-                    } else {
-                        Spacer()
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
-                }
-                .blur(radius: viewModel.showProgress ? 4 : 0)
-                .overlay {
-                    if viewModel.showProgress {
-                        ProgressView()
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .background(.background.opacity(0.75))
-                    }
+                    .padding(.Spacing.default)
                 }
             } else {
-                Text("Select a message")
-                    .fontWeight(.medium)
-                    .padding(.horizontal, .Spacing.small)
-                    .padding(.vertical, .Spacing.xxSmall)
-                    .background {
-                        Capsule()
-                            .fill(.themeBackground)
-                    }
+                Spacer()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .background()
+        .blur(radius: viewModel.showProgress ? 4 : 0)
+        .overlay {
+            if viewModel.showProgress {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(.background.opacity(0.75))
             }
         }
         .onChange(of: viewModel.message) {
@@ -103,27 +84,38 @@ struct MessageView: View {
 
     @ViewBuilder
     private func header(message: Message?) -> some View {
-        VStack(alignment: .leading, spacing: .Spacing.large) {
-            HStack(spacing: .Spacing.xSmall) {
-                Text(message?.displayedSubject ?? "–")
-                    .font(.title2)
-                    .textSelection(.enabled)
-                    .bold()
-
-                if let message {
-                    MessageTypeBadge(scope: navigationState.selectedScope)
-
+        VStack(alignment: .leading, spacing: .Spacing.default) {
+            if let message {
+                HStack(spacing: .Spacing.xSmall) {
+                    Text(message.displayedSubject)
+                        .font(.title3)
+                        .textSelection(.enabled)
+                        .bold()
+                    
                     Spacer()
 
-                    (Text(message.authoredOn, style: .date) + Text(" at ") + Text(message.authoredOn, style: .time))
+                    HStack {
+                        if let label = getLabel(scope: navigationState.selectedScope) {
+                            Text(
+                                label
+                            )
+                            .foregroundStyle(.secondary)
+                            .font(.subheadline)
+                        }
+                        
+                        Text(
+                            message.formattedAuthoredOnDate
+                        )
                         .foregroundStyle(.secondary)
+                        .font(.subheadline)
+                    }
                 }
             }
-
-            HStack(alignment: .top, spacing: .Spacing.small) {
+           
+            HStack(spacing: .Spacing.xxSmall) {
                 ProfileImageView(emailAddress: message?.author, size: .medium)
 
-                VStack(alignment: .leading, spacing: .Spacing.xSmall) {
+                VStack(alignment: .leading, spacing: 0) {
                     HStack {
                         if message != nil, let profile = viewModel.authorProfile {
                             ProfileTagView(
@@ -136,7 +128,7 @@ struct MessageView: View {
                         }
                     }
 
-                    if message?.isBroadcast == false {
+                    if (message?.isBroadcast != true) {
                         HStack(alignment: .firstTextBaseline, spacing: .Spacing.xSmall) {
                             ReadersLabelView()
                             
@@ -160,21 +152,10 @@ struct MessageView: View {
                                 showProfileType: .popover
                             )
                         }
-                        .padding(.bottom, 8)
-                    } else {
-                        HStack {
-                            HStack(spacing: 2) {
-                                Image(systemName: "dot.radiowaves.left.and.right")
-                                Text("Broadcast".uppercased())
-                                    .bold()
-                            }
-                        }
-                        .padding(.bottom, 8)
                     }
                 }
             }
         }
-        .padding(.Spacing.default)
     }
 
     
@@ -216,8 +197,10 @@ struct MessageView: View {
     @ViewBuilder
     private func messageBody(message: Message) -> some View {
         if let text = message.body {
-            Text(text).textSelection(.enabled)
-                .lineSpacing(5)
+            Text(text)
+                .font(.body)
+                .textSelection(.enabled)
+                .lineSpacing(.Spacing.xxxSmall)
         } else {
             Text("Loading…").italic().disabled(true)
         }

@@ -37,18 +37,6 @@ struct MessageListItemView: View {
         }
     }
     
-    private var boxLabel: String? {
-        switch scope {
-        case .inbox: "Inbox"
-        case .drafts: "Draft"
-        case .outbox: "Sent"
-        case .broadcasts: "Broadcast"
-        case .trash: "Trash"
-        case .contacts: nil
-        }
-    }
-    
-
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
             Circle()
@@ -72,7 +60,7 @@ struct MessageListItemView: View {
                     
                     Spacer()
                     
-                    if let boxLabel = boxLabel {
+                    if let boxLabel = getLabel(scope: scope) {
                         Text(boxLabel)
                             .lineLimit(1)
                             .foregroundStyle(.secondary)
@@ -83,9 +71,6 @@ struct MessageListItemView: View {
                     Text(message.formattedAuthoredOnDate)
                         .foregroundStyle(.secondary)
                         .font(.subheadline)
-    #if os(iOS)
-                        .font(.subheadline)
-    #endif
                 }
                 
                 HStack {
@@ -128,6 +113,20 @@ struct MessageListItemView: View {
             }
         }
     }
+}
+
+func getLabel(scope: SidebarScope) -> String? {
+    var boxLabel: String? {
+        switch scope {
+        case .inbox: "Inbox"
+        case .drafts: "Draft"
+        case .outbox: "Sent"
+        case .broadcasts: "Broadcast"
+        case .trash: "Trash"
+        case .contacts: nil
+        }
+    }
+    return boxLabel
 }
 
 #Preview {
