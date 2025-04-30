@@ -13,13 +13,6 @@ struct SidebarView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: .Spacing.xxxxSmall) {
-            Image(.logo)
-                //.resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(height: 32, alignment: .leading)
-                //.padding(.horizontal, .Spacing.xSmall)
-                .padding(.bottom, .Spacing.default)
-
             ForEach(viewModel.items) { item in
                 if (item.scope == .contacts) {
                     Spacer().frame(height: .Spacing.default)
@@ -33,12 +26,10 @@ struct SidebarView: View {
                     navigationState.selectedScope = item.scope
                 }
             }
-            
             Spacer()
             ProfileButton()
         }
-        .padding(.horizontal, .Spacing.xSmall)
-        .padding(.bottom, .Spacing.default)
+        .padding(.Spacing.xSmall)
         .frame(maxHeight: .infinity, alignment: .top)
         .onChange(of: navigationState.selectedScope) {
             viewModel.selectedScope = navigationState.selectedScope
@@ -52,9 +43,6 @@ private struct ProfileButton: View {
 
     @Environment(\.openWindow) private var openWindow
 
-    @State private var isHovering = false
-    @State private var isPressed = false
-
     var body: some View {
         Button {
             openWindow(id: WindowIDs.profileEditor)
@@ -62,28 +50,24 @@ private struct ProfileButton: View {
             HStack(spacing: .Spacing.small) {
                 ProfileImageView(emailAddress: registeredEmailAddress, size: 26)
                 VStack(alignment: .leading, spacing: 0) {
-                    Text(profileName ?? "No Name").bold()
-                        .foregroundStyle(.primary)
-                    Text(registeredEmailAddress ?? "").font(.subheadline)
-                        .foregroundStyle(.secondary)
+                    if let name = profileName {
+                        Text(name)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .font(.headline)
+                    }
+                    
+                    if let address = registeredEmailAddress {
+                        Text(address)
+                            .font(.subheadline)
+                            .lineLimit(1)
+                            .foregroundStyle(.secondary)
+                            .truncationMode(.tail)
+                    }
                 }
             }
-            .padding(4)
-            .background {
-                if isHovering {
-                    RoundedRectangle(cornerRadius: .CornerRadii.small)
-                        .foregroundStyle(.tertiary)
-                }
-            }
-            .animation(.default, value: isHovering)
-            .onHover {
-                isHovering = $0
-                if !isHovering {
-                    isPressed = false
-                }
-            }
+            .padding(.vertical, .Spacing.xxxSmall)
         }
-        .buttonStyle(.plain)
     }
 }
 

@@ -111,7 +111,9 @@ struct ContentView: View {
                         messagesDetailView
                     }
                 }
-            }.toolbar {
+            }
+            .frame(minWidth: 300)
+            .toolbar {
                 ToolbarItemGroup(placement: .primaryAction) {
                     HStack {
                         Button {
