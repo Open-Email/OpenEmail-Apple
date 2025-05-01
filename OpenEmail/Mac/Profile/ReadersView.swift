@@ -95,6 +95,8 @@ struct ReadersView: View {
 
                 TextField("", text: $inputText)
                     .focused($isInputFocused)
+                    .font(.body)
+                    .padding(.vertical, .Spacing.xSmall)
                     .textFieldStyle(.plain)
                     .frame(minWidth: 20)
                     .fixedSize() // This causes some visual glitches while typing. It is most probably a SwiftUI bug.
@@ -142,7 +144,7 @@ struct ReadersView: View {
                     }
             }
         }
-        .frame(maxWidth: .infinity, minHeight: 20, alignment: .leading)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .focusable()
         .focused($isFocused)
         .focusEffectDisabled()

@@ -48,7 +48,7 @@ struct OpenEmailApp: App {
             SidebarCommands()  
         }
 
-        WindowGroup("Write Message", id: WindowIDs.compose, for: ComposeAction.self) { action in
+        WindowGroup("Create new Message", id: WindowIDs.compose, for: ComposeAction.self) { action in
             ComposeMessageView(viewModel: ComposeMessageViewModel(action: action.wrappedValue ?? .newMessage(id: UUID(), authorAddress: registeredEmailAddress!, readerAddress: nil)))
         }
         .keyboardShortcut("n", modifiers: .command)

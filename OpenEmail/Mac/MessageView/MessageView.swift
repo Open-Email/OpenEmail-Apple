@@ -39,7 +39,7 @@ struct MessageView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .background()
+        .background(.themeViewBackground)
         .blur(radius: viewModel.showProgress ? 4 : 0)
         .overlay {
             if viewModel.showProgress {

@@ -411,7 +411,7 @@ struct ContactDetailView: View {
                 .id(profile.address.address)
             }
         }
-        .background()
+        .background(.themeViewBackground)
         .task {
             if let contact = selectedContactListItem, let address = EmailAddress(
                 contact.email
