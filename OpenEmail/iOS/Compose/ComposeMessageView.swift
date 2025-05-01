@@ -154,7 +154,6 @@ struct ComposeMessageView: View {
                     } label: {
                         Text("Send")
                     }
-                    .buttonStyle(SendButtonStyle())
                     .help("Compose new message")
                     .disabled(hasInvalidReader || !viewModel.isSendButtonEnabled)
                 }

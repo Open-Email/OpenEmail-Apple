@@ -56,8 +56,6 @@
 		5B34FF262D1577500033F0C1 /* InterestsProfileAttributesEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B34FF252D1577500033F0C1 /* InterestsProfileAttributesEditorView.swift */; };
 		5B34FF282D1579620033F0C1 /* ContactsProfileAttributesEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B34FF272D1579620033F0C1 /* ContactsProfileAttributesEditorView.swift */; };
 		5B34FF2A2D157C5E0033F0C1 /* ConfigurationProfileAttributesEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B34FF292D157C5E0033F0C1 /* ConfigurationProfileAttributesEditorView.swift */; };
-		5B34FF2E2D15AF1B0033F0C1 /* SendButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B34FF2D2D15AF1B0033F0C1 /* SendButtonStyle.swift */; };
-		5B34FF2F2D15AF1B0033F0C1 /* SendButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B34FF2D2D15AF1B0033F0C1 /* SendButtonStyle.swift */; };
 		5B3B30D02BC920A1009D8471 /* SyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B3B30CF2BC920A1009D8471 /* SyncService.swift */; };
 		5B3C03312BD262E500A8B35B /* LocalUserUpdateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B3C03302BD262E500A8B35B /* LocalUserUpdateService.swift */; };
 		5B3C03582BDBF7F700A8B35B /* AddToContactsUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B3C03572BDBF7F700A8B35B /* AddToContactsUseCase.swift */; };
@@ -296,7 +294,6 @@
 		5B34FF252D1577500033F0C1 /* InterestsProfileAttributesEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterestsProfileAttributesEditorView.swift; sourceTree = "<group>"; };
 		5B34FF272D1579620033F0C1 /* ContactsProfileAttributesEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsProfileAttributesEditorView.swift; sourceTree = "<group>"; };
 		5B34FF292D157C5E0033F0C1 /* ConfigurationProfileAttributesEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationProfileAttributesEditorView.swift; sourceTree = "<group>"; };
-		5B34FF2D2D15AF1B0033F0C1 /* SendButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendButtonStyle.swift; sourceTree = "<group>"; };
 		5B3B30CF2BC920A1009D8471 /* SyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncService.swift; sourceTree = "<group>"; };
 		5B3C03302BD262E500A8B35B /* LocalUserUpdateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalUserUpdateService.swift; sourceTree = "<group>"; };
 		5B3C03572BDBF7F700A8B35B /* AddToContactsUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddToContactsUseCase.swift; sourceTree = "<group>"; };
@@ -541,7 +538,6 @@
 			children = (
 				5B7C80802AEBF1120088E2EA /* Colors.xcassets */,
 				5BA2D6592CC26D38004783B7 /* Spacings.swift */,
-				5B34FF2D2D15AF1B0033F0C1 /* SendButtonStyle.swift */,
 				5B99FAA32CD5056A00EF58DB /* ActionButtonStyle.swift */,
 				5B1C37872D3A5A220017D57D /* OpenEmailTextFieldLabel.swift */,
 				5BA3D0272CDE42D000D969BD /* EmptyListView.swift */,
@@ -1269,7 +1265,6 @@
 				5B3046592C6BABC100B33157 /* Message+Display.swift in Sources */,
 				5B5390D42B7F62E000387B6F /* String+Truncating.swift in Sources */,
 				5B8C60E62D0365E400FEF5F1 /* OpenEmailTextEditor.swift in Sources */,
-				5B34FF2E2D15AF1B0033F0C1 /* SendButtonStyle.swift in Sources */,
 				5BFDDAED2B51A408009DDCDA /* MultipleMessagesView.swift in Sources */,
 				5B141C2E2C134A4B00597F70 /* TimeInterval+Extension.swift in Sources */,
 				5BE2CFA02D4D0E9800E9DB1A /* Modify.swift in Sources */,
@@ -1369,7 +1364,6 @@
 				5B30466F2C6F2AD000B33157 /* ProfileView.swift in Sources */,
 				5BDA2ED72C5CCF48009FB2BD /* NotificationStoreMock.swift in Sources */,
 				5BB70A3B2D71ECC0005DDA48 /* ConfigurationProfileAttributesEditorView.swift in Sources */,
-				5B34FF2F2D15AF1B0033F0C1 /* SendButtonStyle.swift in Sources */,
 				5B43DD6E2D3143CB002CC7B0 /* String+Cleaning.swift in Sources */,
 				5BDA2ED82C5CCF48009FB2BD /* Icons.swift in Sources */,
 				5BDD1D362CA69A9B004AF1D5 /* TokenTextField.swift in Sources */,
