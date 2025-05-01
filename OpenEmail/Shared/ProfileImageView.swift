@@ -154,6 +154,8 @@ struct ProfileImageView: View {
         } else {
             Image(.logoSmall)
                 .resizable()
+                .renderingMode(.template)
+                .foregroundStyle(.accent)
                 .frame(maxWidth: 64, maxHeight: 64)
                 .aspectRatio(contentMode: .fit)
                 .padding( .Spacing.xxxSmall)

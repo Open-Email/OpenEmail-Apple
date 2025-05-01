@@ -37,7 +37,7 @@ struct ContactListItemView: View {
                     .padding(.horizontal, .Spacing.xxSmall)
                     .background {
                         RoundedRectangle(cornerRadius: .CornerRadii.small)
-                            .fill(.themeBlue)
+                            .fill(.accent)
                     }
             }
         }

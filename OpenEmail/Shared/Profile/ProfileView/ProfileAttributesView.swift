@@ -231,7 +231,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                     .padding(.horizontal, 4)
                     .background {
                         RoundedRectangle(cornerRadius: .CornerRadii.small)
-                            .foregroundStyle(.themeBlue)
+                            .foregroundStyle(.accent)
                     }
 
                 if let awayWarning = profile[.awayWarning] {
@@ -297,7 +297,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
         LabeledContent {
             let value = profile[boolean: attribute] ?? defaultValue
             Image(systemName: value ? "checkmark" : "xmark")
-                .foregroundStyle(.themeBlue)
+                .foregroundStyle(.accent)
         } label: {
             HStack(spacing: .Spacing.xSmall) {
                 if let info = attribute.info {
