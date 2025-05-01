@@ -388,8 +388,8 @@ struct ProfilePreviewSheetView: View {
                 .buttonStyle(.borderedProminent)
                 .keyboardShortcut(.defaultAction)
                 .disabled(profile.address == LocalUser.current?.address)
-            }
-        }.frame(minHeight: 400)
+            }.padding(.Spacing.default)
+        }
     }
 }
 

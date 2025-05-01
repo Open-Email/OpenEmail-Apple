@@ -44,7 +44,7 @@ struct ProfileView: View {
                 receiveBroadcasts: receiveBroadcastsBinding,
                 hidesEmptyFields: true,
                 profileImageStyle: .none
-            )
+            ).frame(idealWidth: 300)
         }
     }
 }

@@ -153,7 +153,6 @@ struct ProfilePopover: View {
                 profile: profileViewModel.profile,
             )
             .frame(
-                minWidth: 550,
                 minHeight: ProfileImageSize.huge.size + 2 * .Spacing.default
             )
 
