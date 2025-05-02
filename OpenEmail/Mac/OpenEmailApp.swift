@@ -53,9 +53,8 @@ struct OpenEmailApp: App {
         }
         .keyboardShortcut("n", modifiers: .command)
 
-        Window("ProfileEditor", id: WindowIDs.profileEditor) {
+        Window("Profile Editor", id: WindowIDs.profileEditor) {
             ProfileEditorView()
-                .frame(minWidth: 800, maxWidth: 1000)
         }
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)

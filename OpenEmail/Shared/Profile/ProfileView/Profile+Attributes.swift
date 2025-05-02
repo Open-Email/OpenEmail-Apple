@@ -35,68 +35,66 @@ struct ProfileAttributesGroup: Identifiable {
 }
 
 extension Profile {
-    var groupedAttributes: [ProfileAttributesGroup] {
-        [
-            ProfileAttributesGroup(
-                groupType: .general,
-                attributes: [
-                    .status,
-                    .about
-                ]
-            ),
-            ProfileAttributesGroup(
-                groupType: .personal,
-                attributes: [
-                    .gender,
-                    .relationshipStatus,
-                    .birthday,
-                    .education,
-                    .languages,
-                    .placesLived,
-                    .notes
-                ]
-            ),
-            ProfileAttributesGroup(
-                groupType: .work,
-                attributes: [
-                    .work,
-                    .organization,
-                    .department,
-                    .jobTitle
-                ]
-            ),
-            ProfileAttributesGroup(
-                groupType: .interests,
-                attributes: [
-                    .interests,
-                    .books,
-                    .movies,
-                    .music,
-                    .sports
-                ]
-            ),
-            ProfileAttributesGroup(
-                groupType: .contacts,
-                attributes: [
-                    .website,
-                    .location,
-                    .mailingAddress,
-                    .phone,
-                    .streams
-                ]
-            ),
-            ProfileAttributesGroup(
-                groupType: .configuration,
-                attributes: [
-                    .publicAccess,
-                    .publicLinks,
-                    .lastSeenPublic,
-                    .lastSeen,
-                    .addressExpansion
-                ]
-            )
-        ]
-    }
+    static let groupedAttributes: [ProfileAttributesGroup] = [
+        ProfileAttributesGroup(
+            groupType: .general,
+            attributes: [
+                .status,
+                .about
+            ]
+        ),
+        ProfileAttributesGroup(
+            groupType: .personal,
+            attributes: [
+                .gender,
+                .relationshipStatus,
+                .birthday,
+                .education,
+                .languages,
+                .placesLived,
+                .notes
+            ]
+        ),
+        ProfileAttributesGroup(
+            groupType: .work,
+            attributes: [
+                .work,
+                .organization,
+                .department,
+                .jobTitle
+            ]
+        ),
+        ProfileAttributesGroup(
+            groupType: .interests,
+            attributes: [
+                .interests,
+                .books,
+                .movies,
+                .music,
+                .sports
+            ]
+        ),
+        ProfileAttributesGroup(
+            groupType: .contacts,
+            attributes: [
+                .website,
+                .location,
+                .mailingAddress,
+                .phone,
+                .streams
+            ]
+        ),
+        ProfileAttributesGroup(
+            groupType: .configuration,
+            attributes: [
+                .publicAccess,
+                .publicLinks,
+                .lastSeenPublic,
+                .lastSeen,
+                .addressExpansion
+            ]
+        )
+    ]
 
     func isGroupEmpty(group: ProfileAttributesGroup) -> Bool {
         for attribute in group.attributes {

@@ -72,7 +72,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                 // broadcasts
                 if let receiveBroadcasts {
                     Section {
-                        VStack(alignment: .leading, spacing: .Spacing.default) {
+                        VStack(alignment: .leading, spacing: .Spacing.small) {
                             Divider()
                             Toggle(isOn: receiveBroadcasts) {
                                 HStack(spacing: .Spacing.xSmall) {
@@ -95,7 +95,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                     }
                 }
 
-                ForEach(profile.groupedAttributes) { group in
+                ForEach(Profile.groupedAttributes) { group in
                     if shouldDisplayGroup(group) {
                         Section {
                             ForEach(group.attributes, id: \.self) { attribute in

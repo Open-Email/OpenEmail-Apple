@@ -24,8 +24,7 @@ struct ProfileEditorGroupItemView: View {
 #else
         .foregroundStyle(isSelected ? .themePrimary : .themeSecondary)
         .padding(.horizontal, .Spacing.small)
-        .frame(height: 60)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(alignment: .leading)
         .contentShape(Rectangle())
         .onTapGesture {
             onSelection()

@@ -3,38 +3,45 @@ import OpenEmailModel
 import OpenEmailCore
 
 struct ConfigurationProfileAttributesEditorView: View {
-    @Binding var profile: Profile
-
+    @Binding var profile: Profile?
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: .Spacing.default) {
                 Text("Configuration").font(.title2)
-
+                
                 HStack {
-                    Toggle("", isOn: $profile.publicAccess)
+                    Toggle("", isOn: Binding($profile)?.publicAccess ?? Binding<Bool>(
+                        get: { true
+                        },
+                        set: {_ in }))
                     Text(ProfileAttribute.publicAccess.displayTitle)
-
+                    
                     if let info = ProfileAttribute.publicAccess.info {
                         InfoButton(text: info)
                     }
                 }
                 HStack {
-                    Toggle("", isOn: $profile.publicLinks)
+                    Toggle("", isOn: Binding($profile)?.publicLinks ?? Binding<Bool>(
+                        get: { true },
+                        set: {_ in }))
                     Text(ProfileAttribute.publicLinks.displayTitle)
-
+                    
                     if let info = ProfileAttribute.publicLinks.info {
                         InfoButton(text: info)
                     }
                 }
                 HStack {
-                    Toggle("", isOn: $profile.lastSeenPublic)
+                    Toggle("", isOn: Binding($profile)?.lastSeenPublic ?? Binding<Bool>(
+                        get: { true },
+                        set: {_ in }))
                     Text(ProfileAttribute.lastSeenPublic.displayTitle)
-
+                    
                     if let info = ProfileAttribute.lastSeenPublic.info {
                         InfoButton(text: info)
                     }
                 }
-
+                
                 VStack(alignment: .leading, spacing: .Spacing.xSmall) {
                     HStack {
                         OpenEmailTextFieldLabel(ProfileAttribute.addressExpansion.displayTitle)
@@ -42,9 +49,12 @@ struct ConfigurationProfileAttributesEditorView: View {
                             InfoButton(text: info)
                         }
                     }
-
-                    TextField("Enter addresses", text: $profile.addressExpansion)
-                        .textFieldStyle(.openEmail)
+                    
+                    TextField("Enter addresses", text: Binding($profile)?.addressExpansion ?? Binding<String>(
+                        get: {""
+                        },
+                        set: {_ in }))
+                    .textFieldStyle(.openEmail)
                 }
                 .padding(.top, .Spacing.default)
             }
@@ -57,7 +67,7 @@ struct ConfigurationProfileAttributesEditorView: View {
 }
 
 #Preview {
-    @Previewable @State var profile: Profile = .makeFake()
+    @Previewable @State var profile: Profile? = .makeFake()
     HStack {
         ConfigurationProfileAttributesEditorView(profile: $profile)
     }

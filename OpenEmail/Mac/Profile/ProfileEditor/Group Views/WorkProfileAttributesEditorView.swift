@@ -3,21 +3,24 @@ import OpenEmailModel
 import OpenEmailCore
 
 struct WorkProfileAttributesEditorView: View {
-    @Binding var profile: Profile
-
+    @Binding var profile: Profile?
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: .Spacing.default) {
                 Text("Work").font(.title2)
-
+                
                 Grid(horizontalSpacing: .Spacing.large, verticalSpacing: .Spacing.large) {
                     GridRow {
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
                             OpenEmailTextFieldLabel(ProfileAttribute.work.displayTitle)
-                            TextField("Enter your work", text: $profile.work)
-                                .textFieldStyle(.openEmail)
+                            TextField("Enter your work", text: Binding($profile)?.work ?? Binding<String>(
+                                get: {""
+                                },
+                                set: {_ in }))
+                            .textFieldStyle(.openEmail)
                         }
-
+                        
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
                             HStack {
                                 OpenEmailTextFieldLabel(ProfileAttribute.organization.displayTitle)
@@ -25,30 +28,39 @@ struct WorkProfileAttributesEditorView: View {
                                     InfoButton(text: info)
                                 }
                             }
-
-                            TextField("Enter your organization", text: $profile.organization)
-                                .textFieldStyle(.openEmail)
+                            
+                            TextField("Enter your organization", text: Binding($profile)?.organization ?? Binding<String>(
+                                get: {""
+                                },
+                                set: {_ in }))
+                            .textFieldStyle(.openEmail)
                         }
                     }
-
+                    
                     GridRow {
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
                             OpenEmailTextFieldLabel(ProfileAttribute.department.displayTitle)
-                            TextField("Enter your department", text: $profile.department)
-                                .textFieldStyle(.openEmail)
+                            TextField("Enter your department", text: Binding($profile)?.department ?? Binding<String>(
+                                get: {""
+                                },
+                                set: {_ in }))
+                            .textFieldStyle(.openEmail)
                         }
-
+                        
                         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
                             HStack {
                                 OpenEmailTextFieldLabel(ProfileAttribute.jobTitle.displayTitle)
-
+                                
                                 if let info = ProfileAttribute.jobTitle.info {
                                     InfoButton(text: info)
                                 }
                             }
-
-                            TextField("Enter your job title", text: $profile.jobTitle)
-                                .textFieldStyle(.openEmail)
+                            
+                            TextField("Enter your job title", text: Binding($profile)?.jobTitle ?? Binding<String>(
+                                get: {""
+                                },
+                                set: {_ in }))
+                            .textFieldStyle(.openEmail)
                         }
                     }
                 }
@@ -61,6 +73,6 @@ struct WorkProfileAttributesEditorView: View {
 }
 
 #Preview {
-    @Previewable @State var profile: Profile = .makeFake()
+    @Previewable @State var profile: Profile? = .makeFake()
     WorkProfileAttributesEditorView(profile: $profile)
 }

@@ -11,7 +11,7 @@ struct ProfileEditorTabView: View {
         NavigationSplitView {
             List(selection: $selectedGroup) {
                 if let profile = viewModel.profile {
-                    ForEach(profile.groupedAttributes) { group in
+                    ForEach(Profile.groupedAttributes) { group in
                         NavigationLink(value: group.groupType) {
                             ProfileEditorGroupItemView(group: group, isSelected: false, onSelection: {})
                         }
