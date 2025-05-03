@@ -18,24 +18,30 @@ struct ProfileEditorView: View {
         
         HSplitView {
             VStack(alignment: .leading) {
-                Text("Profile")
-                    .font(.title)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.primary)
-                    .padding(.Spacing.default)
+                HStack(spacing: .zero) {
+                    Text("Profile")
+                        .font(.title)
+                        .fontWeight(.semibold)
+                        .padding(.Spacing.default)
+                    Spacer()
+                }
+                
 
+               
                 List {
                     ForEach(Profile.groupedAttributes) { group in
                         ProfileEditorGroupItemView(group: group, isSelected: group.groupType == selectedGroup) {
                             selectedGroup = group.groupType
-                        }
+                        }.listRowSeparator(.hidden)
+                            .listRowInsets(EdgeInsets.init(top: 0, leading: 0, bottom: 0, trailing: 0))
                     }
                 }
                 .scrollContentBackground(.hidden)
                 .listStyle(.plain)
-                .background(.themeViewBackground)
+                
             }
-            .frame(maxHeight: .infinity)
+            .background(.clear)
+            .frame(width: 200)
 
             Group {
                 switch selectedGroup {
@@ -54,7 +60,7 @@ struct ProfileEditorView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .background(.themeViewBackground)
+        .background(.regularMaterial)
         .onAppear {
             reloadProfile()
         }
@@ -92,8 +98,6 @@ struct ProfileEditorView: View {
             }
         }
     }
-    .scrollContentBackground(.hidden)
     .listStyle(.plain)
-    .background(.themeViewBackground)
     .frame(width: 250, height: 500)
 }

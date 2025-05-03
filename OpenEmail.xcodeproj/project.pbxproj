@@ -481,6 +481,7 @@
 		16468EB82B90BB360096BC0D /* ProfileEditor */ = {
 			isa = PBXGroup;
 			children = (
+				5BF25D1F2D71C18A00720F54 /* ProfileEditorGroupItemView.swift */,
 				5BC1DE762D0304FF000A90DD /* ProfileEditorView.swift */,
 				5BC1DE782D032C08000A90DD /* Group Views */,
 			);
@@ -1018,7 +1019,6 @@
 			isa = PBXGroup;
 			children = (
 				16468EBB2B90BFCE0096BC0D /* ProfileEditorViewModel.swift */,
-				5BF25D1F2D71C18A00720F54 /* ProfileEditorGroupItemView.swift */,
 			);
 			path = ProfileEditorView;
 			sourceTree = "<group>";

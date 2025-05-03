@@ -8,28 +8,24 @@ struct ProfileEditorGroupItemView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        HStack {
-#if os(iOS)
-            Image(group.icon)
-            Text(group.groupType.displayName)
-                .fontWeight(.medium)
-#else
+        HStack(spacing: .Spacing.xSmall) {
             icon
-            Text(group.groupType.displayName)
-                .foregroundStyle(isSelected ? .themePrimary : .themeSecondary)
-#endif
+            Text(group.groupType.displayName).foregroundStyle(isSelected ? .themePrimary : .themeSecondary)
+            Spacer()
         }
-#if os(iOS)
-        .padding(.vertical, .Spacing.xSmall)
-#else
-        .foregroundStyle(isSelected ? .themePrimary : .themeSecondary)
-        .padding(.horizontal, .Spacing.small)
+        .padding(.horizontal, .Spacing.xSmall)
+        .padding(.vertical, .Spacing.xxSmall)
         .frame(alignment: .leading)
-        .contentShape(Rectangle())
+        .background {
+            if isSelected {
+                RoundedRectangle(cornerRadius: .CornerRadii.small, style: .circular)
+                    .fill(.themeIconBackground)
+            }
+        }
+        .contentShape(RoundedRectangle(cornerRadius: .CornerRadii.small, style: .circular))
         .onTapGesture {
             onSelection()
         }
-#endif
     }
 
     @ViewBuilder
@@ -37,7 +33,7 @@ struct ProfileEditorGroupItemView: View {
         ZStack {
             Circle()
                 .fill(isSelected ? .themePrimary : .themeIconBackground)
-                .frame(width: 40, height: 40)
+                .frame(width: 24, height: 24)
                 .overlay {
                     if colorScheme == .light {
                         Circle().stroke(Color.themeLineGray)
@@ -48,10 +44,10 @@ struct ProfileEditorGroupItemView: View {
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .scaledToFit()
-                .frame(width: 24, height: 24)
+                .frame(width: 14, height: 14)
                 .foregroundStyle(isSelected ? .themeBackground : .themePrimary)
         }
-        .frame(width: 40, height: 40)
+        .frame(width: 24, height: 24)
         .clipShape(Circle())
         .shadow(color: .themeShadow, radius: 4, y: 2)
     }
@@ -78,5 +74,4 @@ private extension ProfileAttributesGroup {
             ProfileEditorGroupItemView(group: .init(groupType: groupType, attributes: []), isSelected: false, onSelection: {})
         }
     }
-    .listStyle(.plain)
 }
