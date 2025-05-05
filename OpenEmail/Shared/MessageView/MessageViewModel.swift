@@ -37,10 +37,7 @@ class MessageViewModel {
     var profileImage: OEImage?
     var isLoadingProfileImage = true
     var isRecalling = false
-
-    var readersAddresses: [EmailAddress] {
-        message?.readers.compactMap { EmailAddress($0) } ?? []
-    }
+    var readers: [Profile] = []
 
     var showProgress: Bool {
         isRecalling
@@ -66,7 +63,6 @@ class MessageViewModel {
 
     init(messageID: String?) {
         self.messageID = messageID
-
         fetchMessage()
     }
 
@@ -74,6 +70,27 @@ class MessageViewModel {
         if let messageID {
             Task {
                 await fetchMessage(messageID: messageID)
+                
+                let result: [Profile] = await withTaskGroup(of: Void.self, returning: [Profile].self) { group in
+                    
+                    var rv: [Profile] = []
+                    
+                    for address in message?.readers ?? [] {
+                        group.addTask {
+                            if let emailAddress = EmailAddress(address),
+                               let profile = try? await self.client
+                                .fetchProfile(
+                                    address: emailAddress,
+                                    force: false
+                                ) {
+                                rv.append(profile)
+                            } 
+                        }
+                    }
+                    await group.waitForAll()
+                    return rv
+                }
+                readers = result
             }
         }
     }
@@ -99,6 +116,7 @@ class MessageViewModel {
     }
 
     func permanentlyDeleteMessage() async throws {
+        try await client.recallAuthoredMessage(localUser: .current!, messageId: message!.id)
         try await message?.permentlyDelete(messageStore: messagesStore)
     }
 

@@ -5,72 +5,83 @@ import OpenEmailCore
 
 struct MessagesListView: View {
     @Environment(NavigationState.self) private var navigationState
+    @Environment(\.openWindow) private var openWindow
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
 
     @State private var viewModel = MessagesListViewModel()
-    @State private var searchText: String = ""
+    @Binding private var searchText: String
+    
+    init (searchText: Binding<String>) {
+        _searchText = searchText
+    }
 
     var body: some View {
         @Bindable var navigationState = navigationState
 
-        VStack(alignment: .leading, spacing: 0) {
-            SearchField(text: $searchText)
-                .padding(.vertical, .Spacing.small)
-                .padding(.horizontal, .Spacing.default)
-
-            Divider()
-
-            List(selection: $navigationState.selectedMessageIDs) {
-                Section {
-                    if viewModel.messages.isEmpty && searchText.isEmpty {
-                        EmptyListView(
-                            icon: navigationState.selectedScope.imageResource,
-                            text: "Your \(navigationState.selectedScope.displayName) message list is empty."
-                        )
-                    }
-
-                    ForEach(viewModel.messages) { message in
-                        MessageListItemView(
-                            message: message,
-                            scope: navigationState.selectedScope
-                        )
-                        .padding(.Spacing.default)
-                        .listRowSeparator(.hidden)
-                    }
-                } header: {
-                    Text(navigationState.selectedScope.displayName)
-                        .font(.title)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.primary)
-                        .padding(.Spacing.default)
-                }
+        List(selection: $navigationState.selectedMessageIDs) {
+            
+            if viewModel.messages.isEmpty && searchText.isEmpty {
+                EmptyListView(
+                    icon: navigationState.selectedScope.imageResource,
+                    text: "Your \(navigationState.selectedScope.displayName) message list is empty."
+                )
             }
-            .listStyle(.plain)
-            .scrollBounceBehavior(.basedOnSize)
-            .contextMenu(forSelectionType: String.self) { messageIDs in
-                if !messageIDs.isEmpty {
-                    let allMessages = viewModel.messages
-                        .filter {
-                            messageIDs.contains($0.id)
-                            && $0.author != registeredEmailAddress // ignore messages from self
-                        }
-
-                    if !allMessages.isEmpty {
-                        if allMessages.unreadCount == 0 {
-                            Button("Mark as Unread") {
-                                viewModel.markAsUnread(messageIDs: messageIDs)
-                            }
-                        } else {
-                            Button("Mark as Read") {
-                                viewModel.markAsRead(messageIDs: messageIDs)
-                            }
-                        }
-                    }
-                }
+            
+            ForEach(viewModel.messages) { message in
+                MessageListItemView(
+                    message: message,
+                    scope: navigationState.selectedScope
+                )
+                .padding(EdgeInsets(
+                    top: .Spacing.xxSmall,
+                    leading: .zero,
+                    bottom: .Spacing.xxSmall,
+                    trailing: .Spacing.xxSmall,
+                    
+                ))
             }
         }
+        .listStyle(.automatic)
+        .scrollBounceBehavior(.basedOnSize)
+        .contextMenu(forSelectionType: String.self, menu: { messageIDs in
+            if !messageIDs.isEmpty {
+                let allMessages = viewModel.messages
+                    .filter {
+                        messageIDs.contains($0.id)
+                        && $0.author != registeredEmailAddress // ignore messages from self
+                    }
+
+                if !allMessages.isEmpty {
+                    if allMessages.unreadCount == 0 {
+                        Button("Mark as Unread") {
+                            viewModel.markAsUnread(messageIDs: messageIDs)
+                        }
+                    } else {
+                        Button("Mark as Read") {
+                            viewModel.markAsRead(messageIDs: messageIDs)
+                        }
+                    }
+                }
+                
+                if (navigationState.selectedScope == .trash) {
+                    Button("Restore") {
+                        viewModel.markAsDeleted(messageIDs: messageIDs, isDeleted: false)
+                        navigationState.clearSelection()
+                    }
+                }
+            }
+        }, primaryAction: { messageIDs in
+            // this runs on double-click of a selected row
+            if let id = messageIDs.first,
+               let msg = viewModel.messages.first(where: { $0.id == id }) {
+                if msg.isDraft {
+                    openWindow(id: WindowIDs.compose, value: ComposeAction.editDraft(messageId: msg.id))
+                } else {
+                    // preview logic here
+                }
+            }
+        })
         .animation(.easeInOut(duration: viewModel.messages.isEmpty ? 0 : 0.2), value: viewModel.messages)
-        .background(Color(nsColor: .controlBackgroundColor))
         .onChange(of: navigationState.selectedMessageIDs) {
             Log.debug("selected message ids: \(navigationState.selectedMessageIDs)")
             
@@ -83,7 +94,6 @@ struct MessagesListView: View {
             }
         }
         .onChange(of: navigationState.selectedScope) {
-            navigationState.selectedMessageIDs = []
             reloadMessages()
         }
         .onChange(of: searchText) {
@@ -97,7 +107,7 @@ struct MessagesListView: View {
         }
         .onAppear {
             reloadMessages()
-        }
+        }.background(Color(nsColor: .controlBackgroundColor))
     }
 
     private func reloadMessages() {
@@ -119,7 +129,9 @@ struct MessagesListView: View {
 
 #if DEBUG
 #Preview {
-    MessagesListView()
+    MessagesListView(searchText: Binding<String>(
+        get: { "" }, set: { _ in }
+    ))
         .frame(width: 400, height: 500)
         .environment(NavigationState())
 }
@@ -131,7 +143,9 @@ private struct PreviewContainer {
 #Preview("empty") {
     let container = PreviewContainer()
 
-    MessagesListView()
+    MessagesListView(searchText: Binding<String>(
+        get: { "" }, set: { _ in }
+    ))
         .environment(NavigationState())
         .onAppear {
             let mockStore = container.messagesStore as? MessageStoreMock

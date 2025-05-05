@@ -30,7 +30,7 @@ struct OnboardingNewAccountView: View {
 
                                 ZStack {
                                     Capsule()
-                                        .fill(.themeBackground)
+                                        .fill(.themeViewBackground)
                                     Picker(selection: $viewModel.selectedDomainIndex) {
                                         ForEach(0..<viewModel.availableDomains.count, id: \.self) { index in
                                             Text(viewModel.availableDomains[index])

@@ -47,7 +47,7 @@ struct OnboardingNewAccountView: View {
                     .padding(.Spacing.xSmall)
                     .background {
                         RoundedRectangle(cornerRadius: .CornerRadii.default)
-                            .fill(.themeBackground)
+                            .fill(.themeViewBackground)
                     }
                 }
 
@@ -82,7 +82,7 @@ struct OnboardingNewAccountView: View {
             // buttons
             VStack(spacing: .Spacing.default) {
                 AsyncButton {
-                    navigationState.selectedMessageIDs.removeAll()
+                    navigationState.clearSelection()
                     await viewModel.register()
                 } label: {
                     Text("Register")

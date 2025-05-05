@@ -98,12 +98,12 @@ public struct Link {
     }
 }
 
-public struct Profile: User, Codable, Equatable, Sendable {
+public struct Profile: User, Codable, Equatable, Sendable, Identifiable {
     public var address: EmailAddress
     public var encryptionKeyId: String? = ""
     public var encryptionAlgorithm: String? = ""
     public var signingAlgorithm: String?
-
+    public var id: String { address.address }
     public var attributes: [ProfileAttribute: String] = [:]
     // TODO: add all unrecognized attributes here
     public var customAttributes: [String: String] = [:]

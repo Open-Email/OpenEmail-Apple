@@ -56,8 +56,6 @@
 		5B34FF262D1577500033F0C1 /* InterestsProfileAttributesEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B34FF252D1577500033F0C1 /* InterestsProfileAttributesEditorView.swift */; };
 		5B34FF282D1579620033F0C1 /* ContactsProfileAttributesEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B34FF272D1579620033F0C1 /* ContactsProfileAttributesEditorView.swift */; };
 		5B34FF2A2D157C5E0033F0C1 /* ConfigurationProfileAttributesEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B34FF292D157C5E0033F0C1 /* ConfigurationProfileAttributesEditorView.swift */; };
-		5B34FF2E2D15AF1B0033F0C1 /* SendButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B34FF2D2D15AF1B0033F0C1 /* SendButtonStyle.swift */; };
-		5B34FF2F2D15AF1B0033F0C1 /* SendButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B34FF2D2D15AF1B0033F0C1 /* SendButtonStyle.swift */; };
 		5B3B30D02BC920A1009D8471 /* SyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B3B30CF2BC920A1009D8471 /* SyncService.swift */; };
 		5B3C03312BD262E500A8B35B /* LocalUserUpdateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B3C03302BD262E500A8B35B /* LocalUserUpdateService.swift */; };
 		5B3C03582BDBF7F700A8B35B /* AddToContactsUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B3C03572BDBF7F700A8B35B /* AddToContactsUseCase.swift */; };
@@ -253,6 +251,8 @@
 		9D0775832D9AFB9500C2A2E0 /* ArrayExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0775812D9AFB8100C2A2E0 /* ArrayExtensions.swift */; };
 		9D0A38562DA8319C00F4BB73 /* DeleteAccountUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */; };
 		9D0A38572DA8319C00F4BB73 /* DeleteAccountUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */; };
+		9D97BDE52DC8ECC70076EEFD /* VisualEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D97BDE42DC8ECBE0076EEFD /* VisualEffectView.swift */; };
+		9D97BDE62DC8ECC70076EEFD /* VisualEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D97BDE42DC8ECBE0076EEFD /* VisualEffectView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -296,7 +296,6 @@
 		5B34FF252D1577500033F0C1 /* InterestsProfileAttributesEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterestsProfileAttributesEditorView.swift; sourceTree = "<group>"; };
 		5B34FF272D1579620033F0C1 /* ContactsProfileAttributesEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsProfileAttributesEditorView.swift; sourceTree = "<group>"; };
 		5B34FF292D157C5E0033F0C1 /* ConfigurationProfileAttributesEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationProfileAttributesEditorView.swift; sourceTree = "<group>"; };
-		5B34FF2D2D15AF1B0033F0C1 /* SendButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendButtonStyle.swift; sourceTree = "<group>"; };
 		5B3B30CF2BC920A1009D8471 /* SyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncService.swift; sourceTree = "<group>"; };
 		5B3C03302BD262E500A8B35B /* LocalUserUpdateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalUserUpdateService.swift; sourceTree = "<group>"; };
 		5B3C03572BDBF7F700A8B35B /* AddToContactsUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddToContactsUseCase.swift; sourceTree = "<group>"; };
@@ -427,6 +426,7 @@
 		5BFDDAEC2B51A408009DDCDA /* MultipleMessagesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipleMessagesView.swift; sourceTree = "<group>"; };
 		9D0775812D9AFB8100C2A2E0 /* ArrayExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayExtensions.swift; sourceTree = "<group>"; };
 		9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountUseCase.swift; sourceTree = "<group>"; };
+		9D97BDE42DC8ECBE0076EEFD /* VisualEffectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -484,6 +484,7 @@
 		16468EB82B90BB360096BC0D /* ProfileEditor */ = {
 			isa = PBXGroup;
 			children = (
+				5BF25D1F2D71C18A00720F54 /* ProfileEditorGroupItemView.swift */,
 				5BC1DE762D0304FF000A90DD /* ProfileEditorView.swift */,
 				5BC1DE782D032C08000A90DD /* Group Views */,
 			);
@@ -541,7 +542,6 @@
 			children = (
 				5B7C80802AEBF1120088E2EA /* Colors.xcassets */,
 				5BA2D6592CC26D38004783B7 /* Spacings.swift */,
-				5B34FF2D2D15AF1B0033F0C1 /* SendButtonStyle.swift */,
 				5B99FAA32CD5056A00EF58DB /* ActionButtonStyle.swift */,
 				5B1C37872D3A5A220017D57D /* OpenEmailTextFieldLabel.swift */,
 				5BA3D0272CDE42D000D969BD /* EmptyListView.swift */,
@@ -667,6 +667,7 @@
 		5B7C80DB2AF4FDAB0088E2EA /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				9D97BDE42DC8ECBE0076EEFD /* VisualEffectView.swift */,
 				9D0775812D9AFB8100C2A2E0 /* ArrayExtensions.swift */,
 				5BC893422C1C56F8008C943B /* Mocks */,
 				5BC6E0A52C2EE84900C5951C /* Injection.swift */,
@@ -1022,7 +1023,6 @@
 			isa = PBXGroup;
 			children = (
 				16468EBB2B90BFCE0096BC0D /* ProfileEditorViewModel.swift */,
-				5BF25D1F2D71C18A00720F54 /* ProfileEditorGroupItemView.swift */,
 			);
 			path = ProfileEditorView;
 			sourceTree = "<group>";
@@ -1247,6 +1247,7 @@
 				5B7C807B2AEBF1110088E2EA /* OpenEmailApp.swift in Sources */,
 				5B2A08CB2C25AC580005B075 /* GeneralSettingsView.swift in Sources */,
 				5BDA2F0B2C5D04D3009FB2BD /* WindowIDs.swift in Sources */,
+				9D97BDE52DC8ECC70076EEFD /* VisualEffectView.swift in Sources */,
 				5BC893442C1C5702008C943B /* EmailClientMock.swift in Sources */,
 				5B0F25852AFE77E300226455 /* MessageStoreMock.swift in Sources */,
 				5BDA2F132C5D0BF8009FB2BD /* OnboardingExistingAccountViewModel.swift in Sources */,
@@ -1269,7 +1270,6 @@
 				5B3046592C6BABC100B33157 /* Message+Display.swift in Sources */,
 				5B5390D42B7F62E000387B6F /* String+Truncating.swift in Sources */,
 				5B8C60E62D0365E400FEF5F1 /* OpenEmailTextEditor.swift in Sources */,
-				5B34FF2E2D15AF1B0033F0C1 /* SendButtonStyle.swift in Sources */,
 				5BFDDAED2B51A408009DDCDA /* MultipleMessagesView.swift in Sources */,
 				5B141C2E2C134A4B00597F70 /* TimeInterval+Extension.swift in Sources */,
 				5BE2CFA02D4D0E9800E9DB1A /* Modify.swift in Sources */,
@@ -1369,7 +1369,6 @@
 				5B30466F2C6F2AD000B33157 /* ProfileView.swift in Sources */,
 				5BDA2ED72C5CCF48009FB2BD /* NotificationStoreMock.swift in Sources */,
 				5BB70A3B2D71ECC0005DDA48 /* ConfigurationProfileAttributesEditorView.swift in Sources */,
-				5B34FF2F2D15AF1B0033F0C1 /* SendButtonStyle.swift in Sources */,
 				5B43DD6E2D3143CB002CC7B0 /* String+Cleaning.swift in Sources */,
 				5BDA2ED82C5CCF48009FB2BD /* Icons.swift in Sources */,
 				5BDD1D362CA69A9B004AF1D5 /* TokenTextField.swift in Sources */,
@@ -1400,6 +1399,7 @@
 				5B5E88612D68A4CB009EBE37 /* IsNotEmpty.swift in Sources */,
 				5BDA2EDE2C5CCF48009FB2BD /* Formatters.swift in Sources */,
 				5BDA2F152C5D0FE7009FB2BD /* OnboardingNewAccountViewModel.swift in Sources */,
+				9D97BDE62DC8ECC70076EEFD /* VisualEffectView.swift in Sources */,
 				5BDA2EDF2C5CCF48009FB2BD /* Alerts.swift in Sources */,
 				5B84654C2D5F3F3F003626E4 /* UINavigationController+SwipeBack.swift in Sources */,
 				5BB910522CF9E80B00D2D8A5 /* ConditionalModifier.swift in Sources */,

@@ -32,7 +32,6 @@ struct ReadersView: View {
     @Injected(\.contactsStore) private var contactsStore
     @Injected(\.client) private var client
 
-    @State private var presentedProfileAddress: EmailAddress?
     @State private var presentedProfile: Profile?
 
     private var validReaders: [EmailAddress] {
@@ -74,9 +73,14 @@ struct ReadersView: View {
                 ReadersLabelView()
             },
             onSelectToken: { token in
-                guard let address = EmailAddress(token.value) else { return }
-                presentedProfileAddress = address
-                profilesShown.insert(address)
+                Task {
+                    if let address = EmailAddress(token.value),
+                       let profile = try? await client.fetchProfile(address: address, force: false) {
+                        presentedProfile = profile
+                        profilesShown.insert(profile.address)
+                    }
+                }
+                
             },
             onTokenAdded: onTokenAdded
         )
@@ -99,8 +103,8 @@ struct ReadersView: View {
                 updateSuggestions()
             }
         }
-        .popover(item: $presentedProfileAddress) { emailAddress in
-            profilePopover(emailAddress: emailAddress)
+        .popover(item: $presentedProfile) { profile in
+            profilePopover(profile: profile)
         }
         .task {
             await updateAllContactsStates()
@@ -144,7 +148,7 @@ struct ReadersView: View {
     }
 
     private func closeProfile() {
-        presentedProfileAddress = nil
+        presentedProfile = nil
         presentedProfile = nil
     }
 
@@ -193,8 +197,14 @@ struct ReadersView: View {
             isInMyContacts = contact != nil
         }
 
-        if !isMe && !isInMyContacts && !profilesShown.contains(emailAddress) && isEditable {
-            presentedProfileAddress = emailAddress
+        
+        
+        if !isMe && !isInMyContacts && !profilesShown.contains(emailAddress) && isEditable,
+           let profile = try? await client.fetchProfile(
+            address: emailAddress,
+            force: false
+           ) {
+            presentedProfile = profile
         }
 
         tokens = tokens.map {
@@ -210,17 +220,16 @@ struct ReadersView: View {
         }
     }
 
-    private func profilePopover(emailAddress: EmailAddress) -> some View {
+    private func profilePopover(profile: Profile) -> some View {
         NavigationStack {
             VStack(spacing: 0) {
                 ProfileView(
-                    emailAddress: emailAddress,
-                    showActionButtons: false,
+                    profile: profile,
                     )
 
                 if
                     isEditable,
-                    let token = tokens.first(where: { $0.value == emailAddress.address })
+                    let token = tokens.first(where: { $0.value == profile.address.address })
                 {
                     HStack {
                         Button("Remove Reader", role: .destructive) {
@@ -231,7 +240,7 @@ struct ReadersView: View {
                         if token.value != registeredEmailAddress, !token.isInMyContacts {
                             AsyncButton("Add Contact") {
                                 let usecase = AddToContactsUseCase()
-                                try? await usecase.add(emailAddress: emailAddress, cachedName: presentedProfile?[.name])
+                                try? await usecase.add(emailAddress: profile.address, cachedName: presentedProfile?[.name])
                                 await checkMyContacts(for: token)
                                 closeProfile()
                             }
@@ -241,7 +250,7 @@ struct ReadersView: View {
                     .buttonStyle(.bordered)
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(.themeBackground)
+                    .background(.themeViewBackground)
                 }
             }
             .profilePopoverToolbar(closeProfile: closeProfile)

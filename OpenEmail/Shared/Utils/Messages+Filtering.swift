@@ -3,11 +3,11 @@ import OpenEmailModel
 import OpenEmailCore
 
 enum SidebarScope: String, CaseIterable, Identifiable {
-    case broadcasts
     case inbox
     case outbox
     case drafts
     case trash
+    case broadcasts
     case contacts
 
     var id: String { rawValue }

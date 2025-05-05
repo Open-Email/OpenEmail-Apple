@@ -8,7 +8,7 @@ struct OpenEmailTextFieldStyle: TextFieldStyle {
             .padding(.Spacing.xSmall)
             .background {
                 RoundedRectangle(cornerRadius: .CornerRadii.default)
-                    .fill(.themeBackground)
+                    .fill(.themeViewBackground)
             }
     }
 }

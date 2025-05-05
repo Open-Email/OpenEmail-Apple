@@ -5,8 +5,8 @@ import AppKit
 import Logging
 
 struct GeneralProfileAttributesEditorView: View {
-    @Binding var profile: Profile
-    var didChangeImage: (NSImage?, Data?) -> Void 
+    @Binding var profile: Profile?
+    var didChangeImage: (NSImage?, Data?) -> Void
 
     @State private var showingImagePicker = false
     @State private var image: NSImage?
@@ -23,7 +23,6 @@ struct GeneralProfileAttributesEditorView: View {
             .padding(.Spacing.default)
             .frame(maxHeight: .infinity, alignment: .top)
         }
-        .background(.themeViewBackground)
         .fileImporter(isPresented: $showingImagePicker, allowedContentTypes: [.image]) { result in
             do {
                 let fileUrl = try result.get()
@@ -66,21 +65,42 @@ struct GeneralProfileAttributesEditorView: View {
                 VStack(alignment: .leading, spacing: .Spacing.xSmall) {
                     OpenEmailTextFieldLabel("Name")
 
-                    TextField("Name", text: $profile.name, prompt: Text("Name"))
+                    TextField(
+                        "Name",
+                        text: Binding($profile)?.name ?? Binding<String>(
+                            get: {""
+                            },
+                            set: {_ in }),
+                        prompt: Text("Name")
+                    )
                         .textFieldStyle(.openEmail)
+                    
                 }
-
-                Text(profile.address.address)
-                    .font(.title3)
-                    .foregroundStyle(.secondary)
-                    .textSelection(.enabled)
-
+                
+                if let profile = Binding($profile) {
+                    Text(profile.wrappedValue.address.address)
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
+                        .textSelection(.enabled)
+                }
+                
                 VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                    Toggle(ProfileAttribute.away.displayTitle, isOn: $profile.away)
-                        .toggleStyle(.switch)
+                    Toggle(
+                        ProfileAttribute.away.displayTitle,
+                        isOn: Binding($profile)?.away ?? Binding<Bool>(
+                            get: {false
+                            },
+                            set: {_ in })
+                    )
+                    .toggleStyle(.switch)
 
-                    if profile[boolean: .away] == true {
-                        OpenEmailTextEditor(text: $profile.awayWarning)
+                    if profile?[boolean: .away] == true {
+                        OpenEmailTextEditor(
+                            text: Binding($profile)?.awayWarning ?? Binding<String>(
+                                get: {""
+                                },
+                                set: {_ in })
+                        )
                             .frame(height: 60)
                     }
                 }
@@ -90,10 +110,9 @@ struct GeneralProfileAttributesEditorView: View {
 
     private var profileImageView: some View {
         ProfileImageView(
-            emailAddress: profile.address.address,
-            overrideImage: image?.swiftUIImage,
+            emailAddress: profile?.address.address,
             shape: .roundedRectangle(cornerRadius: .CornerRadii.small),
-            size: 288
+            size: .huge
         )
         .overlay(alignment: .topTrailing) {
             HStack(spacing: .Spacing.small) {
@@ -121,7 +140,13 @@ struct GeneralProfileAttributesEditorView: View {
 
         VStack(alignment: .leading, spacing: .Spacing.xSmall) {
             OpenEmailTextFieldLabel("Status")
-            TextField("Share your mood, plans, etc.", text: $profile.status)
+            TextField(
+                "Share your mood, plans, etc.",
+                text: Binding($profile)?.status ?? Binding<String>(
+                    get: {""
+                    },
+                    set: {_ in })
+            )
                 .textFieldStyle(.openEmail)
         }
 
@@ -134,7 +159,12 @@ struct GeneralProfileAttributesEditorView: View {
                 }
             }
 
-            OpenEmailTextEditor(text: $profile.about)
+            OpenEmailTextEditor(
+                text: Binding($profile)?.about ?? Binding<String>(
+                    get: {""
+                    },
+                    set: {_ in })
+            )
                 .frame(height: 112)
         }
     }
@@ -148,7 +178,7 @@ struct GeneralProfileAttributesEditorView: View {
 }
 
 #Preview {
-    @Previewable @State var profile: Profile = .makeFake()
+    @Previewable @State var profile: Profile? = .makeFake()
     HStack {
         GeneralProfileAttributesEditorView(profile: $profile, didChangeImage: { _, _ in })
     }

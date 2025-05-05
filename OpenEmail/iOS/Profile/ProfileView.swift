@@ -3,7 +3,7 @@ import OpenEmailCore
 import Logging
 
 struct ProfileView: View {
-    @ObservedObject private var viewModel: ProfileViewModel
+    @State private var viewModel: ProfileViewModel
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) var registeredEmailAddress: String?
 
     private let showActionButtons: Bool
@@ -12,47 +12,36 @@ struct ProfileView: View {
     @State private var showsComposeView = false
 
     init(
-        emailAddress: EmailAddress,
+        profile: Profile,
         showActionButtons: Bool = true,
         isContactRequest: Bool = false,
     ) {
         self.showActionButtons = showActionButtons
         self.isContactRequest = isContactRequest
-        viewModel = ProfileViewModel(emailAddress: emailAddress)
+        viewModel = ProfileViewModel(profile: profile)
     }
 
     var body: some View {
-        if viewModel.isLoadingProfile {
-            ProgressView()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding()
-        } else {
-            if !viewModel.isLoadingProfile && viewModel.profile != nil {
-                let canEditReceiveBroadcasts = !viewModel.isSelf && viewModel.isInContacts
-                ProfileAttributesView(
-                    profile: $viewModel.profile,
-                    receiveBroadcasts: canEditReceiveBroadcasts && viewModel.receiveBroadcasts != nil ? Binding(
-                        get: {
-                            viewModel.receiveBroadcasts ?? true
-                        },
-                        set: { newValue in
-                            Task {
-                                await viewModel.updateReceiveBroadcasts(newValue)
-                            }
-                        }) : nil,
-                    hidesEmptyFields: true,
-                    profileImageStyle: .fullWidthHeader(height: 450),
-                    actionButtonRow: actionButtons
-                )
-                .sheet(isPresented: $showsComposeView) {
-                    if let registeredEmailAddress {
-                        ComposeMessageView(action: .newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: viewModel.emailAddress.address))
+        let canEditReceiveBroadcasts = !viewModel.isSelf && viewModel.isInContacts
+        ProfileAttributesView(
+            profile: $viewModel.profile,
+            showBroadcasts: canEditReceiveBroadcasts,
+            receiveBroadcasts: Binding(
+                get: {
+                    viewModel.receiveBroadcasts
+                },
+                set: { newValue in
+                    Task {
+                        await viewModel.updateReceiveBroadcasts(newValue)
                     }
-                }
-            } else {
-                errorView
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding()
+                }),
+            hidesEmptyFields: true,
+            profileImageStyle: .fullWidthHeader(height: 450),
+            actionButtonRow: actionButtons
+        )
+        .sheet(isPresented: $showsComposeView) {
+            if let registeredEmailAddress {
+                ComposeMessageView(action: .newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: viewModel.profile.address.address))
             }
         }
     }
@@ -98,33 +87,6 @@ struct ProfileView: View {
         }
     }
 
-    @ViewBuilder
-    private var errorView: some View {
-        VStack {
-            HStack(spacing: .Spacing.xxxSmall) {
-                WarningIcon()
-                Text(viewModel.errorText)
-                    .foregroundStyle(.secondary)
-            }
-
-            HStack {
-                Button("Retry") {
-                    viewModel.refreshProfile()
-                }
-                .buttonStyle(.borderedProminent)
-
-                if viewModel.isInContacts && !viewModel.isSelf {
-                    AsyncButton("Remove User", role: .destructive) {
-                        await removeUser()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.red)
-                }
-            }
-            .controlSize(.small)
-        }
-    }
-
     private func removeUser() async {
         do {
             try await viewModel.removeFromContacts()
@@ -152,7 +114,7 @@ struct ProfileView: View {
     InjectedValues[\.client] = client
 
     return ProfileView(
-        emailAddress: .init("mickey@mouse.com")!,
+        profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
         showActionButtons: true,
         isContactRequest: false,
     )
@@ -164,7 +126,7 @@ struct ProfileView: View {
     InjectedValues[\.client] = client
 
     return ProfileView(
-        emailAddress: .init("mickey@mouse.com")!,
+        profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
         showActionButtons: true,
         isContactRequest: false,
     )
@@ -176,7 +138,7 @@ struct ProfileView: View {
     InjectedValues[\.client] = client
 
     return ProfileView(
-        emailAddress: .init("mickey@mouse.com")!,
+        profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
         showActionButtons: true,
         isContactRequest: false,
     )
@@ -191,7 +153,7 @@ struct ProfileView: View {
     InjectedValues[\.contactsStore] = contactsStore
 
     return ProfileView(
-        emailAddress: .init("mickey@mouse.com")!,
+        profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
         showActionButtons: false,
         isContactRequest: false,
     )

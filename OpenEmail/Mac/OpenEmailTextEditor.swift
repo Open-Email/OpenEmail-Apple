@@ -17,7 +17,7 @@ struct OpenEmailTextEditor: View {
             .padding(.vertical, .Spacing.xSmall - 3)
             .overlay {
                 RoundedRectangle(cornerRadius: .CornerRadii.default)
-                    .stroke(Color.themeLineGray)
+                    .stroke(Color.themeSecondary)
             }
             .clipShape(RoundedRectangle(cornerRadius: .CornerRadii.default))
     }

@@ -20,7 +20,7 @@ struct KeysSettingsView: View {
                     privateSigningKey: privateSigningKey,
                     privateEncryptionKey: privateEncryptionKey
                 )
-                .listRowBackground(Color.themeBackground)
+                .listRowBackground(Color.themeViewBackground)
                 .listRowSeparator(.hidden)
             }
 

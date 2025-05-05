@@ -21,20 +21,23 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
         }
     }
 
-    @Binding private var profile: Profile?
-    private let receiveBroadcasts: Binding<Bool>?
+    @Binding private var profile: Profile
+    private let receiveBroadcasts: Binding<Bool>
+    private let showBroadcasts: Bool
     private let hidesEmptyFields: Bool
     private let profileImageStyle: ProfileImageStyle
     @ViewBuilder private var actionButtonRow: () -> ActionButtonRow
 
     init(
-        profile: Binding<Profile?>,
-        receiveBroadcasts: Binding<Bool>?,
+        profile: Binding<Profile>,
+        showBroadcasts: Bool = true,
+        receiveBroadcasts: Binding<Bool>,
         hidesEmptyFields: Bool = false,
         profileImageStyle: ProfileImageStyle,
         actionButtonRow: @escaping () -> ActionButtonRow = { EmptyView() }
     ) {
         _profile = profile
+        self.showBroadcasts = showBroadcasts
         self.receiveBroadcasts = receiveBroadcasts
         self.hidesEmptyFields = hidesEmptyFields
         self.profileImageStyle = profileImageStyle
@@ -48,8 +51,8 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
 #endif
 
     var body: some View {
-        if let profile {
-            List {
+        List {
+            VStack(alignment: .leading) {
                 Section {
                     profileImage(profile: profile)
 
@@ -59,21 +62,20 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                             .padding(.bottom, .Spacing.default)
 
                         if let name = profile[.name], !name.isEmpty {
-                            Text(name).font(.title)
+                            Text(name).font(.title2)
                                 .textSelection(.enabled)
                         }
-                        Text(profile.address.address).font(.title2)
+                        Text(profile.address.address).font(.headline)
                             .textSelection(.enabled)
                             .foregroundStyle(.secondary)
                     }
-                    .padding(.bottom, .Spacing.xSmall)
                     .listRowSeparator(.hidden)
                 }
 
                 // broadcasts
-                if let receiveBroadcasts {
+                if showBroadcasts {
                     Section {
-                        VStack(alignment: .leading, spacing: .Spacing.default) {
+                        VStack(alignment: .leading, spacing: .Spacing.small) {
                             Divider()
                             Toggle(isOn: receiveBroadcasts) {
                                 HStack(spacing: .Spacing.xSmall) {
@@ -96,7 +98,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                     }
                 }
 
-                ForEach(profile.groupedAttributes) { group in
+                ForEach(Profile.groupedAttributes) { group in
                     if shouldDisplayGroup(group) {
                         Section {
                             ForEach(group.attributes, id: \.self) { attribute in
@@ -108,7 +110,8 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                         } header: {
                             if (group.groupType.shouldShowInPreview) {
                                 Text(group.groupType.displayName)
-                                    .font(.title2)
+                                    .font(.title3)
+                                    .fontWeight(.semibold)
                                     .foregroundStyle(.primary)
                                     .padding(.top, .Spacing.xSmall)
                             } else {
@@ -117,23 +120,26 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                         }
                     }
                 }
-            }
-#if os(macOS)
-            .inspect { tableView in
-                tableView.floatsGroupRows = false
-            }
-#endif
-            .listStyle(.plain)
-#if os(iOS)
-            .if(profileImageStyle.shouldIgnoreSafeArea) {
-                $0.ignoresSafeArea(.container, edges: .top)
-            }
-#endif
-            .scrollContentBackground(.hidden)
-            .scrollBounceBehavior(.basedOnSize)
-        } else {
-            EmptyView()
+            }.padding(EdgeInsets(
+                top: .Spacing.default,
+                leading: 0,
+                bottom: .Spacing.default,
+                trailing: .Spacing.default,
+            ))
         }
+#if os(macOS)
+        .inspect { tableView in
+            tableView.floatsGroupRows = false
+        }
+#endif
+        .listStyle(.plain)
+#if os(iOS)
+        .if(profileImageStyle.shouldIgnoreSafeArea) {
+            $0.ignoresSafeArea(.container, edges: .top)
+        }
+#endif
+        .scrollContentBackground(.hidden)
+        .scrollBounceBehavior(.basedOnSize)
     }
 
     @ViewBuilder
@@ -141,17 +147,11 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
         switch profileImageStyle {
         case .none:
             EmptyView()
-        case .fullWidthHeader(let height):
+        case .fullWidthHeader(_):
             ProfileImageView(
                 emailAddress: profile.address.address,
                 shape: .rectangle,
-                size: height,
-                placeholder: {
-                    Text($0)
-                        .foregroundStyle(.white)
-                        .font(.system(size: 30))
-                        .fontWeight(.semibold)
-                }
+                size: .large
             )
             .background(.accent.gradient)
 #if os(iOS)
@@ -164,14 +164,12 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
             }
 #endif
 
-        case let .shape(type, size):
+        case let .shape(type, _):
             ProfileImageView(
                 emailAddress: profile.address.address,
                 shape: type,
-                size: size
+                size: .large
             )
-            .padding(.top, -.Spacing.xxxSmall)
-            .padding(.bottom, .Spacing.default)
         }
     }
 
@@ -188,7 +186,8 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
 
     private func textField(for attribute: ProfileAttribute, isMultiline: Bool = false) -> some View {
         LabeledContent {
-            Text(profile?[attribute] ?? "")
+            Text(profile[attribute] ?? "")
+                .font(.body)
                 .textSelection(.enabled)
                 .foregroundStyle(.primary)
         } label: {
@@ -198,6 +197,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                 }
 
                 Text("\(attribute.displayTitle):")
+                    .font(.body)
                     .foregroundStyle(.secondary)
             }
         }
@@ -206,6 +206,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
     private func dateTextField(for attribute: ProfileAttribute, isRelative: Bool) -> some View {
         LabeledContent {
             Text(dateString(for: attribute, isRelative: isRelative))
+                .font(.body)
                 .foregroundStyle(.primary)
         } label: {
             HStack(spacing: .Spacing.xSmall) {
@@ -214,6 +215,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                 }
 
                 Text("\(attribute.displayTitle):")
+                    .font(.body)
                     .foregroundStyle(.secondary)
             }
         }
@@ -221,7 +223,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
 
     @ViewBuilder
     private var awayMessage: some View {
-        if profile?[boolean: .away] == true {
+        if profile[boolean: .away] == true {
             HStack(alignment: .firstTextBaseline, spacing: .Spacing.xSmall) {
                 Text("away")
                     .textCase(.uppercase)
@@ -232,22 +234,16 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                     .padding(.horizontal, 4)
                     .background {
                         RoundedRectangle(cornerRadius: .CornerRadii.small)
-                            .foregroundStyle(.themeBlue)
+                            .foregroundStyle(.accent)
                     }
 
-                if let awayWarning = profile?[.awayWarning] {
+                if let awayWarning = profile[.awayWarning] {
                     Text(awayWarning)
                         .multilineTextAlignment(.leading)
                         .lineLimit(2)
                 }
             }
-            .padding(.vertical, .Spacing.xSmall)
-            .padding(.horizontal, .Spacing.xSmall)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background {
-                RoundedRectangle(cornerRadius: .CornerRadii.default)
-                    .fill(.themeBackground)
-            }
         }
     }
 
@@ -256,20 +252,20 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
     private func toggleBinding(for attribute: ProfileAttribute, defaultValue: Bool) -> Binding<Bool> {
         return Binding<Bool>(
             get: {
-                return profile?[boolean: attribute] ?? defaultValue
+                return profile[boolean: attribute] ?? defaultValue
             },
             set: {
-                profile?[boolean: attribute] = $0
+                profile[boolean: attribute] = $0
             })
     }
 
     private func stringBinding(for attribute: ProfileAttribute) -> Binding<String> {
         return Binding(
             get: {
-                return profile?[attribute] ?? ""
+                return profile[attribute] ?? ""
             },
             set: {
-                profile?[attribute] = $0.isEmpty ? nil : $0
+                profile[attribute] = $0.isEmpty ? nil : $0
             })
     }
 
@@ -285,7 +281,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
 
     private func dateString(for attribute: ProfileAttribute, isRelative: Bool) -> String {
         if
-            let dateString = profile?[attribute],
+            let dateString = profile[attribute],
             let date = ISO8601DateFormatter.backendDateFormatter.date(from: dateString)
         {
             if isRelative {
@@ -302,9 +298,9 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
 
     private func booleanSign(for attribute: ProfileAttribute, defaultValue: Bool) -> some View {
         LabeledContent {
-            let value = profile?[boolean: attribute] ?? defaultValue
+            let value = profile[boolean: attribute] ?? defaultValue
             Image(systemName: value ? "checkmark" : "xmark")
-                .foregroundStyle(.themeBlue)
+                .foregroundStyle(.accent)
         } label: {
             HStack(spacing: .Spacing.xSmall) {
                 if let info = attribute.info {
@@ -312,13 +308,13 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                 }
 
                 Text("\(attribute.displayTitle):")
+                    .font(.body)
                     .foregroundStyle(.secondary)
             }
         }
     }
 
     private func shouldDisplayGroup(_ group: ProfileAttributesGroup) -> Bool {
-        guard let profile else { return false }
 
         if profile.isGroupEmpty(group: group) {
             return !hidesEmptyFields
@@ -332,7 +328,6 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
     }
 
     private func shouldDisplayAttribute(_ attribute: ProfileAttribute) -> Bool {
-        guard let profile else { return false }
 
         return (
             profile[attribute] != nil && profile[attribute]!.isNotEmpty
@@ -368,7 +363,13 @@ struct InfoButton: View {
 #Preview("editable") {
     ProfileAttributesView(
         profile: .constant(.makeFake()),
-        receiveBroadcasts: nil,
+        
+        receiveBroadcasts: Binding<Bool>(
+            get: {
+                true
+            },
+            set: { _ in }
+        ),
         profileImageStyle: .none
     )
 }
@@ -379,7 +380,7 @@ struct InfoButton: View {
         profile: .constant(.makeFake(awayWarning: "Away")),
         receiveBroadcasts: .constant(false),
         hidesEmptyFields: true,
-        profileImageStyle: .shape()
+        profileImageStyle: .shape(),
     )
     .frame(width: 320, height: 500)
     #else

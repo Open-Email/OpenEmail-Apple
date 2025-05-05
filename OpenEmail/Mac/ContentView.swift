@@ -3,186 +3,444 @@ import Combine
 import OpenEmailCore
 import OpenEmailModel
 import OpenEmailPersistence
+import Logging
 
 struct ContentView: View {
+    @Injected(\.syncService) private var syncService
     @Environment(NavigationState.self) private var navigationState
     @Environment(\.openWindow) private var openWindow
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
-
+    
     private let contactRequestsController = ContactRequestsController()
-    @Injected(\.syncService) private var syncService
-
-    @State private var hasContactRequests = false
-
-    @State private var scope: SidebarScope = .inbox
+    
+    @State private var showDeleteMessageConfirmationAlert = false
+    @State private var showDeleteContactConfirmationAlert = false
     @State private var fetchButtonRotation = 0.0
     @State private var searchText: String = ""
-
-    @State private var selectedMessageProfileAddress: EmailAddress?
-    @State private var selectedContactListItem: ContactListItem?
-    @State private var selectedProfileViewModel: ProfileViewModel?
-
+    @State private var showAddContactView = false
+    @State private var showsAddContactError = false
+    @State private var addContactError: Error?
+    @State private var contactsListViewModel: ContactsListViewModel = ContactsListViewModel()
+    @State private var sidebarViewModel: ScopesSidebarViewModel = ScopesSidebarViewModel()
+    @State private var messageViewModel: MessageViewModel = MessageViewModel(
+        messageID: nil
+    )
+    
     private let contactsOrNotificationsUpdatedPublisher = Publishers.Merge(
         NotificationCenter.default.publisher(for: .didUpdateContacts),
         NotificationCenter.default.publisher(for: .didUpdateNotifications)
     ).eraseToAnyPublisher()
-
+    
+    var amountLabel: String? {
+        switch sidebarViewModel.selectedScope {
+        case .broadcasts:
+            let broadcastsCount = sidebarViewModel.allCounts[.broadcasts] ?? 0
+            let unreadProadcastsCount = sidebarViewModel.unreadCounts[.broadcasts] ?? 0
+            return "\(broadcastsCount) broadcasts" + (unreadProadcastsCount > 0 ? " \(unreadProadcastsCount) unread" : "")
+        case .inbox:
+            let inboxCount = sidebarViewModel.allCounts[.inbox] ?? 0
+            let unreadInboxCount = sidebarViewModel.unreadCounts[.inbox] ?? 0
+            return "\(inboxCount) messages" + (unreadInboxCount > 0 ? " \(unreadInboxCount) unread" : "")
+        case .outbox:
+            let sentCount = sidebarViewModel.allCounts[.outbox] ?? 0
+            return "\(sentCount) messages"
+        case .drafts:
+            let draftsCount = sidebarViewModel.allCounts[.drafts] ?? 0
+            return "\(draftsCount) drafts"
+        case .trash:
+            let deletedCount = sidebarViewModel.allCounts[.trash] ?? 0
+            return "\(deletedCount) deleted messages"
+        case .contacts:
+            let contactsCount = sidebarViewModel.allCounts[.contacts] ?? 0
+            let requestsCount = sidebarViewModel.unreadCounts[.contacts] ?? 0
+            return "\(contactsCount) contacts" + (requestsCount > 0 ? " \(requestsCount) requests" : "")
+        }
+    }
+    
     var body: some View {
         NavigationSplitView {
-            let width: CGFloat = .sidebarWidth + .Spacing.default
-            SidebarView()
-                .navigationSplitViewColumnWidth(min: width, ideal: width, max: width)
+            SidebarView(scopesSidebarViewModel: $sidebarViewModel)
         } content: {
             Group {
-                if scope == .contacts {
-                    ContactsListView(selectedContactListItem: $selectedContactListItem)
+                if navigationState.selectedScope == .contacts {
+                    ContactsListView(contactsListViewModel: $contactsListViewModel)
                 } else {
-                    MessagesListView()
+                    MessagesListView(searchText: $searchText)
                 }
+            }.toolbar {
+                ToolbarItem(placement: ToolbarItemPlacement.primaryAction) {
+                    AsyncButton {
+                        await triggerSync()
+                    } label: {
+                        SyncProgressView()
+                    }
+                    .disabled(syncService.isSyncing)
+                }
+                ToolbarItem {
+                    VStack(alignment: .leading) {
+                        Text(navigationState.selectedScope.displayName)
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                        
+                        if let amountLabel = amountLabel {
+                            Text(amountLabel)
+                                .font(.subheadline)
+                                .lineLimit(1)
+                                .foregroundStyle(.secondary)
+                                .truncationMode(.tail)
+                        }
+                    }
+                    
+                }
+                
             }
-            .navigationSplitViewColumnWidth(min: 280, ideal: 320, max: 500)
         } detail: {
-            Group {
-                if scope == .contacts {
-                    contactsDetailView
+            VStack {
+                if navigationState.selectedContact == nil && navigationState.selectedMessageIDs.isEmpty {
+                    Image(.logo)
+                        //.aspectRatio(contentMode: .fit)
+                        .saturation(0.0)
+                        .opacity(0.25)
+                        .frame(height: 32, alignment: .leading)
+                    
                 } else {
-                    messagesDetailView
+                    if navigationState.selectedScope == .contacts {
+                        ContactDetailView(
+                            selectedContact: navigationState.selectedContact
+                        ).id(navigationState.selectedContact?.id)
+                    } else {
+                        messagesDetailView
+                    }
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(.themeViewBackground)
-            .navigationSplitViewColumnWidth(min: 300, ideal: 400)
+            .frame(minWidth: 300)
             .toolbar {
-                detailsToolbarContent()
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .onReceive(contactsOrNotificationsUpdatedPublisher) { _ in
-            Task {
-                await updateContactRequests()
-            }
-        }
-        .task {
-            await updateContactRequests()
-            await triggerSync()
-        }
-        .onChange(of: registeredEmailAddress) {
-            Task {
-                await triggerSync()
-            }
-        }
-        .onChange(of: navigationState.selectedScope) {
-            scope = navigationState.selectedScope
-            selectedProfileViewModel = nil
-            selectedContactListItem = nil
-        }
-        .onChange(of: selectedMessageProfileAddress) {
-            if let selectedMessageProfileAddress {
-                selectedProfileViewModel = ProfileViewModel(emailAddress: selectedMessageProfileAddress)
-            } else {
-                selectedProfileViewModel = nil
-            }
-        }
-        .onChange(of: selectedContactListItem) {
-            if let selectedContactListItem, let emailAddress = EmailAddress(selectedContactListItem.email) {
-                selectedProfileViewModel = ProfileViewModel(emailAddress: emailAddress)
-            } else {
-                selectedProfileViewModel = nil
-            }
-        }
-    }
-
-    @ToolbarContentBuilder
-    private func detailsToolbarContent() -> some ToolbarContent {
-        ToolbarItem {
-            AsyncButton {
-                await triggerSync()
-            } label: {
-                SyncProgressView()
-            }
-        }
-        
-        ToolbarItem {
-            Spacer()
-        }
-        
-        ToolbarItem(placement: .primaryAction) {
-            Button {
-                guard let registeredEmailAddress else { return }
-                openWindow(id: WindowIDs.compose, value: ComposeAction.newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: nil))
-            } label: {
-                HStack {
-                    Image(.compose)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-
-                    Text("Create Message")
-                        .fontWeight(.semibold)
+                ToolbarItemGroup(placement: .primaryAction) {
+                    HStack {
+                        Button {
+                            guard let registeredEmailAddress else { return }
+                           
+                            if messageViewModel.message?.isDraft == true {
+                                openWindow(
+                                    id: WindowIDs.compose,
+                                    value: ComposeAction.editDraft(messageId: messageViewModel.messageID!)
+                                )
+                            } else {
+                                openWindow(id: WindowIDs.compose, value: ComposeAction.newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: nil))
+                            }
+                            
+                        } label: {
+                            Image(systemName: "square.and.pencil")
+                        }
+                        
+                        Button {
+                            showAddContactView = true
+                        } label: {
+                            Image(systemName: "person.badge.plus")
+                        }
+                        Divider()
+                        AsyncButton {
+                            switch navigationState.selectedScope {
+                            case .trash:
+                                showDeleteMessageConfirmationAlert = true
+                            case .outbox, .drafts:
+                                do {
+                                    try await messageViewModel.markAsDeleted(true)
+                                    navigationState.clearSelection()
+                                } catch {
+                                    Log.error("Could not mark message as deleted: \(error)")
+                                }
+                            case .contacts:
+                                if let _ = navigationState.selectedContact {
+                                    showDeleteContactConfirmationAlert = true
+                                }
+                            default:
+                                Log.error("Non-deletable item selected")
+                            }
+                        } label: {
+                            Image(systemName: "trash")
+                        }.disabled(
+                            (navigationState.selectedScope != .trash &&
+                             navigationState.selectedScope != .outbox &&
+                             navigationState.selectedScope != .drafts &&
+                             navigationState.selectedScope != .contacts
+                            ) ||
+                            (
+                                navigationState.selectedMessageIDs.isEmpty &&
+                                navigationState.selectedContact == nil
+                            )
+                        )
+                        //TODO adjust help according to selected element. Could be contact as well
+                        .help((messageViewModel.message?.isDraft ?? false) ? "Delete draft" : "Delete message")
+                        Divider()
+                        
+                        Button {
+                            guard let registeredEmailAddress else { return }
+                            if let message = messageViewModel.message {
+                                openWindow(
+                                    id: WindowIDs.compose,
+                                    value: ComposeAction.reply(
+                                        id: UUID(),
+                                        authorAddress: registeredEmailAddress,
+                                        messageId: message.id,
+                                        quotedText: message.body
+                                    )
+                                )
+                            }
+                        } label: {
+                            Image(systemName: "arrowshape.turn.up.left")
+                        }.disabled(
+                            messageViewModel.message == nil || messageViewModel.message!.isDraft
+                        )
+                        
+                        Button {
+                            guard let registeredEmailAddress else { return }
+                            if let message = messageViewModel.message {
+                                openWindow(
+                                    id: WindowIDs.compose,
+                                    value: ComposeAction.replyAll(
+                                        id: UUID(),
+                                        authorAddress: registeredEmailAddress,
+                                        messageId: message.id,
+                                        quotedText: message.body
+                                    )
+                                )
+                            }
+                            
+                        } label: {
+                            Image(systemName: "arrowshape.turn.up.left.2")
+                        }.disabled(
+                            messageViewModel.message == nil || messageViewModel.message!.isDraft
+                        )
+                        
+                        Button {
+                            guard let registeredEmailAddress else { return }
+                            if let message = messageViewModel.message {
+                                openWindow(
+                                    id: WindowIDs.compose,
+                                    value: ComposeAction.forward(
+                                        id: UUID(),
+                                        authorAddress: registeredEmailAddress,
+                                        messageId: message.id
+                                    )
+                                )
+                            }
+                        } label: {
+                            Image(systemName: "arrowshape.turn.up.right")
+                        }.disabled(
+                            messageViewModel.message == nil || messageViewModel.message!.isDraft
+                        )
+                    }
                 }
-                .foregroundStyle(.accent)
-                .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
         }
-        
-
-        ToolbarItem(placement: .confirmationAction) {
-            ProfileButton()
+        .searchable(text: $searchText)
+        .alert(
+            navigationState.selectedContact?.isContactRequest == true ?
+            "Are you sure you want to dismiss this contact request?" :
+                "Are you sure you want to delete this contact?",
+            isPresented: $showDeleteContactConfirmationAlert
+        ) {
+            Button("Cancel", role: .cancel) {}
+            AsyncButton(navigationState.selectedContact?.isContactRequest == true ? "Dismiss" : "Delete", role: .destructive) {
+                if let contact = navigationState.selectedContact {
+                    if (contact.isContactRequest) {
+                        //TODO dismiss notification
+                    } else {
+                        if let email = EmailAddress(
+                            contact.email
+                        ) {
+                            do {
+                                try await DeleteContactUseCase().deleteContact(emailAddress: email)
+                                navigationState.clearSelection()
+                            } catch {
+                                Log.error("Could not delete contact \(email): \(error)")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .alert("Are you sure you want to delete this message?", isPresented: $showDeleteMessageConfirmationAlert) {
+            Button("Cancel", role: .cancel) {}
+            AsyncButton("Delete", role: .destructive) {
+                await permanentlyDeleteSentMessage()
+            }
+        } message: {
+            Text("This action cannot be undone.")
+        }
+        .onChange(of: navigationState.selectedMessageIDs) {
+            if navigationState.selectedMessageIDs.count == 1 {
+                messageViewModel.messageID = navigationState.selectedMessageIDs.first
+            } else {
+                messageViewModel.messageID = nil
+            }
+            
+        }
+        .onChange(of: searchText) {
+            contactsListViewModel.searchText = searchText
+        }
+        .sheet(isPresented: $showAddContactView) {
+            ContactsAddressInputView { address in
+                contactsListViewModel.onAddressSearch(address: address)
+                showAddContactView = false
+            } onCancel: {
+                contactsListViewModel.onAddressSearchDismissed()
+                showAddContactView = false
+            }
+        }.alert("Could not add contact", isPresented: $showsAddContactError, actions: {
+            Button("OK") {
+                showAddContactView = true
+            }
+        }, message: {
+            if let addContactError {
+                Text("Underlying error: \(String(describing: addContactError))")
+            }
+        })
+        .alert("Contact already exists", isPresented: $contactsListViewModel.showsContactExistsError, actions: {})
+        .sheet(isPresented: Binding<Bool>(
+            get: {
+                contactsListViewModel.contactToAdd != nil
+            },
+            set: { _ in }
+        )) {
+            ProfilePreviewSheetView(
+                profile: contactsListViewModel.contactToAdd!,
+                onCancelled: {
+                    contactsListViewModel.onAddressSearchDismissed()
+                },
+                onAddContactClicked: { address in
+                    Task {
+                        do {
+                            try await contactsListViewModel.addContact()
+                        } catch {
+                            Log.error("Error while adding contact: \(error)")
+                            addContactError = error
+                            showsAddContactError = true
+                        }
+                    }
+                }
+            )
         }
     }
-
+    
+    private func permanentlyDeleteSentMessage() async {
+        do {
+            try await messageViewModel.permanentlyDeleteMessage()
+            navigationState.clearSelection()
+        } catch {
+            Log.error("Could not delete message: \(error)")
+        }
+    }
+    
     @ViewBuilder
     private var messagesDetailView: some View {
         if navigationState.selectedMessageIDs.count > 1 {
             MultipleMessagesView()
         } else {
-            MessageView(
-                messageID: navigationState.selectedMessageIDs.first,
-                selectedProfileViewModel: selectedProfileViewModel,
-                selectedMessageProfileAddress: $selectedMessageProfileAddress
-            )
+            if let _ = messageViewModel.message {
+                MessageView(
+                    messageViewModel: $messageViewModel,
+                ).id(navigationState.selectedMessageIDs.first)
+            }
         }
     }
-
-    @ViewBuilder
-    private var contactsDetailView: some View {
-        if let selectedProfileViewModel, let selectedContactListItem {
-            ProfileView(viewModel: selectedProfileViewModel, isContactRequest: selectedContactListItem.isContactRequest)
-                .frame(minWidth: 600)
-                .id(selectedProfileViewModel.emailAddress.address)
-        } else {
-            Text("No selection")
-                .bold()
-                .foregroundStyle(.tertiary)
-        }
-    }
-
-    private func updateContactRequests() async {
-        hasContactRequests = await contactRequestsController.hasContactRequests
-    }
-
+    
     private func triggerSync() async {
         await syncService.synchronize()
+    }
+}
+
+struct ProfilePreviewSheetView: View {
+    let profile: Profile
+    let onCancelled: () -> Void
+    let onAddContactClicked: (Profile) -> Void
+    
+    init(
+        profile: Profile,
+        onCancelled: @escaping () -> Void,
+        onAddContactClicked: @escaping (Profile) -> Void
+    ) {
+        self.profile = profile
+        self.onAddContactClicked = onAddContactClicked
+        self.onCancelled = onCancelled
+    }
+    
+    var body: some View {
+        
+        VStack(alignment: .leading, spacing: 0) {
+            ProfileView(
+                profile: profile,
+            )
+            
+            HStack {
+                Spacer()
+                
+                Button("Cancel", role: .cancel) {
+                    onCancelled()
+                }
+                
+                Button("Add", role: .cancel) {
+                    onAddContactClicked(profile)
+                }
+                .buttonStyle(.borderedProminent)
+                .keyboardShortcut(.defaultAction)
+                .disabled(profile.address == LocalUser.current?.address)
+            }.padding(.Spacing.default)
+        }
+    }
+}
+
+struct ContactDetailView: View {
+    @Injected(\.client) private var client
+    @State private var profile: Profile?
+    private let selectedContactListItem: ContactListItem?
+    
+    init(selectedContact: ContactListItem?) {
+        self.selectedContactListItem = selectedContact
+    }
+    
+    var body: some View {
+        VStack {
+            if let profile = profile {
+                ProfileView(
+                    profile: profile,
+                )
+                .id(profile.address.address)
+            }
+        }
+        .background(.themeViewBackground)
+        .task {
+            if let contact = selectedContactListItem, let address = EmailAddress(
+                contact.email
+            ) {
+                profile = try? await client.fetchProfile(address: address, force: false)
+            } else {
+                profile = nil
+            }
+        }
     }
 }
 
 struct SyncProgressView: View {
     @State private var rotation: CGFloat = 0
     @Injected(\.syncService) private var syncService
-
+    
     var body: some View {
         Group {
             if syncService.isSyncing {
-        Image(systemName: "arrow.triangle.2.circlepath")
-            .rotationEffect(.degrees(rotation))
-            .animation(.linear(duration: 1).repeatForever(autoreverses: false), value: rotation)
+                Image(systemName: "arrow.triangle.2.circlepath")
+                    .rotationEffect(.degrees(rotation))
+                    .animation(.linear(duration: 1).repeatForever(autoreverses: false), value: rotation)
             } else {
                 Image(systemName: "arrow.triangle.2.circlepath")
             }
         }
-            .onChange(of: syncService.isSyncing) {
-                rotation = syncService.isSyncing ? 360 : 0
-            }
+        .onChange(of: syncService.isSyncing) {
+            rotation = syncService.isSyncing ? 360 : 0
+        }
     }
 }
 
@@ -195,47 +453,6 @@ private extension Date {
         } else {
             return "\(minutes) min"
         }
-    }
-}
-
-private struct ProfileButton: View {
-    @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
-    @AppStorage(UserDefaultsKeys.profileName) private var profileName: String?
-
-    @Environment(\.openWindow) private var openWindow
-
-    @State private var isHovering = false
-    @State private var isPressed = false
-
-    var body: some View {
-        Button {
-            openWindow(id: WindowIDs.profileEditor)
-        } label: {
-            HStack(spacing: .Spacing.small) {
-                ProfileImageView(emailAddress: registeredEmailAddress, size: 26)
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(profileName ?? "No Name").bold()
-                        .foregroundStyle(.primary)
-                    Text(registeredEmailAddress ?? "").font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .padding(4)
-            .background {
-                if isHovering {
-                    RoundedRectangle(cornerRadius: .CornerRadii.small)
-                        .foregroundStyle(.tertiary)
-                }
-            }
-            .animation(.default, value: isHovering)
-            .onHover {
-                isHovering = $0
-                if !isHovering {
-                    isPressed = false
-                }
-            }
-        }
-        .buttonStyle(.plain)
     }
 }
 

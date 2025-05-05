@@ -18,7 +18,7 @@ struct OnboardingExistingAccountView: View {
 
             VStack(alignment: .leading, spacing: .Spacing.xSmall) {
                 HStack {
-                    ProfileImageView(emailAddress: emailAddress)
+                    ProfileImageView(emailAddress: emailAddress, size: .medium)
                     Text(emailAddress)
                         .font(.title)
                 }
@@ -40,7 +40,7 @@ struct OnboardingExistingAccountView: View {
             VStack(spacing: .Spacing.default) {
                 AsyncButton("Authenticate") {
                     // Clear up any previous state
-                    navigationState.selectedMessageIDs.removeAll()
+                    navigationState.clearSelection()
 
                     await viewModel.authenticate(emailAddress: emailAddress)
                 }
@@ -95,7 +95,7 @@ struct OnboardingExistingAccountView: View {
         }
         .padding(.horizontal, .Spacing.xSmall)
         .padding(.vertical, .Spacing.xSmall - 3)
-        .background(.themeBackground)
+        .background(.themeViewBackground)
         .clipShape(RoundedRectangle(cornerRadius: .CornerRadii.default))
     }
 }

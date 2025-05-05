@@ -26,7 +26,7 @@ struct OpenEmailApp: App {
         Window("Message Viewer", id: WindowIDs.main) {
             if hasCompletedOnboarding {
                 ContentView()
-                    .frame(minWidth: 1100, maxWidth: .infinity, minHeight: 600, maxHeight: .infinity)
+                    .frame( maxWidth: .infinity, maxHeight: .infinity)
                     .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
                         closeAllWindowOnTerminate()
                     }
@@ -45,19 +45,29 @@ struct OpenEmailApp: App {
                 }
                 .keyboardShortcut(.init("0", modifiers: .command))
             }
+            SidebarCommands()  
         }
 
-        WindowGroup("Write Message", id: WindowIDs.compose, for: ComposeAction.self) { action in
+        WindowGroup("Create new Message", id: WindowIDs.compose, for: ComposeAction.self) { action in
             ComposeMessageView(viewModel: ComposeMessageViewModel(action: action.wrappedValue ?? .newMessage(id: UUID(), authorAddress: registeredEmailAddress!, readerAddress: nil)))
         }
         .keyboardShortcut("n", modifiers: .command)
 
-        Window("ProfileEditor", id: WindowIDs.profileEditor) {
+        Window("Profile Editor", id: WindowIDs.profileEditor) {
             ProfileEditorView()
-                .frame(minWidth: 800, maxWidth: 1000)
         }
-        .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)
+        .handlesExternalEvents(matching: [WindowIDs.profileEditor])
+        .windowToolbarStyle(.unified(showsTitle: false))
+        .windowStyle(.hiddenTitleBar)
+        .commands {
+            CommandMenu("Profile") {
+                Button("Edit Profile…") {
+                    openWindow(id: WindowIDs.profileEditor)
+                }
+                .keyboardShortcut("P", modifiers: [.command, .option])
+            }
+        }
 
         Settings {
             SettingsView()

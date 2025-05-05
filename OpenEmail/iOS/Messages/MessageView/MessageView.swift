@@ -306,14 +306,14 @@ struct MessageView: View {
 
     @ViewBuilder
     private func authorProfileImage(address: String) -> some View {
-        ProfileImageView(emailAddress: address, size: 40)
+        ProfileImageView(emailAddress: address, size: .medium)
             .onTapGesture {
                 showAuthorProfilePopover = true
             }
             .popover(isPresented: $showAuthorProfilePopover) {
                 if let emailAddress = EmailAddress(address) {
                     NavigationStack {
-                        ProfileView(emailAddress: emailAddress, showActionButtons: false)
+                        ProfileView(emailAddress: emailAddress)
                             .profilePopoverToolbar {
                                 showAuthorProfilePopover = false
                             }
@@ -356,7 +356,7 @@ struct MessageView: View {
         VStack(alignment: .leading, spacing: .Spacing.small) {
             ReadersView(
                 isEditable: false,
-                readers: .constant(viewModel.readersAddresses),
+                readers: viewModel.readers,
                 tickedReaders: .constant(viewModel.message?.deliveries ?? []),
                 hasInvalidReader: .constant(false)
             )

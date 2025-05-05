@@ -34,8 +34,7 @@ struct ComposeMessageView: View {
     }
 
     var body: some View {
-        VStack(spacing: .Spacing.default) {
-            topRow
+        VStack(spacing: 0) {
             readersRow
 
             Divider()
@@ -55,7 +54,7 @@ struct ComposeMessageView: View {
                         .font(.body)
                         .lineSpacing(5)
                         .fixedSize(horizontal: false, vertical: true)
-                        .padding(.trailing, .Spacing.default)
+                        .padding(.vertical, .Spacing.xSmall)
 
                     if !viewModel.attachedFileItems.isEmpty {
                         Spacer()
@@ -74,10 +73,9 @@ struct ComposeMessageView: View {
             .onTapGesture {
                 isTextEditorFocused = true
             }
+            .padding(.bottom, .Spacing.default)
             .frame(maxWidth: .infinity)
             .scrollBounceBehavior(.basedOnSize)
-            .padding(.trailing, -.Spacing.default)
-            .padding(.bottom, -.Spacing.default)
             .overlay {
                 RoundedRectangle(cornerRadius: .CornerRadii.default) // use invisible rectangle as drop target
                     .fill(.clear)
@@ -91,7 +89,55 @@ struct ComposeMessageView: View {
                     }
             }
         }
-        .padding(.Spacing.default)
+        .toolbar {
+            
+            ToolbarItem(placement: .primaryAction) {
+                HStack {
+                    HStack {
+                        Text("Broadcast").font(.subheadline).onTapGesture {
+                            viewModel.isBroadcast.toggle()
+                        }
+                        Toggle("Broadcast", isOn: $viewModel.isBroadcast)
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                    }.disabled(!viewModel.canBroadcast).padding(
+                        .horizontal,
+                        .Spacing.default
+                    )
+                    Button {
+                        filePickerOpen = true
+                    } label: {
+                        Image( systemName: "paperclip")
+                           
+                    }
+                    .help("Add files to the message")
+                    Divider()
+                    AsyncButton {
+                        //TODO save to pending local store simmilar to Android
+                        do {
+                            try await viewModel.send()
+                            dismiss()
+                        } catch {
+                            guard !(error is CancellationError) else {
+                                return
+                            }
+
+                            showsError = true
+                            self.error = error
+                            Log.error("Error sending message: \(error)")
+                        }
+                    } label: {
+                        Image(systemName: "paperplane")
+                    }
+                    .disabled(hasInvalidReader || !viewModel.isSendButtonEnabled)
+                    .help(viewModel.hasAllDataForSending ? "" : "Subject and message fields are required")
+                }
+               
+                
+            }
+            
+        }
+        .padding(.horizontal, .Spacing.default)
         .background(.themeViewBackground)
         .frame(minWidth: 510, minHeight: 420, maxHeight: .infinity)
         .fileImporter(isPresented: $filePickerOpen, allowedContentTypes: [.data], allowsMultipleSelection: true) {
@@ -135,59 +181,15 @@ struct ComposeMessageView: View {
         }.animation(.default, value: viewModel.isBroadcast)
     }
 
-    @ViewBuilder
-    private var topRow: some View {
-        HStack(spacing: .Spacing.xSmall) {
-            if viewModel.canBroadcast {
-                Toggle("Broadcast", isOn: $viewModel.isBroadcast)
-                    .toggleStyle(.switch)
-                    .labelsHidden()
-
-                Text("Broadcast")
-            }
-
-            Spacer()
-
-            Button {
-                filePickerOpen = true
-            } label: {
-                Image(.attachment)
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .help("Add files to the message")
-
-            AsyncButton {
-                do {
-                    try await viewModel.send()
-                    dismiss()
-                } catch {
-                    guard !(error is CancellationError) else {
-                        return
-                    }
-
-                    showsError = true
-                    self.error = error
-                    Log.error("Error sending message: \(error)")
-                }
-            } label: {
-                Text("Send")
-            }
-            .buttonStyle(SendButtonStyle())
-            .disabled(hasInvalidReader || !viewModel.isSendButtonEnabled)
-            .help(viewModel.hasAllDataForSending ? "" : "Subject and message fields are required")
-        }
-    }
-
+    
     @ViewBuilder
     private var readersRow: some View {
         if !viewModel.isBroadcast {
             HStack {
                 if viewModel.action.isReplyAction {
                     HStack(spacing: .Spacing.xxxSmall) {
-                        Image(.reply)
-                        Text("Reply to:")
+                        Image(systemName: "arrowshape.turn.up.left")
+                        Text("Reply to:").font(.body)
                     }
                     .foregroundStyle(.secondary)
                 } else {
@@ -203,7 +205,6 @@ struct ComposeMessageView: View {
                 )
                 .focused($isReadersFocused)
             }
-            .frame(minHeight: .Spacing.large)
         }
     }
 
@@ -211,12 +212,12 @@ struct ComposeMessageView: View {
     private var subjectRow: some View {
         HStack {
             Text(viewModel.subjectId.isNilOrEmpty ? "Subject:" : "Reply:")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.secondary).font(.body)
             TextField("", text: $viewModel.subject)
+                .font(.body)
                 .textFieldStyle(.plain)
-                .frame(minHeight: .Spacing.large)
+                .padding(.vertical, .Spacing.xSmall)
         }
-        .frame(minHeight: .Spacing.large)
     }
 
     @ViewBuilder

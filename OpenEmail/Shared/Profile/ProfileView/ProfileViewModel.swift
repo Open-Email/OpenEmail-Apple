@@ -8,11 +8,8 @@ import Logging
 
 @Observable
 class ProfileViewModel {
-    var profile: Profile?
-    var profileLoadingError: Error?
-    var isLoadingProfile = false
+    var profile: Profile
     
-    var emailAddress: EmailAddress
     var isInContacts: Bool = false
     var isInOtherContacts: Bool?
     var isSelf: Bool = false
@@ -26,31 +23,15 @@ class ProfileViewModel {
     @ObservationIgnored
     @Injected(\.syncService) private var syncService
 
-    var errorText: String {
-        if let userError = profileLoadingError as? UserError {
-            switch userError {
-            case .emailV2notSupported:
-                return "Email V2 protocol not supported"
-            case .profileNotFound:
-                return "No such user found"
-            default:
-                break
-            }
-        }
 
-        return "Could not load user profile"
-    }
-
-    var receiveBroadcasts: Bool? = nil
+    var receiveBroadcasts: Bool = true
     
     init(
-        emailAddress: EmailAddress, 
-        profile: Profile? = nil,
+        profile: Profile,
         shouldRefreshProfile: Bool = true,
     ) {
-        self.emailAddress = emailAddress
         self.profile = profile
-        self.isSelf = LocalUser.current?.address == emailAddress
+        self.isSelf = LocalUser.current?.address == profile.address
 
         Task {
             if shouldRefreshProfile {
@@ -69,7 +50,7 @@ class ProfileViewModel {
         do {
             try await client.updateBroadcastsForContact(
                 localUser: LocalUser.current!,
-                address: emailAddress,
+                address: profile.address,
                 allowBroadcasts: newValue
             )
         } catch {
@@ -82,16 +63,7 @@ class ProfileViewModel {
     
     @MainActor
     private func updateProfile() async {
-        guard !isLoadingProfile else { return }
-
-        isLoadingProfile = true
-        profileLoadingError = nil
-        
         await withTaskGroup { group in
-            group.addTask {
-                await self.fetchProfile()
-            }
-            
             group.addTask {
                 await self.updateIsInContacts()
             }
@@ -106,32 +78,18 @@ class ProfileViewModel {
             
             await group.waitForAll()
         }
-
-        isLoadingProfile = false
     }
     
     @MainActor
     private func checkOtherContacts() async {
         if let localUser = LocalUser.current {
-            isInOtherContacts = try? await client.isAddressInContacts(localUser: localUser, address: emailAddress)
-        }
-    }
-    
-    @MainActor
-    private func fetchProfile() async {
-        do {
-            self.profile = try await self.client.fetchProfile(address: self.emailAddress, force: true)
-            self.profileLoadingError = nil
-        } catch {
-            self.profile = nil
-            self.profileLoadingError = error
-            Log.error("Could not load profile: \(error)")
+            isInOtherContacts = try? await client.isAddressInContacts(localUser: localUser, address: profile.address)
         }
     }
 
     @MainActor
     private func updateIsInContacts() async {
-        isInContacts = (try? await contactsStore.contact(address: emailAddress.address)) != nil
+        isInContacts = (try? await contactsStore.contact(address: profile.address.address)) != nil
     }
 
     @MainActor
@@ -139,9 +97,9 @@ class ProfileViewModel {
         if let currentUser = LocalUser.current {
             let links = try? await client.getLinks(localUser: currentUser)
             let currentLink = links?.first {link in
-                link.address == emailAddress
+                link.address == profile.address
             }
-            guard var contact = (try? await contactsStore.contact(address: emailAddress.address)) else {
+            guard var contact = (try? await contactsStore.contact(address: profile.address.address)) else {
                 return
             }
 
@@ -154,12 +112,12 @@ class ProfileViewModel {
 
     func addToContacts() async throws {
         let usecase = AddToContactsUseCase()
-        try await usecase.add(emailAddress: emailAddress, cachedName: profile?[.name])
+        try await usecase.add(emailAddress: profile.address, cachedName: profile[.name])
         await updateIsInContacts()
     }
 
     func removeFromContacts() async throws {
-        try await DeleteContactUseCase().deleteContact(emailAddress: emailAddress)
+        try await DeleteContactUseCase().deleteContact(emailAddress: profile.address)
 
         await updateIsInContacts()
     }
@@ -171,8 +129,7 @@ class ProfileViewModel {
     }
 
     func fetchMessages() async {
-        guard let profile else { return }
-        let contact = (try? await contactsStore.contact(address: emailAddress.address))
-        await syncService.fetchAuthorMessages(profile: profile, includeBroadcasts: contact?.receiveBroadcasts ?? false)
+        let contact = (try? await contactsStore.contact(address: profile.address.address))
+        await syncService.fetchAuthorMessages(profile: profile, includeBroadcasts: contact?.receiveBroadcasts ?? true)
     }
 }

@@ -36,100 +36,97 @@ struct MessageListItemView: View {
             return "\(readerName(emailAddress: readers[0])) and \(readers.count - 1) others"
         }
     }
-
+    
     var body: some View {
-        HStack(alignment: .top, spacing: .Spacing.small) {
-            if scope == .outbox {
-                if message.readers.count > 1 {
-                    ProfileImageView(emailAddress: nil, multipleUsersCount: message.readers.count)
-                } else {
-                    ProfileImageView(emailAddress: message.readers.first)
-                }
-            } else {
-                ProfileImageView(emailAddress: message.author)
-                    .overlay(alignment: .topLeading) {
-                        if !message.isRead {
-                            Circle()
-                                .fill(Color.accentColor)
-                                .frame(width: 12, height: 12)
-                        }
-                    }
-            }
-
+        HStack(alignment: .top, spacing: 0) {
+            Circle()
+                .fill(message.isRead ? Color.clear :  Color.accentColor)
+                .frame(width: 8, height: 8)
+                .padding(EdgeInsets(
+                    top: .Spacing.xxxSmall,
+                    leading: .Spacing.xxxSmall,
+                    bottom: .Spacing.xxxSmall,
+                    trailing: .Spacing.xSmall,
+                    
+                ))
+            
             VStack(alignment: .leading, spacing: 0) {
-                Group {
-                    if scope != .outbox {
-                        Text(profileNames[message.author] ?? message.author)
+                HStack {
+                    Text(scope == .outbox ? formattedReadersLine : profileNames[message.author] ?? message.author)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .font(.headline)
+                        .padding(.bottom, 3)
+                    
+                    Spacer()
+                    
+                    if let boxLabel = getLabel(scope: scope) {
+                        Text(boxLabel)
                             .lineLimit(1)
+                            .foregroundStyle(.secondary)
                             .truncationMode(.tail)
-                            .font(.system(size: 16))
-                            .fontWeight(.semibold)
-                    } else {
-                        if message.isBroadcast {
-                            HStack(spacing: 2) {
-                                Image(systemName: "dot.radiowaves.left.and.right")
-                                Text("Broadcast".uppercased())
-                                    .bold()
-                            }
-                        } else {
-                            Text(formattedReadersLine)
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                                .font(.system(size: 16))
-                                .fontWeight(.semibold)
-                        }
+                            .font(.subheadline)
+                    }
+                    
+                    Text(message.formattedAuthoredOnDate)
+                        .foregroundStyle(.secondary)
+                        .font(.subheadline)
+                }
+                
+                HStack {
+                    Text(message.displayedSubject)
+                        .lineLimit(1)
+                        .font(.subheadline)
+                        .truncationMode(.tail)
+                        .padding(.bottom, 3)
+                    
+                    Spacer()
+                    if message.hasFiles || !message.draftAttachmentUrls.isEmpty {
+                        Image(systemName: "paperclip")
+                            .resizable()
+                            .scaledToFit()
+                            .foregroundStyle(.secondary)
+                            .frame(width:11)
                     }
                 }
-                .padding(.bottom, .Spacing.xSmall)
-
-                Text(message.displayedSubject)
-                    .lineLimit(1)
-                    .bold()
-                    .truncationMode(.tail)
-                    .padding(.bottom, .Spacing.xxSmall)
-
+                
                 Text(message.body?.cleaned ?? "")
                     .foregroundStyle(.secondary)
-                    .lineLimit(2)
+                    .font(.subheadline)
+                    .lineLimit(3)
                     .truncationMode(.tail)
-
-                if message.hasFiles || !message.draftAttachmentUrls.isEmpty {
-                    HStack(spacing: .Spacing.xxxSmall) {
-                        Image(.attachment)
-
-                        let count: Int = {
-                            message.isDraft ? message.draftAttachmentUrls.count : message.attachments.count
-                        }()
-                        Text("^[\(count) attached files](inflect: true)")
-                    }
-                    .foregroundStyle(.secondary)
-                    .padding(.top, .Spacing.default)
-                }
+                
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            Text(message.formattedAuthoredOnDate)
-                .foregroundStyle(.secondary)
-                .monospacedDigit()
-            #if os(iOS)
-                .font(.subheadline)
-            #endif
-        }
-        .task {
-            // fetch cached profile names
-            if scope == .outbox {
-                // readers
-                message.readers.forEach { reader in
-                    Task {
-                        profileNames[reader] = (try? await contactsStore.contact(address: reader))?.cachedName
+            .task {
+                // fetch cached profile names
+                if scope == .outbox {
+                    // readers
+                    message.readers.forEach { reader in
+                        Task {
+                            profileNames[reader] = (try? await contactsStore.contact(address: reader))?.cachedName
+                        }
                     }
+                } else {
+                    // author
+                    profileNames[message.author] = (try? await contactsStore.contact(address: message.author))?.cachedName
                 }
-            } else {
-                // author
-                profileNames[message.author] = (try? await contactsStore.contact(address: message.author))?.cachedName
             }
         }
     }
+}
+
+func getLabel(scope: SidebarScope) -> String? {
+    var boxLabel: String? {
+        switch scope {
+        case .inbox: "Inbox"
+        case .drafts: "Draft"
+        case .outbox: "Sent"
+        case .broadcasts: "Broadcast"
+        case .trash: "Trash"
+        case .contacts: nil
+        }
+    }
+    return boxLabel
 }
 
 #Preview {

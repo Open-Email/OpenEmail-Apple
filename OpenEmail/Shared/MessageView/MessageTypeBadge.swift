@@ -4,8 +4,9 @@ struct MessageTypeBadge: View {
     let scope: SidebarScope
 
     var body: some View {
-        if let text {
+        if let text = getLabel(scope: scope) {
             Text(text)
+                .font(.callout)
             #if os(macOS)
                 .fontWeight(.semibold)
             #else
@@ -14,22 +15,11 @@ struct MessageTypeBadge: View {
                 .padding(.horizontal, .Spacing.xSmall)
                 .padding(.vertical, .Spacing.xxSmall)
                 .background {
-                    RoundedRectangle(cornerRadius: .CornerRadii.small)
+                    RoundedRectangle(cornerRadius: .CornerRadii.default)
                         .fill(.themeBadgeBackground)
                 }
         } else {
             EmptyView()
-        }
-    }
-
-    private var text: String? {
-        switch scope {
-        case .broadcasts: "Broadcast"
-        case .inbox: "Incoming"
-        case .outbox: "Outgoing"
-        case .drafts: "Draft"
-        case .trash: nil
-        case .contacts: nil
         }
     }
 }

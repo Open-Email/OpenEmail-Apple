@@ -37,6 +37,25 @@ class MessagesListViewModel {
     func markAsUnread(messageIDs: Set<String>) {
         setReadState(messageIDs: messageIDs, isRead: false)
     }
+    
+    func markAsDeleted(messageIDs: Set<String>, isDeleted: Bool) {
+        Task {
+            do {
+                var updatedMessages = [Message]()
+                
+                allMessages.filter { messageIDs.contains($0.id) }.forEach {
+                    var message = $0
+                    message.deletedAt = isDeleted ? Date() : nil
+                    updatedMessages.append(message)
+                }
+
+                try await messagesStore.storeMessages(updatedMessages)
+            } catch {
+                Log.error("Could not mark message as deleted == \(isDeleted): \(error)")
+            }
+        }
+        
+    }
 
     private func setReadState(messageIDs: Set<String>, isRead: Bool) {
         Task {

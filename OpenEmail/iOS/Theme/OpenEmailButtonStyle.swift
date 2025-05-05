@@ -74,7 +74,7 @@ struct OpenEmailButtonStyle: ButtonStyle {
         private var backgroundColor: Color {
             switch style {
             case .primary: tintColor
-            case .secondary: Color.themeBackground
+            case .secondary: Color.themeViewBackground
             }
         }
 

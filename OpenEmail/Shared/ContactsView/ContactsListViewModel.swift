@@ -22,19 +22,9 @@ struct ContactListItem: Equatable, Identifiable, Hashable {
     var id: String { email }
 }
 
-protocol ContactsListViewModelProtocol {
-    var contactRequestItems: [ContactListItem] { get }
-    var contactItems: [ContactListItem] { get }
-    var searchText: String { get set }
-    var contactsCount: Int { get }
-
-    func hasContact(with emailAddress: String) -> Bool
-    func contactListItem(with emailAddress: String) -> ContactListItem?
-    func addContact(address: String) async throws
-}
-
 @Observable
-class ContactsListViewModel: ContactsListViewModelProtocol {
+class ContactsListViewModel {
+
     @ObservationIgnored
     @Injected(\.client) private var client
 
@@ -45,6 +35,8 @@ class ContactsListViewModel: ContactsListViewModelProtocol {
 
     private var contacts: [Contact] = []
     private var contactRequests: [EmailAddress] = []
+    var contactToAdd: Profile?
+    var showsContactExistsError = false
 
     private var subscriptions = Set<AnyCancellable>()
 
@@ -107,6 +99,23 @@ class ContactsListViewModel: ContactsListViewModelProtocol {
         reloadContent()
     }
 
+    func onAddressSearch(address: String) {
+        if hasContact(with: address) {
+            showsContactExistsError = true
+        } else {
+            if let emailAddress = EmailAddress(address) {
+                Task {
+                    contactToAdd = try? await client
+                        .fetchProfile(address: emailAddress, force: false)
+                }
+            }
+        }
+    }
+    
+    func  onAddressSearchDismissed() {
+        contactToAdd = nil
+    }
+    
     private func reloadContent() {
         Task {
             await withTaskGroup(of: Void.self) { taskGroup in
@@ -167,38 +176,35 @@ class ContactsListViewModel: ContactsListViewModelProtocol {
         contactItems.first { $0.email == emailAddress }
     }
 
-    func addContact(address: String) async throws {
+    func addContact() async throws {
+        guard let profile = contactToAdd else {
+            throw AddContactError.noProfileFound
+        }
+        
         guard let localUser = LocalUser.current else {
             throw AddContactError.noCurrentUser
         }
 
-        guard let emailAddress = EmailAddress(address) else {
-            throw AddContactError.invalidAddress
-        }
-
-        guard localUser.address.address != emailAddress.address else {
+        guard localUser.address.address != profile.address.address else {
             throw AddContactError.selfAddress
         }
 
-        guard let profile = try await client.fetchProfile(address: emailAddress, force: true) else {
-            throw AddContactError.noProfileFound
-        }
-
-        let id = localUser.connectionLinkFor(remoteAddress: emailAddress.address)
+        let id = localUser.connectionLinkFor(remoteAddress: profile.address.address)
 
         let contact = Contact(
             id: id,
             addedOn: Date(),
-            address: emailAddress.address,
+            address: profile.address.address,
             receiveBroadcasts: true,
             cachedName: profile[.name],
             cachedProfileImageURL: nil
         )
 
         try await contactsStore.storeContact(contact)
+        contactToAdd = nil
         Task.detached { [weak self] in
             guard let self else { return }
-            try await client.storeContact(localUser: localUser, address: emailAddress)
+            try await client.storeContact(localUser: localUser, address: profile.address)
         }
 
         // Once the contact is added, fetch any pending messages from that contact.

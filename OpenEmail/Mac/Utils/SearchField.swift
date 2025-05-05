@@ -14,7 +14,7 @@ struct SearchField: View {
         }
         .padding(8)
         .frame(height: 40)
-        .background(.themeBackground)
+        .background(.themeViewBackground)
         .cornerRadius(9)
     }
 }

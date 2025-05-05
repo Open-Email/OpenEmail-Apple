@@ -20,21 +20,19 @@ struct ProfileTagView: View {
     let automaticallyShowProfileIfNotInContacts: Bool
     let canRemoveReader: Bool
     let showsActionButtons: Bool
-    let onClick: ((String) -> Void)?
+    let onClick: ((Profile) -> Void)?
 
     init(
-        emailAddress: EmailAddress,
+        profile: Profile,
         isSelected: Bool,
         isTicked: Bool = false,
         onRemoveReader: (() -> Void)? = nil,
         automaticallyShowProfileIfNotInContacts: Bool,
         canRemoveReader: Bool,
         showsActionButtons: Bool,
-        onShowProfile: ((String) -> Void)? = nil
+        onShowProfile: ((Profile) -> Void)? = nil
     ) {
-        profileViewModel = ProfileViewModel(
-            emailAddress: emailAddress,
-        )
+        profileViewModel = ProfileViewModel(profile: profile)
         self.isSelected = isSelected
         self.isTicked = isTicked
         self.onRemoveReader = onRemoveReader
@@ -65,10 +63,7 @@ struct ProfileTagView: View {
                     Text("me")
                 } else {
                     Text(
-                        profileViewModel.profile?.name
-                            .truncated(
-                                to: 30
-                            ) ?? profileViewModel.emailAddress.address
+                        profileViewModel.profile.name.truncated(to: 30)
                     )
                 }
 
@@ -90,7 +85,7 @@ struct ProfileTagView: View {
             }
             .popover(isPresented: $showContactPopover) {
                 ProfilePopover(
-                    profileViewModel: profileViewModel,
+                    profile: profileViewModel.profile,
                     onDismiss: {
                         showContactPopover = false
                     },
@@ -100,39 +95,34 @@ struct ProfileTagView: View {
                 )
             }
             
-            let seenRecently: Bool = if let lastSeen = profileViewModel.profile?.lastSeen,
-                                        let date = ISO8601DateFormatter.backendDateFormatter.date(
-                                            from: lastSeen
+            let seenRecently: Bool = if let date = ISO8601DateFormatter.backendDateFormatter.date(
+                                            from: profileViewModel.profile.lastSeen
                                         ) {
                 abs(date.timeIntervalSinceNow.asHours) < 1.0
             } else {
                 false
             }
             
-            let away: Bool = profileViewModel.profile?.away ?? false
+            let away: Bool = profileViewModel.profile.away
             
             if (seenRecently || away) {
                 Circle()
                     .fill(away ? .themeRed : .themeGreen)
                     .frame(width: 8, height: 8)
             }
-            
         }
-        
     }
 
     private func showProfile() {
         if let onShowProfile = onClick {
-            onShowProfile(profileViewModel.emailAddress.address)
+            onShowProfile(profileViewModel.profile)
         } else {
             showContactPopover = true
         }
     }
-
 }
 
 struct ProfilePopover: View {
-    
     
     let profileViewModel: ProfileViewModel
     let onRemoveReader: (() -> Void)?
@@ -141,13 +131,13 @@ struct ProfilePopover: View {
     let canRemoveReader: Bool
     
     init(
-        profileViewModel: ProfileViewModel,
+        profile: Profile,
         onDismiss: @escaping (() -> Void),
         onRemoveReader: (() -> Void)? = nil,
         showsActionButtons: Bool,
         canRemoveReader: Bool
     ) {
-        self.profileViewModel = profileViewModel
+        self.profileViewModel = ProfileViewModel(profile: profile)
         self.onRemoveReader = onRemoveReader
         self.onDismiss = onDismiss
         self.showsActionButtons = showsActionButtons
@@ -156,17 +146,15 @@ struct ProfilePopover: View {
     
     var body: some View {
         
-        let hasLoadedProfile = profileViewModel.profile != nil
         let indicateThatNotInOthersContacts: Bool = profileViewModel.isInOtherContacts == false
         
         VStack {
             ProfileView(
-                viewModel: profileViewModel,
-                showActionButtons: showsActionButtons,
-                verticalLayout: false,
-                profileImageSize: 200
+                profile: profileViewModel.profile,
             )
-            .frame(idealWidth: 500, minHeight: 250)
+            .frame(
+                minHeight: ProfileImageSize.huge.size + 2 * .Spacing.default
+            )
 
             if canRemoveReader && (
                 !profileViewModel.isInContacts || indicateThatNotInOthersContacts
@@ -189,25 +177,34 @@ struct ProfilePopover: View {
                             }
                             
                         }
-                        .disabled(!hasLoadedProfile)
                     }
                 }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 20)
             }
         }
-        .background(.themeViewBackground)
     }
-    
 }
 
 #if DEBUG
 
 #Preview {
     VStack {
-        ProfileTagView(emailAddress: EmailAddress("mickey@mouse.com")!, isSelected: false, isTicked: false,onRemoveReader: nil, automaticallyShowProfileIfNotInContacts: false, canRemoveReader: false, showsActionButtons: true)
+        ProfileTagView(
+            profile: Profile(
+                address: EmailAddress("mickey@mouse.com")!,
+                profileData: [:]
+            ),
+            isSelected: false,
+            isTicked: false,
+            onRemoveReader: nil,
+            automaticallyShowProfileIfNotInContacts: false,
+            canRemoveReader: false,
+            showsActionButtons: true
+        )
         
-        ProfileTagView(emailAddress: EmailAddress("mickey@mouse.com")!, isSelected: true, isTicked: true, onRemoveReader: nil, automaticallyShowProfileIfNotInContacts: false, canRemoveReader: false, showsActionButtons: true)
+        ProfileTagView(profile: Profile(
+            address: EmailAddress("mickey@mouse.com")!,
+            profileData: [:]
+        ), isSelected: true, isTicked: true, onRemoveReader: nil, automaticallyShowProfileIfNotInContacts: false, canRemoveReader: false, showsActionButtons: true)
     }
     .padding()
     .background(.themeViewBackground)

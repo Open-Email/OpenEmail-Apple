@@ -2,7 +2,7 @@ import SwiftUI
 import OpenEmailCore
 
 struct SidebarView: View {
-    @Binding var selectedScope: SidebarScope?
+    @Environment(NavigationState.self) var navigationState
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
 
     @State private var viewModel = ScopesSidebarViewModel()

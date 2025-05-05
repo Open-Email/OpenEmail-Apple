@@ -27,7 +27,7 @@ struct MultipleMessagesView: View {
                 } else {
                     Task {
                         await markMessagesAsDeleted(true)
-                        navigationState.selectedMessageIDs = []
+                        navigationState.clearSelection()
                     }
                 }
             } label: {
@@ -49,7 +49,7 @@ struct MultipleMessagesView: View {
                                     try await message.permentlyDelete(messageStore: messagesStore)
                                 }
                             }
-                            navigationState.selectedMessageIDs.removeAll()
+                            navigationState.clearSelection()
                         } catch {
                             Log.error("Could not delete message: \(error)")
                         }
@@ -63,7 +63,7 @@ struct MultipleMessagesView: View {
                 Button {
                     Task {
                         await markMessagesAsDeleted(false)
-                        navigationState.selectedMessageIDs.removeAll()
+                        navigationState.clearSelection()
                     }
                 } label: {
                     Image(systemName: "trash.slash")
