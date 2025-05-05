@@ -4,7 +4,7 @@ struct OpenEmailTextFieldStyle: TextFieldStyle {
     func _body(configuration: TextField<Self._Label>) -> some View {
         ZStack {
             Capsule()
-                .fill(.themeBackground)
+                .fill(.themeViewBackground)
 
             configuration
                 .textFieldStyle(.plain)

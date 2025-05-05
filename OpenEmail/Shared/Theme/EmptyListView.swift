@@ -29,7 +29,7 @@ struct EmptyListView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background {
             RoundedRectangle(cornerRadius: .CornerRadii.default)
-                .fill(.themeBackground)
+                .fill(.themeViewBackground)
         }
         .padding(.Spacing.default)
     }

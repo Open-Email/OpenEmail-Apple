@@ -47,7 +47,7 @@ struct OnboardingNewAccountView: View {
                     .padding(.Spacing.xSmall)
                     .background {
                         RoundedRectangle(cornerRadius: .CornerRadii.default)
-                            .fill(.themeBackground)
+                            .fill(.themeViewBackground)
                     }
                 }
 

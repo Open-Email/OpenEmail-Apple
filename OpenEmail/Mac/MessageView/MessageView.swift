@@ -8,7 +8,6 @@ struct MessageView: View {
     @Binding private var viewModel: MessageViewModel
     @State private var attachmentsListViewModel: AttachmentsListViewModel?
     
-    @Environment(\.openWindow) private var openWindow
     
     @Environment(NavigationState.self) private var navigationState
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?

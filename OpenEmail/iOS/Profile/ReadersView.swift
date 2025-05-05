@@ -250,7 +250,7 @@ struct ReadersView: View {
                     .buttonStyle(.bordered)
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(.themeBackground)
+                    .background(.themeViewBackground)
                 }
             }
             .profilePopoverToolbar(closeProfile: closeProfile)

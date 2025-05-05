@@ -149,7 +149,7 @@ struct OnboardingExistingAccountView: View {
         }
         .padding(.horizontal, .Spacing.small)
         .padding(.vertical, .Spacing.small)
-        .background(.themeBackground)
+        .background(.themeViewBackground)
         .clipShape(RoundedRectangle(cornerRadius: 25))
     }
 }

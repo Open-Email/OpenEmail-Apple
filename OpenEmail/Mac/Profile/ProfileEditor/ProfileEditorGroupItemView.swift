@@ -45,7 +45,7 @@ struct ProfileEditorGroupItemView: View {
                 .aspectRatio(contentMode: .fit)
                 .scaledToFit()
                 .frame(width: 14, height: 14)
-                .foregroundStyle(isSelected ? .themeBackground : .themePrimary)
+                .foregroundStyle(isSelected ? .themeViewBackground : .themePrimary)
         }
         .frame(width: 24, height: 24)
         .clipShape(Circle())

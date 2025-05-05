@@ -25,7 +25,7 @@ struct ActionButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .fontWeight(.medium)
-            .foregroundStyle(isProminent ? .themeBackground : .themePrimary)
+            .foregroundStyle(isProminent ? .themeViewBackground : .themePrimary)
             .padding(.leading, isImageOnly ? .Spacing.small : .Spacing.xSmall)
             .padding(.trailing, .Spacing.small)
             .padding(.vertical, .Spacing.xxxSmall)

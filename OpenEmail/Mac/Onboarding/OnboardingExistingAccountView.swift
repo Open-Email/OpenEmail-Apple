@@ -95,7 +95,7 @@ struct OnboardingExistingAccountView: View {
         }
         .padding(.horizontal, .Spacing.xSmall)
         .padding(.vertical, .Spacing.xSmall - 3)
-        .background(.themeBackground)
+        .background(.themeViewBackground)
         .clipShape(RoundedRectangle(cornerRadius: .CornerRadii.default))
     }
 }
