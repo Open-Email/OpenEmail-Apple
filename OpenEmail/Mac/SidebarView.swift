@@ -14,7 +14,7 @@ struct SidebarView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: .Spacing.xxxxSmall) {
             ForEach(viewModel.items) { item in
-                if (item.scope == .contacts) {
+                if (item.scope == .broadcasts) {
                     Spacer().frame(height: .Spacing.default)
                 }
                 SidebarItemView(
