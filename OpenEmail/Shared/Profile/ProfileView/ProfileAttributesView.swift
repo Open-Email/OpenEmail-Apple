@@ -22,19 +22,22 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
     }
 
     @Binding private var profile: Profile
-    private let receiveBroadcasts: Binding<Bool>?
+    private let receiveBroadcasts: Binding<Bool>
+    private let showBroadcasts: Bool
     private let hidesEmptyFields: Bool
     private let profileImageStyle: ProfileImageStyle
     @ViewBuilder private var actionButtonRow: () -> ActionButtonRow
 
     init(
         profile: Binding<Profile>,
-        receiveBroadcasts: Binding<Bool>?,
+        showBroadcasts: Bool = true,
+        receiveBroadcasts: Binding<Bool>,
         hidesEmptyFields: Bool = false,
         profileImageStyle: ProfileImageStyle,
         actionButtonRow: @escaping () -> ActionButtonRow = { EmptyView() }
     ) {
         _profile = profile
+        self.showBroadcasts = showBroadcasts
         self.receiveBroadcasts = receiveBroadcasts
         self.hidesEmptyFields = hidesEmptyFields
         self.profileImageStyle = profileImageStyle
@@ -70,7 +73,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                 }
 
                 // broadcasts
-                if let receiveBroadcasts {
+                if showBroadcasts {
                     Section {
                         VStack(alignment: .leading, spacing: .Spacing.small) {
                             Divider()
@@ -360,7 +363,13 @@ struct InfoButton: View {
 #Preview("editable") {
     ProfileAttributesView(
         profile: .constant(.makeFake()),
-        receiveBroadcasts: nil,
+        
+        receiveBroadcasts: Binding<Bool>(
+            get: {
+                true
+            },
+            set: { _ in }
+        ),
         profileImageStyle: .none
     )
 }

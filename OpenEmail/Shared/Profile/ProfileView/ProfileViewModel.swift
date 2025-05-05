@@ -24,7 +24,7 @@ class ProfileViewModel {
     @Injected(\.syncService) private var syncService
 
 
-    var receiveBroadcasts: Bool? = nil
+    var receiveBroadcasts: Bool = true
     
     init(
         profile: Profile,
@@ -130,6 +130,6 @@ class ProfileViewModel {
 
     func fetchMessages() async {
         let contact = (try? await contactsStore.contact(address: profile.address.address))
-        await syncService.fetchAuthorMessages(profile: profile, includeBroadcasts: contact?.receiveBroadcasts ?? false)
+        await syncService.fetchAuthorMessages(profile: profile, includeBroadcasts: contact?.receiveBroadcasts ?? true)
     }
 }

@@ -25,15 +25,16 @@ struct ProfileView: View {
         let canEditReceiveBroadcasts = !viewModel.isSelf && viewModel.isInContacts
         ProfileAttributesView(
             profile: $viewModel.profile,
-            receiveBroadcasts: canEditReceiveBroadcasts && viewModel.receiveBroadcasts != nil ? Binding(
+            showBroadcasts: canEditReceiveBroadcasts,
+            receiveBroadcasts: Binding(
                 get: {
-                    viewModel.receiveBroadcasts ?? true
+                    viewModel.receiveBroadcasts
                 },
                 set: { newValue in
                     Task {
                         await viewModel.updateReceiveBroadcasts(newValue)
                     }
-                }) : nil,
+                }),
             hidesEmptyFields: true,
             profileImageStyle: .fullWidthHeader(height: 450),
             actionButtonRow: actionButtons

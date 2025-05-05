@@ -17,15 +17,15 @@ struct ProfileView: View {
     var body: some View {
         
         let canEditReceiveBroadcasts = !viewModel.isSelf && viewModel.isInContacts
-        let receiveBroadcastsBinding = canEditReceiveBroadcasts && viewModel.receiveBroadcasts != nil ? Binding(
+        let receiveBroadcastsBinding = Binding(
             get: {
-                viewModel.receiveBroadcasts ?? true
+                viewModel.receiveBroadcasts
             },
             set: { newValue in
                 Task {
                     await viewModel.updateReceiveBroadcasts(newValue)
                 }
-            }) : nil
+            })
         
         HStack(alignment: .top, spacing: .Spacing.default) {
             ProfileImageView(
@@ -41,6 +41,7 @@ struct ProfileView: View {
             ))
             ProfileAttributesView(
                 profile: $viewModel.profile,
+                showBroadcasts: canEditReceiveBroadcasts,
                 receiveBroadcasts: receiveBroadcastsBinding,
                 hidesEmptyFields: true,
                 profileImageStyle: .none
