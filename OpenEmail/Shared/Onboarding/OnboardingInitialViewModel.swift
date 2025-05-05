@@ -16,7 +16,7 @@ class OnboardingInitialViewModel {
         if let address = EmailAddress(emailAddress) {
             isCheckingEmailAddress = true
             do {
-                let hosts = try await client.lookupHostsDelegations(address: address)
+                let hosts = try await client.checkWellKnownHost(address: address)
                 isCheckingEmailAddress = false
 
                 if hosts.isEmpty {
