@@ -56,8 +56,18 @@ struct OpenEmailApp: App {
         Window("Profile Editor", id: WindowIDs.profileEditor) {
             ProfileEditorView()
         }
-        .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)
+        .handlesExternalEvents(matching: [WindowIDs.profileEditor])
+        .windowToolbarStyle(.unified(showsTitle: false))
+        .windowStyle(.hiddenTitleBar)
+        .commands {
+            CommandMenu("Profile") {
+                Button("Edit Profile…") {
+                    openWindow(id: WindowIDs.profileEditor)
+                }
+                .keyboardShortcut("P", modifiers: [.command, .option])
+            }
+        }
 
         Settings {
             SettingsView()

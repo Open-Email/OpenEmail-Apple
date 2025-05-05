@@ -23,7 +23,6 @@ struct GeneralProfileAttributesEditorView: View {
             .padding(.Spacing.default)
             .frame(maxHeight: .infinity, alignment: .top)
         }
-        .background(.themeViewBackground)
         .fileImporter(isPresented: $showingImagePicker, allowedContentTypes: [.image]) { result in
             do {
                 let fileUrl = try result.get()

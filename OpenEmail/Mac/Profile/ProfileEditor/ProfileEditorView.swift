@@ -40,8 +40,11 @@ struct ProfileEditorView: View {
                 .listStyle(.plain)
                 
             }
-            .background(.clear)
             .frame(width: 200)
+            .background {
+                    VisualEffectView(material: .sidebar)
+                        .edgesIgnoringSafeArea(.all)
+                }
 
             Group {
                 switch selectedGroup {

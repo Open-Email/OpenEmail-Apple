@@ -62,7 +62,6 @@ struct ConfigurationProfileAttributesEditorView: View {
             .padding(.Spacing.default)
             .frame(maxHeight: .infinity, alignment: .top)
         }
-        .background(.themeViewBackground)
     }
 }
 
