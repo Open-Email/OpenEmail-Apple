@@ -43,7 +43,6 @@ struct ProfileView: View {
                 profile: $viewModel.profile,
                 showBroadcasts: canEditReceiveBroadcasts,
                 receiveBroadcasts: receiveBroadcastsBinding,
-                hidesEmptyFields: true,
                 profileImageStyle: .none
             ).frame(idealWidth: 300)
         }

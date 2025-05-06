@@ -3,6 +3,7 @@ import OpenEmailModel
 import OpenEmailCore
 import Inspect
 import Utils
+import Logging
 
 struct ProfileAttributesView<ActionButtonRow: View>: View {
     enum ProfileImageStyle {
@@ -24,7 +25,6 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
     @Binding private var profile: Profile
     private let receiveBroadcasts: Binding<Bool>
     private let showBroadcasts: Bool
-    private let hidesEmptyFields: Bool
     private let profileImageStyle: ProfileImageStyle
     @ViewBuilder private var actionButtonRow: () -> ActionButtonRow
 
@@ -32,14 +32,12 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
         profile: Binding<Profile>,
         showBroadcasts: Bool = true,
         receiveBroadcasts: Binding<Bool>,
-        hidesEmptyFields: Bool = false,
         profileImageStyle: ProfileImageStyle,
         actionButtonRow: @escaping () -> ActionButtonRow = { EmptyView() }
     ) {
         _profile = profile
         self.showBroadcasts = showBroadcasts
         self.receiveBroadcasts = receiveBroadcasts
-        self.hidesEmptyFields = hidesEmptyFields
         self.profileImageStyle = profileImageStyle
         self.actionButtonRow = actionButtonRow
     }
@@ -177,8 +175,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
     private func component(for attribute: ProfileAttribute) -> some View {
         switch attribute.attributeType {
         case .text(let multiline): textField(for: attribute, isMultiline: multiline)
-        case .boolean:
-            booleanSign(for: attribute, defaultValue: attribute != .away)
+        case .boolean: EmptyView()
         case .date(let relative):
             dateTextField(for: attribute, isRelative: relative)
         }
@@ -247,38 +244,6 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
         }
     }
 
-    // MARK: - Bindings
-
-    private func toggleBinding(for attribute: ProfileAttribute, defaultValue: Bool) -> Binding<Bool> {
-        return Binding<Bool>(
-            get: {
-                return profile[boolean: attribute] ?? defaultValue
-            },
-            set: {
-                profile[boolean: attribute] = $0
-            })
-    }
-
-    private func stringBinding(for attribute: ProfileAttribute) -> Binding<String> {
-        return Binding(
-            get: {
-                return profile[attribute] ?? ""
-            },
-            set: {
-                profile[attribute] = $0.isEmpty ? nil : $0
-            })
-    }
-
-    private func dateStringBinding(for attribute: ProfileAttribute, isRelative: Bool) -> Binding<String> {
-        return Binding(
-            get: {
-                dateString(for: attribute, isRelative: isRelative)
-            },
-            set: { _ in
-                // do nothing
-            })
-    }
-
     private func dateString(for attribute: ProfileAttribute, isRelative: Bool) -> String {
         if
             let dateString = profile[attribute],
@@ -296,28 +261,10 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
 
     // MARK: - Helpers
 
-    private func booleanSign(for attribute: ProfileAttribute, defaultValue: Bool) -> some View {
-        LabeledContent {
-            let value = profile[boolean: attribute] ?? defaultValue
-            Image(systemName: value ? "checkmark" : "xmark")
-                .foregroundStyle(.accent)
-        } label: {
-            HStack(spacing: .Spacing.xSmall) {
-                if let info = attribute.info {
-                    InfoButton(text: info)
-                }
-
-                Text("\(attribute.displayTitle):")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-            }
-        }
-    }
-
     private func shouldDisplayGroup(_ group: ProfileAttributesGroup) -> Bool {
 
         if profile.isGroupEmpty(group: group) {
-            return !hidesEmptyFields
+            return false
         }
 
         if group.attributes.contains(.away) {
@@ -328,10 +275,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
     }
 
     private func shouldDisplayAttribute(_ attribute: ProfileAttribute) -> Bool {
-
-        return (
-            profile[attribute] != nil && profile[attribute]!.isNotEmpty
-        ) || !hidesEmptyFields
+        return profile[attribute] != nil && profile[attribute]!.isNotEmpty
     }
 }
 
@@ -379,7 +323,6 @@ struct InfoButton: View {
     ProfileAttributesView(
         profile: .constant(.makeFake(awayWarning: "Away")),
         receiveBroadcasts: .constant(false),
-        hidesEmptyFields: true,
         profileImageStyle: .shape(),
     )
     .frame(width: 320, height: 500)
@@ -387,7 +330,6 @@ struct InfoButton: View {
     ProfileAttributesView(
         profile: .constant(.makeFake(awayWarning: "Away")),
         receiveBroadcasts: .constant(false),
-        hidesEmptyFields: true,
         profileImageStyle: .fullWidthHeader(height: 500),
         actionButtonRow: {
             HStack {

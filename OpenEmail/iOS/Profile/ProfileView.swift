@@ -35,7 +35,6 @@ struct ProfileView: View {
                         await viewModel.updateReceiveBroadcasts(newValue)
                     }
                 }),
-            hidesEmptyFields: true,
             profileImageStyle: .fullWidthHeader(height: 450),
             actionButtonRow: actionButtons
         )
