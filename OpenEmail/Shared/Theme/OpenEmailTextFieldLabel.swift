@@ -9,8 +9,5 @@ struct OpenEmailTextFieldLabel: View {
 
     var body: some View {
         Text(text)
-            .font(.callout)
-            .textCase(.uppercase)
-            .fontWeight(.medium)
     }
 }

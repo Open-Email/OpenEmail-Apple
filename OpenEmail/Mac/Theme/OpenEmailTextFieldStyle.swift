@@ -3,13 +3,7 @@ import SwiftUI
 struct OpenEmailTextFieldStyle: TextFieldStyle {
     func _body(configuration: TextField<Self._Label>) -> some View {
         configuration
-            .textFieldStyle(.plain)
-            .frame(height: 24)
-            .padding(.Spacing.xSmall)
-            .background {
-                RoundedRectangle(cornerRadius: .CornerRadii.default)
-                    .fill(.themeViewBackground)
-            }
+            .textFieldStyle(.roundedBorder)
     }
 }
 

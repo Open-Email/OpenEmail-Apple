@@ -90,15 +90,15 @@ struct PersonalProfileAttributesEditorView: View {
                     }
 
                     GridRow {
-                        VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                            OpenEmailTextFieldLabel(ProfileAttribute.notes.displayTitle)
-                            OpenEmailTextEditor(
+                        HStack {
+                            OpenEmailTextFieldLabel("Notes:")
+                            TextField(
+                                "Notes",
                                 text: Binding($profile)?.notes ?? Binding<String>(
                                     get: {""
                                     },
                                     set: {_ in })
-                            )
-                                .frame(height: 112)
+                            ).textFieldStyle(.openEmail)
                         }
                         .gridCellColumns(2)
                     }

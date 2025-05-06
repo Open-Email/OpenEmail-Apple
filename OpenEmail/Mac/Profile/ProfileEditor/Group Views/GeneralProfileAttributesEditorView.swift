@@ -62,8 +62,8 @@ struct GeneralProfileAttributesEditorView: View {
             profileImageView
 
             VStack(alignment: .leading, spacing: .Spacing.small) {
-                VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                    OpenEmailTextFieldLabel("Name")
+                HStack {
+                    OpenEmailTextFieldLabel("Name:")
 
                     TextField(
                         "Name",
@@ -71,9 +71,7 @@ struct GeneralProfileAttributesEditorView: View {
                             get: {""
                             },
                             set: {_ in }),
-                        prompt: Text("Name")
-                    )
-                        .textFieldStyle(.openEmail)
+                    ).textFieldStyle(.openEmail)
                     
                 }
                 
@@ -95,16 +93,17 @@ struct GeneralProfileAttributesEditorView: View {
                     .toggleStyle(.switch)
 
                     if profile?[boolean: .away] == true {
-                        OpenEmailTextEditor(
+                        TextField(
+                            "Away warning",
                             text: Binding($profile)?.awayWarning ?? Binding<String>(
                                 get: {""
                                 },
                                 set: {_ in })
                         )
-                            .frame(height: 60)
+                        .textFieldStyle(.openEmail)
                     }
                 }
-            }
+            }.animation(.default, value: profile?.away)
         }
     }
 
@@ -138,8 +137,8 @@ struct GeneralProfileAttributesEditorView: View {
         Text("Current").font(.title2)
             .padding(.bottom, .Spacing.xSmall)
 
-        VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-            OpenEmailTextFieldLabel("Status")
+        HStack {
+            OpenEmailTextFieldLabel("Status:")
             TextField(
                 "Share your mood, plans, etc.",
                 text: Binding($profile)?.status ?? Binding<String>(
@@ -150,22 +149,16 @@ struct GeneralProfileAttributesEditorView: View {
                 .textFieldStyle(.openEmail)
         }
 
-        VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-            HStack {
-                OpenEmailTextFieldLabel(ProfileAttribute.about.displayTitle)
-
-                if let info = ProfileAttribute.about.info {
-                    InfoButton(text: info)
-                }
-            }
-
-            OpenEmailTextEditor(
+        HStack {
+            OpenEmailTextFieldLabel("About:")
+            TextField(
+                "About",
                 text: Binding($profile)?.about ?? Binding<String>(
                     get: {""
                     },
                     set: {_ in })
             )
-                .frame(height: 112)
+            .textFieldStyle(.openEmail)
         }
     }
 
