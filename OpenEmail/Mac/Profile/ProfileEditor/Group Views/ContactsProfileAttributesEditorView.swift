@@ -52,8 +52,8 @@ struct ContactsProfileAttributesEditorView: View {
                     }
                     
                     GridRow {
-                        VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                            OpenEmailTextFieldLabel(ProfileAttribute.streams.displayTitle)
+                        HStack {
+                            OpenEmailTextFieldLabel("Streams:")
                             TextField("Enter topics", text: Binding($profile)?.streams ?? Binding<String>(
                                 get: {""
                                 },

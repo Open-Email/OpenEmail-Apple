@@ -12,8 +12,8 @@ struct InterestsProfileAttributesEditorView: View {
                 
                 Grid(horizontalSpacing: .Spacing.large, verticalSpacing: .Spacing.large) {
                     GridRow {
-                        VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                            OpenEmailTextFieldLabel(ProfileAttribute.interests.displayTitle)
+                        HStack {
+                            OpenEmailTextFieldLabel("Interests:")
                             TextField("Enter your interests", text: Binding($profile)?.interests ?? Binding<String>(
                                 get: {""
                                 },
