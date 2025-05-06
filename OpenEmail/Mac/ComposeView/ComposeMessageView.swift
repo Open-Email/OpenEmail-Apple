@@ -211,7 +211,7 @@ struct ComposeMessageView: View {
     @ViewBuilder
     private var subjectRow: some View {
         HStack {
-            Text(viewModel.subjectId.isNilOrEmpty ? "Subject:" : "Reply:")
+            Text("Subject:")
                 .foregroundStyle(.secondary).font(.body)
             TextField("", text: $viewModel.subject)
                 .font(.body)
