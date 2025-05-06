@@ -395,7 +395,8 @@ struct ProfilePreviewSheetView: View {
 
 struct ContactDetailView: View {
     @Injected(\.client) private var client
-    @State private var profile: Profile?
+    @State private var viewModel: ProfileViewModel?
+    
     private let selectedContactListItem: ContactListItem?
     
     init(selectedContact: ContactListItem?) {
@@ -404,7 +405,26 @@ struct ContactDetailView: View {
     
     var body: some View {
         VStack {
-            if let profile = profile {
+            if viewModel != nil && !viewModel!.isSelf && !viewModel!.isInContacts {
+                HStack {
+                    AsyncButton {
+                        do {
+                            try await viewModel?.addToContacts()
+                        } catch {
+                            Log.error("Could not add to contacts keys:", context: error)
+                        }
+                    } label: {
+                        Text("Add to contacts")
+                            
+                    }
+                    Spacer()
+                }.padding(.top, .Spacing.default)
+                    .padding(
+                    .horizontal,
+                    .Spacing.default
+                )
+            }
+            if let profile = viewModel?.profile {
                 ProfileView(
                     profile: profile,
                 )
@@ -416,9 +436,12 @@ struct ContactDetailView: View {
             if let contact = selectedContactListItem, let address = EmailAddress(
                 contact.email
             ) {
-                profile = try? await client.fetchProfile(address: address, force: false)
+                if let profile = try? await client.fetchProfile(address: address, force: false) {
+                    viewModel = ProfileViewModel(profile: profile)
+                }
+                
             } else {
-                profile = nil
+                viewModel = nil
             }
         }
     }
