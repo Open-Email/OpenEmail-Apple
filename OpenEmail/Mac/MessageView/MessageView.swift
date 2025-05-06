@@ -127,7 +127,18 @@ struct MessageView: View {
                         }
                     }
 
-                    if (message?.isBroadcast != true) {
+                    if (message?.isBroadcast == true) {
+                        HStack {
+                            Image(.scopeBroadcasts)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 11)
+                            Text("Broadcast")
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                                .font(.callout)
+                        }
+                    } else {
                         HStack(alignment: .firstTextBaseline, spacing: .Spacing.xSmall) {
                             ReadersLabelView()
                             

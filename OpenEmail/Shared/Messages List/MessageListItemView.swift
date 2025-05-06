@@ -52,11 +52,27 @@ struct MessageListItemView: View {
             
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
-                    Text(scope == .outbox ? formattedReadersLine : profileNames[message.author] ?? message.author)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                        .font(.headline)
-                        .padding(.bottom, 3)
+                    if message.isBroadcast {
+                        Group {
+                            Image(.scopeBroadcasts)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 11)
+                                .padding(.bottom, 3)
+                            Text("Broadcast")
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                                .font(.headline)
+                                .padding(.bottom, 3)
+                        }
+                    } else {
+                        Text(scope == .outbox ? formattedReadersLine : profileNames[message.author] ?? message.author)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .font(.headline)
+                            .padding(.bottom, 3)
+                    }
+                   
                     
                     Spacer()
                     
