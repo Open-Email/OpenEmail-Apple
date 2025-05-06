@@ -8,7 +8,6 @@ struct ConfigurationProfileAttributesEditorView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: .Spacing.default) {
-                Text("Configuration").font(.title2)
                 
                 getConfigurationToggleView(attribute: ProfileAttribute.publicAccess, isOn: Binding($profile)?.publicAccess)
                 getConfigurationToggleView(attribute: ProfileAttribute.publicLinks, isOn: Binding($profile)?.publicLinks)

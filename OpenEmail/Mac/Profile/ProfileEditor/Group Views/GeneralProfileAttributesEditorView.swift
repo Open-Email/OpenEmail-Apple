@@ -13,12 +13,8 @@ struct GeneralProfileAttributesEditorView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: .Spacing.default) {
+            VStack {
                 generalSection
-
-                Divider()
-
-                currentSection
             }
             .padding(.Spacing.default)
             .frame(maxHeight: .infinity, alignment: .top)
@@ -56,8 +52,6 @@ struct GeneralProfileAttributesEditorView: View {
 
     @ViewBuilder
     private var generalSection: some View {
-        Text("General").font(.title2)
-
         HStack(alignment: .top, spacing: .Spacing.large) {
             profileImageView
 
@@ -103,6 +97,7 @@ struct GeneralProfileAttributesEditorView: View {
                         .textFieldStyle(.openEmail)
                     }
                 }
+                currentSection
             }.animation(.default, value: profile?.away)
         }
     }
@@ -135,7 +130,7 @@ struct GeneralProfileAttributesEditorView: View {
     @ViewBuilder
     private var currentSection: some View {
         Text("Current").font(.title2)
-            .padding(.bottom, .Spacing.xSmall)
+            .padding(.top, .Spacing.xSmall)
 
         HStack {
             OpenEmailTextFieldLabel("Status:")
