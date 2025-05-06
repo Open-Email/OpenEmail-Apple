@@ -11,9 +11,21 @@ private let NOTIFICATION_ORIGIN_HEADER = "Notifier-Encrypted"
 public let ENCRYPTED_LINK_HEADER = "Link-Encrypted"
 private let DEFAULT_MAIL_SUBDOMAIN = "mail"
 private let WELL_KNOWN_URI = ".well-known/mail.txt"
-private let CACHE_EXPIRY = 60*60
 public let PROFILE_IMAGE_SIZE = CGSize(width: 800, height: 800)
 
+struct WellKnownCache {
+    var cachedHosts: [String] = []
+    var cacheExpiry: TimeInterval = 0
+    var lastSynced: Date?
+}
+
+extension WellKnownCache {
+    func isExpired() -> Bool {
+        return lastSynced == nil ||
+        cachedHosts.isEmpty ||
+        lastSynced!.addingTimeInterval(cacheExpiry) <= Date()
+    }
+}
 
 enum ClientError: Error {
     case noHostsAvailable
@@ -82,7 +94,7 @@ public protocol Client {
 
 public class DefaultClient: Client {
     public static let shared = DefaultClient()
-    private var wellKnownHostsCache = [String]()
+    private var wellKnownHostsCache = WellKnownCache()
     private let profileCache = ProfileCache()
     private let profileImageCache = ProfileImageCache()
     
@@ -143,39 +155,45 @@ public class DefaultClient: Client {
     }
     
     public func checkWellKnownHost(address: EmailAddress) async throws -> [String] {
-        
-        let cached = wellKnownHostsCache.filter { cached in
-            cached.contains(address.hostPart)
-        }
-        
-        if cached.isEmpty {
-            let wellKnownHosts = try await lookupWellKnownDelegations(hostname: address.hostPart, verifyHostDelegation: false)
-            wellKnownHostsCache.removeAll()
-            wellKnownHostsCache.append(contentsOf: wellKnownHosts ?? [])
-            return wellKnownHostsCache.filter { cached in
-                cached.contains(address.hostPart)
+        if wellKnownHostsCache.isExpired() {
+            if let wellKnownHosts = try await lookupWellKnownDelegations(hostname: address.hostPart) {
+                wellKnownHostsCache = WellKnownCache(
+                    cachedHosts:  wellKnownHosts.0,
+                    cacheExpiry: wellKnownHosts.1,
+                    lastSynced: Date()
+                )
             }
-        } else {
-            return cached
+        }
+        return wellKnownHostsCache.cachedHosts.filter { cached in
+            cached.contains(address.hostPart)
         }
     }
     
     
-    private func lookupWellKnownDelegations(hostname: String, verifyHostDelegation: Bool = true) async throws -> [String]? {
+    private func lookupWellKnownDelegations(hostname: String) async throws -> ([String], TimeInterval)? {
         guard let url = URL(string: "https://\(hostname)/\(WELL_KNOWN_URI)") else {
             throw ClientError.invalidEndpoint
         }
         
-        do {
-            let (data, response) = try await URLSession.shared.data(from: url)
-            guard
-                let httpResponse = response as? HTTPURLResponse,
-                httpResponse.statusCode == 200 /* OK */
-            else {
-                return nil
+        let (data, response) = try await URLSession.shared.data(from: url)
+        if let httpResponse = response as? HTTPURLResponse,
+            httpResponse.statusCode == 200  {
+            
+            let headers = httpResponse.allHeaderFields
+            let interval: TimeInterval? = if let secondsStr = (headers["Cache-Control"] as? String)?
+                .split(separator: ",")
+                .map({ param in
+                    param.trimmingCharacters(in: .whitespacesAndNewlines)
+                }).first(where: { param in
+                    param.starts(with: "max-age")
+                })?.split(separator: "=").last, let seconds = Int(String(secondsStr)) {
+                    TimeInterval(seconds)
+            } else {
+                nil
             }
             
-            if let contentString = String(data: data, encoding: .utf8) {
+            if let contentString = String(data: data, encoding: .utf8),
+                let timeInterval = interval {
                 let hostsDelegations = Array(contentString
                     .components(separatedBy: .newlines)
                     .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -186,22 +204,13 @@ public class DefaultClient: Client {
                                              // Cutoff the list
                     .prefix(MAX_MAIL_AGENTS_CONSIDERED))
                 
-                if verifyHostDelegation {
-                    // Check if hosts are really responsible for the domain
-                    var verifiedHostsDelegations: [String] = []
-                    try await hostsDelegations.asyncForEach {
-                        if try await isDelegatedFor(mailAgentHostname: $0, domain: hostname) {
-                            verifiedHostsDelegations.append($0)
-                        }
-                    }
-                    return verifiedHostsDelegations
-                }
-                return hostsDelegations
+                return (hostsDelegations, timeInterval)
+            } else {
+                return nil
             }
-        } catch {
+        } else {
             return nil
         }
-        return nil
     }
     
     /**
