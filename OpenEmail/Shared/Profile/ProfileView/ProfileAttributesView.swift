@@ -83,7 +83,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                                         .resizable()
                                         .aspectRatio(contentMode: .fit)
                                         .frame(width: 16, height: 16)
-                                    Text("Broadcast")
+                                    Text("Receive Broadcasts")
                                 }
                             }
                             .toggleStyle(.switch)

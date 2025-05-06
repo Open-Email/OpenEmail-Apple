@@ -11,19 +11,19 @@ private let NOTIFICATION_ORIGIN_HEADER = "Notifier-Encrypted"
 public let ENCRYPTED_LINK_HEADER = "Link-Encrypted"
 private let DEFAULT_MAIL_SUBDOMAIN = "mail"
 private let WELL_KNOWN_URI = ".well-known/mail.txt"
-private let CACHE_EXPIRY = 60*60
 public let PROFILE_IMAGE_SIZE = CGSize(width: 800, height: 800)
 
-struct DelegatedHostsCache {
-    let result: [String]
-    let timestamp: Date
+struct WellKnownCache {
+    var cachedHosts: [String] = []
+    var cacheExpiry: TimeInterval = 0
+    var lastSynced: Date?
 }
 
-
-extension DelegatedHostsCache {
+extension WellKnownCache {
     func isExpired() -> Bool {
-        let expirationPeriod = TimeInterval(CACHE_EXPIRY)
-        return Date().timeIntervalSince(timestamp) > expirationPeriod
+        return lastSynced == nil ||
+        cachedHosts.isEmpty ||
+        lastSynced!.addingTimeInterval(cacheExpiry) <= Date()
     }
 }
 
@@ -56,7 +56,7 @@ public protocol Client {
     func generateLocalUser(address: String, name: String?) throws -> LocalUser
     func registerAccount(user: LocalUser, fullName: String?) async throws
     func lookupAddressAvailability(address: EmailAddress) async throws -> Bool
-    func lookupHostsDelegations(address: EmailAddress) async throws -> [String]
+    func checkWellKnownHost(address: EmailAddress) async throws -> [String]
     
     // Notifications
     func fetchNotifications(localUser: LocalUser) async throws
@@ -94,7 +94,7 @@ public protocol Client {
 
 public class DefaultClient: Client {
     public static let shared = DefaultClient()
-    private var delegatedHostsCache = [String: DelegatedHostsCache]()
+    private var wellKnownHostsCache = WellKnownCache()
     private let profileCache = ProfileCache()
     private let profileImageCache = ProfileImageCache()
     
@@ -123,7 +123,7 @@ public class DefaultClient: Client {
     // MARK: - Hosts Lookup
     
     private func withAllRespondingDelegatedHosts<T>(address: EmailAddress, handler: @escaping Handler<T>) async throws -> [T]? {
-        let hosts = try await lookupHostsDelegations(address: address)
+        let hosts = try await checkWellKnownHost(address: address)
         guard !hosts.isEmpty else {
             throw ClientError.noHostsAvailable
         }
@@ -146,69 +146,54 @@ public class DefaultClient: Client {
     }
     
     private func withFirstRespondingDelegatedHost<T>(address: EmailAddress, handler: @escaping Handler<T>) async throws -> T? {
-        let hosts = try await lookupHostsDelegations(address: address)
-        guard !hosts.isEmpty else { throw ClientError.noHostsAvailable }
-        
-        return try await withThrowingTaskGroup(of: T?.self) { group in
-            for host in hosts {
-                group.addTask {
-                    try await handler(host)
-                }
-            }
-            
-            // Wait for the first successful result, then cancel others
-            while let result = try await group.next() {
-                if let result = result {
-                    group.cancelAll() // Stop all other tasks
-                    return result
-                }
-            }
+        let hosts = try await checkWellKnownHost(address: address)
+        if hosts.isEmpty {
             return nil
+        } else {
+            return try await handler(hosts.first!)
         }
     }
     
-    // TODO: the response in well known file may split roles of hosts so some hosts
-    // TODO: are only for recieving notifications, some for storing messages, some for hosting profiles.
-    // TODO: This is easily backwards compatible, if we add "; role=notify,forward,profile" postfix.
-    
-    public func lookupHostsDelegations(address: EmailAddress) async throws -> [String] {
-        if let cacheEntry = delegatedHostsCache[address.hostPart], !cacheEntry.isExpired(), !cacheEntry.result.isEmpty {
-            return cacheEntry.result
-        }
-        
-        let defaultMailAgentHostname = "\(DEFAULT_MAIL_SUBDOMAIN).\(address.hostPart)"
-        guard
-            let wellKnownHosts = try await lookupWellKnownDelegations(hostname: address.hostPart, verifyHostDelegation: false),
-            wellKnownHosts.count > 0
-        else {
-            // Check if listed hosts are responsible for the mail accounts in question.
-            let result: [String]
-            if try await isDelegatedFor(mailAgentHostname: defaultMailAgentHostname, domain: address.hostPart) {
-                result = [defaultMailAgentHostname]
-                delegatedHostsCache[address.hostPart] = DelegatedHostsCache(result: result, timestamp: Date())
-                return result
+    public func checkWellKnownHost(address: EmailAddress) async throws -> [String] {
+        if wellKnownHostsCache.isExpired() {
+            if let wellKnownHosts = try await lookupWellKnownDelegations(hostname: address.hostPart) {
+                wellKnownHostsCache = WellKnownCache(
+                    cachedHosts:  wellKnownHosts.0,
+                    cacheExpiry: wellKnownHosts.1,
+                    lastSynced: Date()
+                )
             }
-            return []
         }
-        return wellKnownHosts
+        return wellKnownHostsCache.cachedHosts.filter { cached in
+            cached.contains(address.hostPart)
+        }
     }
     
     
-    private func lookupWellKnownDelegations(hostname: String, verifyHostDelegation: Bool = true) async throws -> [String]? {
+    private func lookupWellKnownDelegations(hostname: String) async throws -> ([String], TimeInterval)? {
         guard let url = URL(string: "https://\(hostname)/\(WELL_KNOWN_URI)") else {
             throw ClientError.invalidEndpoint
         }
         
-        do {
-            let (data, response) = try await URLSession.shared.data(from: url)
-            guard
-                let httpResponse = response as? HTTPURLResponse,
-                httpResponse.statusCode == 200 /* OK */
-            else {
-                return nil
+        let (data, response) = try await URLSession.shared.data(from: url)
+        if let httpResponse = response as? HTTPURLResponse,
+            httpResponse.statusCode == 200  {
+            
+            let headers = httpResponse.allHeaderFields
+            let interval: TimeInterval? = if let secondsStr = (headers["Cache-Control"] as? String)?
+                .split(separator: ",")
+                .map({ param in
+                    param.trimmingCharacters(in: .whitespacesAndNewlines)
+                }).first(where: { param in
+                    param.starts(with: "max-age")
+                })?.split(separator: "=").last, let seconds = Int(String(secondsStr)) {
+                    TimeInterval(seconds)
+            } else {
+                nil
             }
             
-            if let contentString = String(data: data, encoding: .utf8) {
+            if let contentString = String(data: data, encoding: .utf8),
+                let timeInterval = interval {
                 let hostsDelegations = Array(contentString
                     .components(separatedBy: .newlines)
                     .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -219,22 +204,13 @@ public class DefaultClient: Client {
                                              // Cutoff the list
                     .prefix(MAX_MAIL_AGENTS_CONSIDERED))
                 
-                if verifyHostDelegation {
-                    // Check if hosts are really responsible for the domain
-                    var verifiedHostsDelegations: [String] = []
-                    try await hostsDelegations.asyncForEach {
-                        if try await isDelegatedFor(mailAgentHostname: $0, domain: hostname) {
-                            verifiedHostsDelegations.append($0)
-                        }
-                    }
-                    return verifiedHostsDelegations
-                }
-                return hostsDelegations
+                return (hostsDelegations, timeInterval)
+            } else {
+                return nil
             }
-        } catch {
+        } else {
             return nil
         }
-        return nil
     }
     
     /**

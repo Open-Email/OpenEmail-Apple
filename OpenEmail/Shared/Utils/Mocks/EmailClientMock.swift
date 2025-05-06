@@ -31,7 +31,7 @@ class EmailClientMock: Client {
         false
     }
 
-    func lookupHostsDelegations(address: EmailAddress) async throws -> [String] {
+    func checkWellKnownHost(address: EmailAddress) async throws -> [String] {
         []
     }
 
