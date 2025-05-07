@@ -58,8 +58,8 @@ struct OpenEmailApp: App {
         }
         .windowResizability(.contentSize)
         .handlesExternalEvents(matching: [WindowIDs.profileEditor])
-        .windowToolbarStyle(.unified(showsTitle: false))
         .windowStyle(.hiddenTitleBar)
+        .windowToolbarStyle(UnifiedWindowToolbarStyle()) 
         .commands {
             CommandMenu("Profile") {
                 Button("Edit Profile…") {

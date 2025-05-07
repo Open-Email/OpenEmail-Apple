@@ -61,7 +61,7 @@ struct ProfileEditorView: View {
                 case .configuration: ConfigurationProfileAttributesEditorView(profile: makeProfileBinding())
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(minWidth: 400, idealWidth: 600)
         }
         .background(.regularMaterial)
         .onAppear {
@@ -85,6 +85,10 @@ struct ProfileEditorView: View {
             }
         }
     }
+}
+
+public func getEmptyBindingForField<T>(_ defaultValue: T) -> Binding<T> {
+    return .constant(defaultValue)
 }
 
 #Preview {

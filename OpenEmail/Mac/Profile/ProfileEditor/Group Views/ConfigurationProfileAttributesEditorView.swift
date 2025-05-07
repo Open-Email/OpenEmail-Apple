@@ -7,32 +7,23 @@ struct ConfigurationProfileAttributesEditorView: View {
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: .Spacing.default) {
-                
+            Form {
                 getConfigurationToggleView(attribute: ProfileAttribute.publicAccess, isOn: Binding($profile)?.publicAccess)
                 getConfigurationToggleView(attribute: ProfileAttribute.publicLinks, isOn: Binding($profile)?.publicLinks)
                 getConfigurationToggleView(attribute: ProfileAttribute.lastSeenPublic, isOn: Binding($profile)?.lastSeenPublic)
-                
-                VStack(alignment: .leading) {
-                    Text(ProfileAttribute.addressExpansion.displayTitle)
-                    if let info = ProfileAttribute.addressExpansion.info {
-                        Text(info)
-                            .foregroundStyle(.secondary)
-                            .font(.subheadline)
-                            .truncationMode(.tail)
-                    }
-                    
-                    TextField("Enter addresses", text: Binding($profile)?.addressExpansion ?? Binding<String>(
-                        get: {""
-                        },
-                        set: {_ in }))
-                    .textFieldStyle(.openEmail)
-                }
-                .padding(.top, .Spacing.default)
+                TextField(
+                    "Address expansion:",
+                    text: Binding($profile)?.addressExpansion ?? getEmptyBindingForField(
+                        ""
+                    ),
+                    prompt: Text(ProfileAttribute.addressExpansion.info ?? "")
+                )
+                .textFieldStyle(.openEmail)
             }
             .toggleStyle(.switch)
-            .padding(.Spacing.default)
-            .frame(maxHeight: .infinity, alignment: .top)
+            .formStyle(.grouped)
+                .background(.regularMaterial)
+                .navigationTitle("Configuration")
         }
     }
     
@@ -48,10 +39,7 @@ struct ConfigurationProfileAttributesEditorView: View {
                 }
             }
             Spacer()
-            Toggle("", isOn: isOn ?? Binding<Bool>(
-                get: { true
-                },
-                set: {_ in }))
+            Toggle("", isOn: isOn ?? getEmptyBindingForField(true))
         }
     }
 }

@@ -14,8 +14,43 @@ struct GeneralProfileAttributesEditorView: View {
     var body: some View {
         ScrollView {
             VStack {
-                generalSection
-            }
+                profileImageView
+                Form {
+                    Section {
+                        TextField(
+                            "Name",
+                            text: Binding($profile)?.name ?? getEmptyBindingForField(""),
+                        ).textFieldStyle(.openEmail)
+                        if let profile = Binding($profile) {
+                            Text(profile.wrappedValue.address.address)
+                                .font(.title3)
+                                .foregroundStyle(.secondary)
+                                .textSelection(.enabled)
+                        }
+                    }
+                    
+                    Section {
+                        Toggle(
+                            ProfileAttribute.away.displayTitle,
+                            isOn: Binding($profile)?.away ?? getEmptyBindingForField(false)
+                        )
+                        .toggleStyle(.switch)
+                        
+                        if profile?[boolean: .away] == true {
+                            TextField(
+                                "Away warning",
+                                text: Binding($profile)?.awayWarning ?? getEmptyBindingForField("")
+                            )
+                            .textFieldStyle(.openEmail)
+                        }
+                    }
+                    currentSection
+                }
+                .formStyle(.grouped)
+                .background(.regularMaterial)
+                .navigationTitle("General")
+                
+            }.animation(.default, value: profile?.away)
             .padding(.Spacing.default)
             .frame(maxHeight: .infinity, alignment: .top)
         }
@@ -50,58 +85,6 @@ struct GeneralProfileAttributesEditorView: View {
         }
     }
 
-    @ViewBuilder
-    private var generalSection: some View {
-        HStack(alignment: .top, spacing: .Spacing.large) {
-            profileImageView
-
-            VStack(alignment: .leading, spacing: .Spacing.small) {
-                HStack {
-                    OpenEmailTextFieldLabel("Name:")
-
-                    TextField(
-                        "Name",
-                        text: Binding($profile)?.name ?? Binding<String>(
-                            get: {""
-                            },
-                            set: {_ in }),
-                    ).textFieldStyle(.openEmail)
-                    
-                }
-                
-                if let profile = Binding($profile) {
-                    Text(profile.wrappedValue.address.address)
-                        .font(.title3)
-                        .foregroundStyle(.secondary)
-                        .textSelection(.enabled)
-                }
-                
-                VStack(alignment: .leading, spacing: .Spacing.xSmall) {
-                    Toggle(
-                        ProfileAttribute.away.displayTitle,
-                        isOn: Binding($profile)?.away ?? Binding<Bool>(
-                            get: {false
-                            },
-                            set: {_ in })
-                    )
-                    .toggleStyle(.switch)
-
-                    if profile?[boolean: .away] == true {
-                        TextField(
-                            "Away warning",
-                            text: Binding($profile)?.awayWarning ?? Binding<String>(
-                                get: {""
-                                },
-                                set: {_ in })
-                        )
-                        .textFieldStyle(.openEmail)
-                    }
-                }
-                currentSection
-            }.animation(.default, value: profile?.away)
-        }
-    }
-
     private var profileImageView: some View {
         ProfileImageView(
             emailAddress: profile?.address.address,
@@ -129,29 +112,16 @@ struct GeneralProfileAttributesEditorView: View {
 
     @ViewBuilder
     private var currentSection: some View {
-        Text("Current").font(.title2)
-            .padding(.top, .Spacing.xSmall)
-
-        HStack {
-            OpenEmailTextFieldLabel("Status:")
+        Section(header: Text("Current")) {
             TextField(
-                "Share your mood, plans, etc.",
-                text: Binding($profile)?.status ?? Binding<String>(
-                    get: {""
-                    },
-                    set: {_ in })
-            )
-                .textFieldStyle(.openEmail)
-        }
-
-        HStack {
-            OpenEmailTextFieldLabel("About:")
+                "Status:",
+                text: Binding($profile)?.status ?? getEmptyBindingForField(""),
+                prompt: Text("Share your mood, plans, etc."),
+            ).textFieldStyle(.openEmail)
             TextField(
-                "About",
-                text: Binding($profile)?.about ?? Binding<String>(
-                    get: {""
-                    },
-                    set: {_ in })
+                "About:",
+                text: Binding($profile)?.about ?? getEmptyBindingForField(""),
+                prompt: Text("About")
             )
             .textFieldStyle(.openEmail)
         }
