@@ -43,6 +43,10 @@ public actor PersistedStore {
             }
             
             group.addTask {
+                try await self.deleteAllArchivedMessages()
+            }
+            
+            group.addTask {
                 try await self.deleteAllNotifications()
             }
             

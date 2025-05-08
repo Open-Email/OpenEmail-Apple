@@ -36,12 +36,8 @@ extension [Message] {
             filter {
                 $0.deletedAt == nil && $0.isDraft
             }
-        case .trash:
-            filter {
-                $0.deletedAt != nil
-            }
-        case .contacts:
-            []
+        case .trash: []
+        case .contacts: []
         }
     }
 }

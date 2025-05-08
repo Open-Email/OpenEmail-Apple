@@ -15,18 +15,18 @@ struct GeneralProfileAttributesEditorView: View {
         ScrollView {
             VStack {
                 profileImageView
+                if let profile = Binding($profile) {
+                    Text(profile.wrappedValue.address.address)
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
+                        .textSelection(.enabled)
+                }
                 Form {
                     Section {
                         TextField(
-                            "Name",
+                            "Name:",
                             text: Binding($profile)?.name ?? getEmptyBindingForField(""),
                         ).textFieldStyle(.openEmail)
-                        if let profile = Binding($profile) {
-                            Text(profile.wrappedValue.address.address)
-                                .font(.title3)
-                                .foregroundStyle(.secondary)
-                                .textSelection(.enabled)
-                        }
                     }
                     
                     Section {

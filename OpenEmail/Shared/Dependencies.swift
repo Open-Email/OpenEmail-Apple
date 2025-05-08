@@ -27,6 +27,14 @@ private struct MessagesStoreKey: InjectionKey {
     #endif
 }
 
+private struct ArchivedMessagesStoreKey: InjectionKey {
+    #if DEBUG
+    static var currentValue: ArchivedMessageStoring = isPreview ? ArchivedMessageStoreMock() : PersistedStore.shared
+    #else
+    static var currentValue: ArchivedMessageStoring = PersistedStore.shared
+    #endif
+}
+
 private struct NotificationsStoreKey: InjectionKey {
     #if DEBUG
     static var currentValue: NotificationStoring = isPreview ? NotificationStoreMock() : PersistedStore.shared
@@ -65,7 +73,12 @@ extension InjectedValues {
     var messagesStore: MessageStoring {
         get { Self[MessagesStoreKey.self] }
         set { Self[MessagesStoreKey.self] = newValue }
-    }    
+    }
+    
+    var archivedMessagesStore: ArchivedMessageStoring {
+        get { Self[ArchivedMessagesStoreKey.self] }
+        set { Self[ArchivedMessagesStoreKey.self] = newValue }
+    }
 
     var notificationsStore: NotificationStoring {
         get { Self[NotificationsStoreKey.self] }

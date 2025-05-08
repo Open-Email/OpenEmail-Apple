@@ -251,6 +251,8 @@
 		9D0775832D9AFB9500C2A2E0 /* ArrayExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0775812D9AFB8100C2A2E0 /* ArrayExtensions.swift */; };
 		9D0A38562DA8319C00F4BB73 /* DeleteAccountUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */; };
 		9D0A38572DA8319C00F4BB73 /* DeleteAccountUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */; };
+		9D32F3232DCBBDF200A41FEE /* ArchivedMessageStoreMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D32F3222DCBBDE600A41FEE /* ArchivedMessageStoreMock.swift */; };
+		9D32F3242DCBBDF200A41FEE /* ArchivedMessageStoreMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D32F3222DCBBDE600A41FEE /* ArchivedMessageStoreMock.swift */; };
 		9D97BDE52DC8ECC70076EEFD /* VisualEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D97BDE42DC8ECBE0076EEFD /* VisualEffectView.swift */; };
 		9D97BDE62DC8ECC70076EEFD /* VisualEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D97BDE42DC8ECBE0076EEFD /* VisualEffectView.swift */; };
 /* End PBXBuildFile section */
@@ -426,6 +428,7 @@
 		5BFDDAEC2B51A408009DDCDA /* MultipleMessagesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipleMessagesView.swift; sourceTree = "<group>"; };
 		9D0775812D9AFB8100C2A2E0 /* ArrayExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayExtensions.swift; sourceTree = "<group>"; };
 		9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountUseCase.swift; sourceTree = "<group>"; };
+		9D32F3222DCBBDE600A41FEE /* ArchivedMessageStoreMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivedMessageStoreMock.swift; sourceTree = "<group>"; };
 		9D97BDE42DC8ECBE0076EEFD /* VisualEffectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -797,6 +800,7 @@
 		5BC893422C1C56F8008C943B /* Mocks */ = {
 			isa = PBXGroup;
 			children = (
+				9D32F3222DCBBDE600A41FEE /* ArchivedMessageStoreMock.swift */,
 				5BC893432C1C5702008C943B /* EmailClientMock.swift */,
 				5B0F25842AFE77E300226455 /* MessageStoreMock.swift */,
 				5BC6E0A92C2F0ABE00C5951C /* NotificationStoreMock.swift */,
@@ -1271,6 +1275,7 @@
 				5B5390D42B7F62E000387B6F /* String+Truncating.swift in Sources */,
 				5B8C60E62D0365E400FEF5F1 /* OpenEmailTextEditor.swift in Sources */,
 				5BFDDAED2B51A408009DDCDA /* MultipleMessagesView.swift in Sources */,
+				9D32F3232DCBBDF200A41FEE /* ArchivedMessageStoreMock.swift in Sources */,
 				5B141C2E2C134A4B00597F70 /* TimeInterval+Extension.swift in Sources */,
 				5BE2CFA02D4D0E9800E9DB1A /* Modify.swift in Sources */,
 				5BA2D65A2CC26D38004783B7 /* Spacings.swift in Sources */,
@@ -1339,6 +1344,7 @@
 				5BD1FA392C63A92500DE4B5D /* SidebarScope+Display.swift in Sources */,
 				5BDA2ECC2C5CCF48009FB2BD /* ProfileAttribute+Info.swift in Sources */,
 				5BDA2ECD2C5CCF48009FB2BD /* AsyncButton.swift in Sources */,
+				9D32F3242DCBBDF200A41FEE /* ArchivedMessageStoreMock.swift in Sources */,
 				5BDD1D312CA69590004AF1D5 /* ReadersView.swift in Sources */,
 				5BF25D212D71C18A00720F54 /* ProfileEditorGroupItemView.swift in Sources */,
 				5BE2CF9D2D4CDBA600E9DB1A /* MessageTypeBadge.swift in Sources */,
