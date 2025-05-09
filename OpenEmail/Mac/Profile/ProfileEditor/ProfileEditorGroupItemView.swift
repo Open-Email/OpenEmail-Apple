@@ -10,7 +10,7 @@ struct ProfileEditorGroupItemView: View {
     var body: some View {
         HStack(spacing: .Spacing.xSmall) {
             icon
-            Text(group.groupType.displayName).foregroundStyle(isSelected ? .themePrimary : .themeSecondary)
+            Text(group.groupType.displayName).foregroundStyle(.themePrimary)
             Spacer()
         }
         .padding(.horizontal, .Spacing.xSmall)
@@ -30,26 +30,12 @@ struct ProfileEditorGroupItemView: View {
 
     @ViewBuilder
     private var icon: some View {
-        ZStack {
-            Circle()
-                .fill(isSelected ? .themePrimary : .themeIconBackground)
-                .frame(width: 24, height: 24)
-                .overlay {
-                    if colorScheme == .light {
-                        Circle().stroke(Color.themeLineGray)
-                    }
-                }
-
-            Image(group.icon)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .scaledToFit()
-                .frame(width: 14, height: 14)
-                .foregroundStyle(isSelected ? .themeViewBackground : .themePrimary)
-        }
-        .frame(width: 24, height: 24)
-        .clipShape(Circle())
-        .shadow(color: .themeShadow, radius: 4, y: 2)
+        Image(group.icon)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .scaledToFit()
+            .frame(width: 14, height: 14)
+            .foregroundStyle(.accent)
     }
 }
 
