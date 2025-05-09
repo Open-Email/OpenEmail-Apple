@@ -15,7 +15,7 @@ enum ProfileAttributesGroupType: String {
         case .work: "Work"
         case .personal: "Personal"
         case .interests: "Interests"
-        case .contacts: "Contacts"
+        case .contacts: "Contact"
         case .configuration: "Configuration"
         }
     }
