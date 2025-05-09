@@ -52,7 +52,7 @@ struct ContactsProfileAttributesEditorView: View {
                 }
             }.formStyle(.grouped)
                 .background(.regularMaterial)
-                .navigationTitle("Contacts")
+                .navigationTitle("Contact")
         }
     }
 }
