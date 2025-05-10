@@ -35,7 +35,7 @@ struct ContactsListView: View {
             }
             .listStyle(.automatic)
             .scrollBounceBehavior(.basedOnSize)
-        }
+        }.frame(idealWidth: 200)
     }
 }
 
