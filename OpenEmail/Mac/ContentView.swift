@@ -145,32 +145,24 @@ struct ContentView: View {
                             switch navigationState.selectedScope {
                             case .trash:
                                 showDeleteMessageConfirmationAlert = true
-                            case .outbox, .drafts:
+                                
+                            case .contacts:
+                                if let _ = navigationState.selectedContact {
+                                    showDeleteContactConfirmationAlert = true
+                                }
+                            default:
                                 do {
                                     try await messageViewModel.markAsDeleted(true)
                                     navigationState.clearSelection()
                                 } catch {
                                     Log.error("Could not mark message as deleted: \(error)")
                                 }
-                            case .contacts:
-                                if let _ = navigationState.selectedContact {
-                                    showDeleteContactConfirmationAlert = true
-                                }
-                            default:
-                                Log.error("Non-deletable item selected")
                             }
                         } label: {
                             Image(systemName: "trash")
                         }.disabled(
-                            (navigationState.selectedScope != .trash &&
-                             navigationState.selectedScope != .outbox &&
-                             navigationState.selectedScope != .drafts &&
-                             navigationState.selectedScope != .contacts
-                            ) ||
-                            (
-                                navigationState.selectedMessageIDs.isEmpty &&
-                                navigationState.selectedContact == nil
-                            )
+                            navigationState.selectedMessageIDs.isEmpty &&
+                            navigationState.selectedContact == nil
                         )
                         //TODO adjust help according to selected element. Could be contact as well
                         .help((messageViewModel.message?.isDraft ?? false) ? "Delete draft" : "Delete message")
