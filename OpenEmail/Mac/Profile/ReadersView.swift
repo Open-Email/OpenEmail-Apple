@@ -42,6 +42,7 @@ struct ReadersView: View {
     @State private var allContacts: [Contact] = []
     @State private var suggestions: [Contact] = []
     @State private var newContact: Profile? = nil
+    @State private var noProfileFoundAlertShown: Bool = false
 
     @FocusState private var isInputFocused: Bool
     @FocusState private var isFocused: Bool
@@ -240,6 +241,7 @@ struct ReadersView: View {
             isInputFocused = true
         }
         .alert("Reader already added", isPresented: $showAlreadyAddedAlert) {}
+        .alert("No profile registered with address: \(inputText.trimmingCharacters(in: .whitespacesAndNewlines))", isPresented: $noProfileFoundAlertShown) {}
         .onAppear {
             Task {
                 allContacts = (try? await contactsStore.allContacts()) ?? []
@@ -329,6 +331,8 @@ struct ReadersView: View {
                             inputText = ReadersView.zeroWidthSpace
                             readers.append(profile)
                         }
+                    } else {
+                        noProfileFoundAlertShown = true
                     }
                 }
             }
