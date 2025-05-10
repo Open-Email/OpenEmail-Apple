@@ -18,16 +18,11 @@ struct ProfileEditorView: View {
         
         HSplitView {
             VStack(alignment: .leading) {
-                HStack(spacing: .zero) {
-                    Text("Profile")
-                        .font(.title)
-                        .fontWeight(.semibold)
-                        .padding(.Spacing.default)
-                    Spacer()
-                }
-                
+                Text("Profile")
+                    .font(.title)
+                    .fontWeight(.semibold)
+                    .padding(.Spacing.default)
 
-               
                 List {
                     ForEach(Profile.groupedAttributes) { group in
                         ProfileEditorGroupItemView(group: group, isSelected: group.groupType == selectedGroup) {
@@ -40,7 +35,7 @@ struct ProfileEditorView: View {
                 .listStyle(.plain)
                 
             }
-            .frame(width: 200)
+            .frame(width: 175)
             .background {
                     VisualEffectView(material: .sidebar)
                         .edgesIgnoringSafeArea(.all)

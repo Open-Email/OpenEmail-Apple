@@ -100,6 +100,7 @@ private struct SidebarItemView: View {
                 .aspectRatio(contentMode: .fit)
                 .scaledToFit()
                 .frame(width: 14, height: 14)
+                .foregroundStyle(.accent)
 
             Text(title)
             
@@ -108,7 +109,6 @@ private struct SidebarItemView: View {
                 Text("\(unreadCount)")
             }
         }
-        .foregroundStyle(isSelected ? .themePrimary : .themeSecondary)
         .padding(.horizontal, .Spacing.xxSmall)
         .frame(height: 28, alignment: .leading)
         .background {
