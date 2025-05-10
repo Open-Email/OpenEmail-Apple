@@ -17,6 +17,8 @@ class ScopesSidebarViewModel {
     @ObservationIgnored
     @Injected(\.messagesStore) private var messagesStore
     @ObservationIgnored
+    @Injected(\.archivedMessagesStore) private var archivedMessagesStore
+    @ObservationIgnored
     @Injected(\.contactsStore) private var contactStore
     
     init() {
@@ -27,6 +29,13 @@ class ScopesSidebarViewModel {
         }.store(in: &subscriptions)
         
         NotificationCenter.default.publisher(for: .didUpdateMessages).sink { _ in
+            Task {
+                await self.refreshMessages()
+                await self.reloadItems()
+            }
+        }.store(in: &subscriptions)
+        
+        NotificationCenter.default.publisher(for: .didUpdateArchivedMessages).sink { _ in
             Task {
                 await self.refreshMessages()
                 await self.reloadItems()
@@ -74,7 +83,8 @@ class ScopesSidebarViewModel {
     
     private func refreshMessages() async {
         let registeredEmailAddress: String = UserDefaults.standard.registeredEmailAddress ?? ""
-        if let newMessages = try? await messagesStore.allMessages(searchText: "") {
+        if let newMessages = try? await messagesStore.allMessages(searchText: ""),
+           let archivedMessages = try? await archivedMessagesStore.allArchivedMessages(searchText: "") {
             await withTaskGroup { group in
                 group.addTask {
                     await MainActor.run {
@@ -114,10 +124,7 @@ class ScopesSidebarViewModel {
                 
                 group.addTask {
                     await MainActor.run {
-                        self.allCounts[.trash] = newMessages
-                            .filter {
-                                message in message.isDeleted
-                            }.count
+                        self.allCounts[.trash] = archivedMessages.count
                     }
                 }
             }

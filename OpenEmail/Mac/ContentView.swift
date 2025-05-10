@@ -92,9 +92,7 @@ struct ContentView: View {
                                 .truncationMode(.tail)
                         }
                     }
-                    
                 }
-                
             }
         } detail: {
             VStack {
@@ -146,12 +144,9 @@ struct ContentView: View {
                             case .trash:
                                 showDeleteMessageConfirmationAlert = true
                             case .outbox, .drafts:
-                                do {
-                                    try await messageViewModel.markAsDeleted(true)
-                                    navigationState.clearSelection()
-                                } catch {
-                                    Log.error("Could not mark message as deleted: \(error)")
-                                }
+                                //TODO
+                                //messageViewModel.deleteMessage()
+                                navigationState.clearSelection()
                             case .contacts:
                                 if let _ = navigationState.selectedContact {
                                     showDeleteContactConfirmationAlert = true
@@ -161,16 +156,10 @@ struct ContentView: View {
                             }
                         } label: {
                             Image(systemName: "trash")
-                        }.disabled(
-                            (navigationState.selectedScope != .trash &&
-                             navigationState.selectedScope != .outbox &&
-                             navigationState.selectedScope != .drafts &&
-                             navigationState.selectedScope != .contacts
-                            ) ||
-                            (
-                                navigationState.selectedMessageIDs.isEmpty &&
-                                navigationState.selectedContact == nil
-                            )
+                        }
+                        .disabled(
+                            navigationState.selectedMessageIDs.isEmpty &&
+                            navigationState.selectedContact == nil
                         )
                         //TODO adjust help according to selected element. Could be contact as well
                         .help((messageViewModel.message?.isDraft ?? false) ? "Delete draft" : "Delete message")
@@ -265,8 +254,8 @@ struct ContentView: View {
         }
         .alert("Are you sure you want to delete this message?", isPresented: $showDeleteMessageConfirmationAlert) {
             Button("Cancel", role: .cancel) {}
-            AsyncButton("Delete", role: .destructive) {
-                await permanentlyDeleteSentMessage()
+            Button("Delete", role: .destructive) {
+                messageViewModel.deleteMessage()
             }
         } message: {
             Text("This action cannot be undone.")
@@ -325,20 +314,24 @@ struct ContentView: View {
             )
         }
     }
-    
-    private func permanentlyDeleteSentMessage() async {
-        do {
-            try await messageViewModel.permanentlyDeleteMessage()
-            navigationState.clearSelection()
-        } catch {
-            Log.error("Could not delete message: \(error)")
-        }
-    }
-    
+   
     @ViewBuilder
     private var messagesDetailView: some View {
         if navigationState.selectedMessageIDs.count > 1 {
-            MultipleMessagesView()
+            MultipleMessagesView(
+                onDeleteFromTrash: {
+                    Task {
+                        await messageViewModel.messageDeletion.deleteFromTrash(messageIDs: navigationState.selectedMessageIDs)
+                        navigationState.clearSelection()
+                    }
+                },
+                onMoveToTrash: {
+                    Task {
+                        await messageViewModel.messageDeletion.putToTrash(messageIDs: navigationState.selectedMessageIDs)
+                        navigationState.clearSelection()
+                    }
+                }
+            )
         } else {
             if let _ = messageViewModel.message {
                 MessageView(

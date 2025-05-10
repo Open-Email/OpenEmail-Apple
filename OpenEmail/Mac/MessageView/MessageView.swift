@@ -179,8 +179,6 @@ struct MessageView: View {
             Text("Loading…").italic().disabled(true)
         }
     }
-
-    
 }
 
 #if DEBUG

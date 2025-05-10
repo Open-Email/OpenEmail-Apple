@@ -7,17 +7,17 @@ struct MessagesListView: View {
     @Environment(NavigationState.self) private var navigationState
     @Environment(\.openWindow) private var openWindow
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
-
+    
     @State private var viewModel = MessagesListViewModel()
     @Binding private var searchText: String
     
     init (searchText: Binding<String>) {
         _searchText = searchText
     }
-
+    
     var body: some View {
         @Bindable var navigationState = navigationState
-
+        
         List(selection: $navigationState.selectedMessageIDs) {
             
             if viewModel.messages.isEmpty && searchText.isEmpty {
@@ -43,15 +43,16 @@ struct MessagesListView: View {
         }
         .listStyle(.automatic)
         .scrollBounceBehavior(.basedOnSize)
-        .contextMenu(forSelectionType: String.self, menu: { messageIDs in
-            if !messageIDs.isEmpty {
-                let allMessages = viewModel.messages
-                    .filter {
-                        messageIDs.contains($0.id)
-                        && $0.author != registeredEmailAddress // ignore messages from self
-                    }
-
-                if !allMessages.isEmpty {
+        .contextMenu(
+            forSelectionType: String.self,
+            menu: { messageIDs in
+                if !messageIDs.isEmpty {
+                    let allMessages = viewModel.messages
+                        .filter {
+                            messageIDs.contains($0.id)
+                            && $0.author != registeredEmailAddress // ignore messages from self
+                        }
+                    
                     if allMessages.unreadCount == 0 {
                         Button("Mark as Unread") {
                             viewModel.markAsUnread(messageIDs: messageIDs)
@@ -61,26 +62,33 @@ struct MessagesListView: View {
                             viewModel.markAsRead(messageIDs: messageIDs)
                         }
                     }
-                }
-                
-                if (navigationState.selectedScope == .trash) {
-                    Button("Restore") {
-                        viewModel.markAsDeleted(messageIDs: messageIDs, isDeleted: false)
+                    
+                    if (navigationState.selectedScope == .trash) {
+                        Button("Restore") {
+                            Task {
+                                await viewModel.messageDeletion
+                                    .restoreFromTrash(messageIDs: messageIDs)
+                            }
+                        }
+                    }
+                    
+                    Button("Delete") {
+                        viewModel.deleteMessages(messageIDs: messageIDs)
                         navigationState.clearSelection()
                     }
                 }
-            }
-        }, primaryAction: { messageIDs in
-            // this runs on double-click of a selected row
-            if let id = messageIDs.first,
-               let msg = viewModel.messages.first(where: { $0.id == id }) {
-                if msg.isDraft {
-                    openWindow(id: WindowIDs.compose, value: ComposeAction.editDraft(messageId: msg.id))
-                } else {
-                    // preview logic here
+            },
+            primaryAction: { messageIDs in
+                // this runs on double-click of a selected row
+                if let id = messageIDs.first,
+                   let msg = viewModel.messages.first(where: { $0.id == id }) {
+                    if msg.isDraft {
+                        openWindow(id: WindowIDs.compose, value: ComposeAction.editDraft(messageId: msg.id))
+                    } else {
+                        // preview logic here
+                    }
                 }
-            }
-        })
+            })
         .animation(.easeInOut(duration: viewModel.messages.isEmpty ? 0 : 0.2), value: viewModel.messages)
         .onChange(of: navigationState.selectedMessageIDs) {
             Log.debug("selected message ids: \(navigationState.selectedMessageIDs)")
@@ -94,29 +102,15 @@ struct MessagesListView: View {
             }
         }
         .onChange(of: navigationState.selectedScope) {
-            reloadMessages()
+            viewModel.scope = navigationState.selectedScope
         }
         .onChange(of: searchText) {
-            reloadMessages()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .didSynchronizeMessages)) { _ in
-            reloadMessages()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .didUpdateMessages)) { _ in
-            reloadMessages()
-        }
-        .onAppear {
-            reloadMessages()
+            viewModel.searchText = searchText
+        }.onAppear {
+            viewModel.scope = navigationState.selectedScope
         }.background(Color(nsColor: .controlBackgroundColor))
     }
-
-    private func reloadMessages() {
-        Task {
-            await viewModel.reloadMessagesFromStore(searchText: searchText, scope: navigationState.selectedScope)
-            updateSelectedDraftMessages()
-        }
-    }
-
+    
     @MainActor
     private func updateSelectedDraftMessages() {
         guard navigationState.selectedScope == .drafts else { return }
@@ -132,8 +126,8 @@ struct MessagesListView: View {
     MessagesListView(searchText: Binding<String>(
         get: { "" }, set: { _ in }
     ))
-        .frame(width: 400, height: 500)
-        .environment(NavigationState())
+    .frame(width: 400, height: 500)
+    .environment(NavigationState())
 }
 
 private struct PreviewContainer {
@@ -142,14 +136,14 @@ private struct PreviewContainer {
 
 #Preview("empty") {
     let container = PreviewContainer()
-
+    
     MessagesListView(searchText: Binding<String>(
         get: { "" }, set: { _ in }
     ))
-        .environment(NavigationState())
-        .onAppear {
-            let mockStore = container.messagesStore as? MessageStoreMock
-            mockStore?.stubMessages = []
-        }
+    .environment(NavigationState())
+    .onAppear {
+        let mockStore = container.messagesStore as? MessageStoreMock
+        mockStore?.stubMessages = []
+    }
 }
 #endif

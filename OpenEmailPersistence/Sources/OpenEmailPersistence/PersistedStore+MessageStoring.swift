@@ -10,9 +10,11 @@ public protocol MessageStoring {
     func messageExists(id: String) async throws -> Bool
     func message(id: String) async throws -> Message?
     func allMessages(searchText: String) async throws -> [Message]
+    func allMessages(ids: [String]) async throws -> [Message]
     func allUnreadMessages() async throws -> [Message]
     func allDeletedMessages() async throws -> [Message]
     func deleteMessage(id: String) async throws
+    func deleteMessages(ids: [String]) async throws
     func deleteAllMessages() async throws
     func markAsDeleted(message: Message, deleted: Bool) async throws
 }
@@ -50,6 +52,19 @@ extension PersistedStore: MessageStoring {
 
         let results = try modelContext.fetch(fetch)
         return results.first
+    }
+    
+    public func allMessages(ids: [String]) async throws -> [Message] {
+        
+        var fetch = FetchDescriptor<PersistedMessage>(
+            predicate: #Predicate { message in
+                ids.contains(message.id)
+            },
+            sortBy: [SortDescriptor<PersistedMessage>(\.authoredOn, order: .reverse)])
+        fetch.includePendingChanges = true
+        
+        let results = try modelContext.fetch(fetch)
+        return results.map { $0.toLocal() }
     }
 
     public func allMessages(searchText: String) async throws -> [Message] {
@@ -102,6 +117,12 @@ extension PersistedStore: MessageStoring {
 
         try modelContext.save()
         await postUpdateNotification()
+    }
+    
+    public func deleteMessages(ids: [String]) async throws {
+        for id in ids {
+            try await deleteMessage(id: id)
+        }
     }
 
     public func deleteAllMessages() async throws {

@@ -253,6 +253,8 @@
 		9D0A38572DA8319C00F4BB73 /* DeleteAccountUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */; };
 		9D32F3232DCBBDF200A41FEE /* ArchivedMessageStoreMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D32F3222DCBBDE600A41FEE /* ArchivedMessageStoreMock.swift */; };
 		9D32F3242DCBBDF200A41FEE /* ArchivedMessageStoreMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D32F3222DCBBDE600A41FEE /* ArchivedMessageStoreMock.swift */; };
+		9D32F3852DCE72D400A41FEE /* MessageDeletionUsecase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D32F3842DCE72C200A41FEE /* MessageDeletionUsecase.swift */; };
+		9D32F3862DCE72D400A41FEE /* MessageDeletionUsecase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D32F3842DCE72C200A41FEE /* MessageDeletionUsecase.swift */; };
 		9D97BDE52DC8ECC70076EEFD /* VisualEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D97BDE42DC8ECBE0076EEFD /* VisualEffectView.swift */; };
 		9D97BDE62DC8ECC70076EEFD /* VisualEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D97BDE42DC8ECBE0076EEFD /* VisualEffectView.swift */; };
 /* End PBXBuildFile section */
@@ -429,6 +431,7 @@
 		9D0775812D9AFB8100C2A2E0 /* ArrayExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayExtensions.swift; sourceTree = "<group>"; };
 		9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountUseCase.swift; sourceTree = "<group>"; };
 		9D32F3222DCBBDE600A41FEE /* ArchivedMessageStoreMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivedMessageStoreMock.swift; sourceTree = "<group>"; };
+		9D32F3842DCE72C200A41FEE /* MessageDeletionUsecase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageDeletionUsecase.swift; sourceTree = "<group>"; };
 		9D97BDE42DC8ECBE0076EEFD /* VisualEffectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -855,6 +858,7 @@
 		5BD1FA5E2C66045000DE4B5D /* Messages List */ = {
 			isa = PBXGroup;
 			children = (
+				9D32F3842DCE72C200A41FEE /* MessageDeletionUsecase.swift */,
 				5B0F25812AFE766600226455 /* MessagesListViewModel.swift */,
 				5B0F258C2AFE818400226455 /* MessageListItemView.swift */,
 			);
@@ -1257,6 +1261,7 @@
 				5BDA2F132C5D0BF8009FB2BD /* OnboardingExistingAccountViewModel.swift in Sources */,
 				5B141C282C1346A500597F70 /* TrashPurgingService.swift in Sources */,
 				162A1DA32B13C35A00BCD8BC /* ContactsAddressInputView.swift in Sources */,
+				9D32F3852DCE72D400A41FEE /* MessageDeletionUsecase.swift in Sources */,
 				5BD1FA382C63A92500DE4B5D /* SidebarScope+Display.swift in Sources */,
 				5B44526B2CCBE50C00A2FE5E /* OpenEmailTextFieldStyle.swift in Sources */,
 				5BB3A3F52B177DE70025E50A /* ContactsListViewModel.swift in Sources */,
@@ -1362,6 +1367,7 @@
 				5BDA2ED32C5CCF48009FB2BD /* MessageStoreMock.swift in Sources */,
 				5BD1FA6C2C66551E00DE4B5D /* TrustedDomainsSettingsView.swift in Sources */,
 				5BB70A3D2D71EF1E005DDA48 /* ProfileAttributeInfoText.swift in Sources */,
+				9D32F3862DCE72D400A41FEE /* MessageDeletionUsecase.swift in Sources */,
 				5B8DAF612D5F799300229F9E /* ReadersLabelView.swift in Sources */,
 				5BE74D892C9D711E003997D6 /* SyncProgressView.swift in Sources */,
 				5BE491722D5660120036DBBF /* EmptyListView.swift in Sources */,

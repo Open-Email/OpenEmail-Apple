@@ -4,28 +4,93 @@ import OpenEmailCore
 import OpenEmailModel
 import OpenEmailPersistence
 import Logging
+import Combine
 
 @Observable
 class MessagesListViewModel {
     @ObservationIgnored
     @Injected(\.messagesStore) private var messagesStore
+    @ObservationIgnored
+    @Injected(\.archivedMessagesStore) private var archivedMessagesStore
+    
+    let messageDeletion: MessageDeletionUsecase = MessageDeletionUsecase()
+    var scope: SidebarScope = .inbox {
+        didSet {
+            Task {
+                await self.reloadMessagesFromStore()
+            }
+        }
+    }
 
+    var searchText: String = "" {
+        didSet {
+            Task {
+                await self.reloadMessagesFromStore()
+            }
+        }
+    }
     private var allMessages: [Message] = []
-
+    private var allArchivedMessages: [Message] = []
+    private var subscriptions = Set<AnyCancellable>()
     var messages: [Message] = []
+    
+    
+    init() {
+        NotificationCenter.default.publisher(for: .didUpdateMessages).sink { _ in
+            Task {
+                await self.reloadMessagesFromStore()
+            }
+        }.store(in: &subscriptions)
+        
+        NotificationCenter.default.publisher(for: .didUpdateArchivedMessages).sink { _ in
+            Task {
+                await self.reloadMessagesFromStore()
+            }
+        }.store(in: &subscriptions)
+        
+        NotificationCenter.default.publisher(for: .didSynchronizeMessages).sink { _ in
+            Task {
+                await self.reloadMessagesFromStore()
+            }
+        }.store(in: &subscriptions)
+    }
+    
+    func deleteMessages(messageIDs: Set<String>) {
+        Task {
+            switch scope {
+            case .outbox:
+                //TODO show confirmation dialog
+                try? await messageDeletion.recallMessages(messagesIDs: messageIDs)
+            case .inbox, .broadcasts:
+                await messageDeletion.putToTrash(messageIDs: messageIDs)
+            case .trash:
+                //TODO show confirmation dialog
+                await messageDeletion.deleteFromTrash(messageIDs: messageIDs)
+            default:
+                break
+            }
+        }
+    }
 
     @MainActor
-    func reloadMessagesFromStore(searchText: String, scope: SidebarScope?) async {
+    func reloadMessagesFromStore() async {
         do {
             allMessages = try await messagesStore.allMessages(searchText: searchText)
-
-            if let scope, let localUser = LocalUser.current {
-                messages = allMessages.filteredBy(scope: scope, localUser: localUser)
+            allArchivedMessages = try await archivedMessagesStore.allArchivedMessages(searchText: searchText)
+            
+            if let localUser = LocalUser.current {
+                switch scope {
+                case .trash:
+                    let filtered = allArchivedMessages
+                        .filter { trashMessage in !trashMessage.isDeleted }
+                    messages = filtered
+                default:
+                    messages = allMessages.filteredBy(scope: scope, localUser: localUser)
+                }
             } else {
-                messages = allMessages
+                messages = []
             }
         } catch {
-            // TODO: show error message?
             Log.error("Could not get messages from store:", context: error)
         }
     }
@@ -38,25 +103,6 @@ class MessagesListViewModel {
         setReadState(messageIDs: messageIDs, isRead: false)
     }
     
-    func markAsDeleted(messageIDs: Set<String>, isDeleted: Bool) {
-        Task {
-            do {
-                var updatedMessages = [Message]()
-                
-                allMessages.filter { messageIDs.contains($0.id) }.forEach {
-                    var message = $0
-                    message.deletedAt = isDeleted ? Date() : nil
-                    updatedMessages.append(message)
-                }
-
-                try await messagesStore.storeMessages(updatedMessages)
-            } catch {
-                Log.error("Could not mark message as deleted == \(isDeleted): \(error)")
-            }
-        }
-        
-    }
-
     private func setReadState(messageIDs: Set<String>, isRead: Bool) {
         Task {
             do {

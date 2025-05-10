@@ -8,7 +8,16 @@ struct MultipleMessagesView: View {
 
     @Injected(\.messagesStore) private var messagesStore
     @State private var showingDeleteConfirmationAlert = false
+    let onDeleteFromTrash: () -> Void
+    let onMoveToTrash: () -> Void
     
+    init(
+        onDeleteFromTrash: @escaping () -> Void,
+        onMoveToTrash: @escaping () -> Void
+    ) {
+        self.onDeleteFromTrash = onDeleteFromTrash
+        self.onMoveToTrash = onMoveToTrash
+    }
     var body: some View {
         VStack {
             Text("\(navigationState.selectedMessageIDs.count) messages selected").font(.headline)
@@ -42,6 +51,11 @@ struct MultipleMessagesView: View {
             .alert("Are you sure you want to delete these messages?", isPresented: $showingDeleteConfirmationAlert) {
                 Button("Cancel", role: .cancel) {}
                 Button("Delete", role: .destructive) {
+                    if navigationState.selectedScope == .trash {
+                        onDeleteFromTrash()
+                    } else {
+                        onMoveToTrash()
+                    }
                     Task {
                         do {
                             for messageID in navigationState.selectedMessageIDs {
@@ -94,7 +108,7 @@ struct MultipleMessagesView: View {
 }
 
 #Preview {
-    MultipleMessagesView()
+    MultipleMessagesView(onDeleteFromTrash: {}, onMoveToTrash: {})
         .frame(width: 500, height: 600)
         .environment(NavigationState())
 }

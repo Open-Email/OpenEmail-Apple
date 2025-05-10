@@ -227,10 +227,9 @@ class ComposeMessageViewModel {
             }
 
             if let messageId {
-                // After sending, notify of the new messageId and trigger synchronizing
-                await notifyNewOutgoingMessageId(messageId)
                 await deleteDraft()
                 await addMissingReadersToContacts()
+                await syncService.synchronize()
             }
         }
 
@@ -677,10 +676,6 @@ class ComposeMessageViewModel {
     }
 
     // MARK: - Drafts
-
-    func notifyNewOutgoingMessageId(_ messageId: String) async {
-        await syncService.appendOutgoingMessageId(messageId)
-    }
 
     func updateDraft() {
         Task {

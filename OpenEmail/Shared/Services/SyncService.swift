@@ -14,9 +14,6 @@ protocol MessageSyncing {
     var isSyncing: Bool { get }
     func synchronize() async
     func fetchAuthorMessages(profile: Profile, includeBroadcasts: Bool) async
-    func isActiveOutgoingMessageId(_ messageId: String) -> Bool
-    func recallMessageId(_ messageId: String) async
-    func appendOutgoingMessageId(_ messageId: String) async
 }
 
 @Observable
@@ -33,7 +30,6 @@ class SyncService: MessageSyncing {
     @Injected(\.messagesStore) private var messagesStore
 
     private var subscriptions = Set<AnyCancellable>()
-    private var outgoingMessageIds: [String] = []
     private var scheduler: NSBackgroundActivityScheduler?
 
     private init() {
@@ -69,18 +65,6 @@ class SyncService: MessageSyncing {
                 }
             }
             .store(in: &subscriptions)
-    }
-
-    func isActiveOutgoingMessageId(_ messageId: String) -> Bool {
-        return outgoingMessageIds.contains(messageId)
-    }
-
-    func recallMessageId(_ messageId: String) async {
-        self.outgoingMessageIds = outgoingMessageIds.filter { $0 != messageId }
-    }
-
-    func appendOutgoingMessageId(_ messageId: String) async {
-        self.outgoingMessageIds.append(messageId)
     }
 
     @MainActor
@@ -138,8 +122,8 @@ class SyncService: MessageSyncing {
                  guard self.hasUserAccount() else { return }
                  
                  do {
-                     self.outgoingMessageIds = try await self.client.fetchLocalMessages(localUser: localUser, localProfile: localProfile)
-                     await self.cleanUpOutboxMessages()
+                     let newLocalMessagesState = try await self.client.fetchLocalMessages(localUser: localUser, localProfile: localProfile)
+                     await self.cleanUpOutboxMessages(newLocalMessagesState)
                  } catch {
                      Log.error("Error fetching local messages: \(error)")
                  }
@@ -236,11 +220,7 @@ class SyncService: MessageSyncing {
         }
     }
 
-    /// Oubtbox messages disappear from the server after a while, so they have to be deleted from the local
-    /// storage in order to stay in sync with the server.
-    ///
-    /// This is best effort, ignoring any errors.
-    private func cleanUpOutboxMessages() async {
+    private func cleanUpOutboxMessages(_ newLocalMessagesState: [String]) async {
         guard
             let localUser = LocalUser.current,
             let allMessages = try? await messagesStore.allMessages(searchText: "")
@@ -253,9 +233,10 @@ class SyncService: MessageSyncing {
             .map { $0.id }
             .toSet()
 
-        let messageIdsToDelete = localOutboxMessageIds.subtracting(outgoingMessageIds.toSet())
-        for messageId in messageIdsToDelete {
-            try? await messagesStore.deleteMessage(id: messageId)
+        for messageId in localOutboxMessageIds {
+            if (!newLocalMessagesState.contains(messageId)) {
+                try? await messagesStore.deleteMessage(id: messageId)
+            }
         }
     }
 }

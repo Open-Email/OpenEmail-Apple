@@ -12,6 +12,13 @@ import OpenEmailPersistence
 
 #if DEBUG
 class ArchivedMessageStoreMock: ArchivedMessageStoring {
+    func allArchivedMessages(ids: [String]) async throws -> [OpenEmailModel.Message] {
+        return []
+    }
+
+    func deleteArchivedMessages(ids: [String]) async throws {
+    }
+
     var stubMessages: [Message] = [
         Message.makeRandom(id: "1"),
         Message.makeRandom(id: "2"),

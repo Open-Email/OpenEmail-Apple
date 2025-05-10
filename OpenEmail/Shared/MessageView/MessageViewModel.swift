@@ -17,9 +17,14 @@ class MessageViewModel {
 
     @ObservationIgnored
     @Injected(\.messagesStore) private var messagesStore
+    
+    @ObservationIgnored
+    @Injected(\.archivedMessagesStore) private var archivedMessagesStore
 
     @ObservationIgnored
     @Injected(\.attachmentsManager) private var attachmentsManager
+    
+    let messageDeletion = MessageDeletionUsecase()
 
     var messageID: String? {
         didSet {
@@ -115,39 +120,14 @@ class MessageViewModel {
         authorProfile = try? await client.fetchProfile(address: emailAddress, force: false)
     }
 
-    func permanentlyDeleteMessage() async throws {
-        try await client.recallAuthoredMessage(localUser: .current!, messageId: message!.id)
-        try await message?.permentlyDelete(messageStore: messagesStore)
+    func deleteMessage() {
+        //move message to deleted storage
+        //remove message from allMessages
+        //trigger async task to cycle through all deleted messages and try to recall them
+        // if recall successful - put "deletedAt" time on it
     }
+    
 
-    func markAsDeleted(_ deleted: Bool) async throws {
-        guard let message else { return }
-        try await messagesStore.markAsDeleted(message: message, deleted: deleted)
-    }
-
-    func recallMessage() async throws {
-        guard let localUser = LocalUser.current, let message else {
-            return
-        }
-
-        isRecalling = true
-
-        do {
-            try await client.recallAuthoredMessage(localUser: localUser, messageId: message.id)
-            await syncService.recallMessageId(message.id)
-            let ids = message.attachments.flatMap { $0.fileMessageIds }
-
-            for id in ids {
-                try await client.recallAuthoredMessage(localUser: localUser, messageId: id)
-            }
-
-            try await markAsDeleted(true)
-            isRecalling = false
-        } catch {
-            isRecalling = false
-            throw error
-        }
-    }
 
     func convertToDraft() async throws -> Message? {
         guard let message else { return nil }

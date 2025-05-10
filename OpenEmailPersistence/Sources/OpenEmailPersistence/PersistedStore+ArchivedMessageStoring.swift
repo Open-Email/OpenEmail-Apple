@@ -14,8 +14,10 @@ public protocol ArchivedMessageStoring {
     func storeArchivedMessages(_ messages: [Message]) async throws
     func archivedMessageExists(id: String) async throws -> Bool
     func archivedMessage(id: String) async throws -> Message?
+    func allArchivedMessages(ids: [String]) async throws -> [Message]
     func allArchivedMessages(searchText: String) async throws -> [Message]
     func deleteArchivedMessage(id: String) async throws
+    func deleteArchivedMessages(ids: [String]) async throws
     func deleteAllArchivedMessages() async throws
 }
 
@@ -55,6 +57,19 @@ extension PersistedStore: ArchivedMessageStoring {
         return results.first
     }
     
+    public func allArchivedMessages(ids: [String]) async throws -> [Message] {
+        
+        var fetch = FetchDescriptor<PersistedMessage>(
+            predicate: #Predicate { message in
+                ids.contains(message.id)
+            },
+            sortBy: [SortDescriptor<PersistedMessage>(\.authoredOn, order: .reverse)])
+        fetch.includePendingChanges = true
+        
+        let results = try modelContext.fetch(fetch)
+        return results.map { $0.toLocal() }
+    }
+    
     public func allArchivedMessages(searchText: String) async throws -> [Message] {
         let cleanSearchText = searchText.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -80,6 +95,13 @@ extension PersistedStore: ArchivedMessageStoring {
         )
 
         try modelContext.save()
+        await postUpdateNotification()
+    }
+    
+    public func deleteArchivedMessages(ids: [String]) async throws {
+        for id in ids {
+            try await deleteArchivedMessage(id: id)
+        }
         await postUpdateNotification()
     }
 

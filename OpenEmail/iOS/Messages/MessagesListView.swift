@@ -11,7 +11,6 @@ struct MessagesListView: View {
     @Binding var selectedMessageID: String?
 
     @State private var viewModel = MessagesListViewModel()
-    @State private var searchText: String = ""
     @State private var showsDeleteConfirmationAlert = false
     @State private var messageToDelete: Message?
     @State private var showsComposeView = false
@@ -32,7 +31,7 @@ struct MessagesListView: View {
             }
         }
         .listStyle(.plain)
-        .searchable(text: $searchText)
+        .searchable(text: $viewModel.searchText)
         .refreshable {
             await syncService.synchronize()
         }
@@ -67,7 +66,7 @@ struct MessagesListView: View {
             Text("This action cannot be undone.")
         }
         .overlay {
-            if viewModel.messages.isEmpty && searchText.isEmpty {
+            if viewModel.messages.isEmpty && viewModel.searchText.isEmpty {
                 EmptyListView(icon: selectedScope.imageResource, text: "Your \(selectedScope.displayName) message list is empty.")
             }
         }
@@ -83,23 +82,14 @@ struct MessagesListView: View {
                 Log.debug("selected message id: \(selectedMessageID)")
             }
         }
-        .onChange(of: searchText) {
-            reloadMessages()
-        }
         .onReceive(NotificationCenter.default.publisher(for: .didSynchronizeMessages)) { _ in
-            reloadMessages()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .didUpdateMessages)) { _ in
-            reloadMessages()
-        }
-        .onAppear {
             reloadMessages()
         }
     }
 
     private func reloadMessages() {
         Task {
-            await viewModel.reloadMessagesFromStore(searchText: searchText, scope: selectedScope)
+            await viewModel.reloadMessagesFromStore(scope: selectedScope)
         }
     }
 

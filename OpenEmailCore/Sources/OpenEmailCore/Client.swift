@@ -100,6 +100,7 @@ public class DefaultClient: Client {
     
     private let contactsStore: ContactStoring
     private let messagesStore: MessageStoring
+    private let archivedMessagesStore: ArchivedMessageStoring
     private let notificationsStore: NotificationStoring
     
     private var imageRequestTimestamps = AtomicDictionary<URL, Date>()
@@ -108,12 +109,14 @@ public class DefaultClient: Client {
     init(
         messagesStore: MessageStoring = PersistedStore.shared,
         contactsStore: ContactStoring = PersistedStore.shared,
+        archivedMessagesStore: ArchivedMessageStoring = PersistedStore.shared,
         notificationsStore: NotificationStoring = PersistedStore.shared
     ) {
         URLSession.shared.configuration.timeoutIntervalForRequest = 30
         URLSession.shared.configuration.timeoutIntervalForResource = 30
         
         self.messagesStore = messagesStore
+        self.archivedMessagesStore = archivedMessagesStore
         self.contactsStore = contactsStore
         self.notificationsStore = notificationsStore
     }
@@ -955,33 +958,38 @@ public class DefaultClient: Client {
         let payloadBody = try? String(contentsOf: payloadFileURL, encoding: .utf8)
         
         // Add the root message, or update stub
-        if var rootMessage = try? await self.messagesStore.message(id: messageID) {
-            rootMessage.size = contentHeaders.size
-            rootMessage.body = payloadBody
-            try await self.messagesStore.storeMessage(rootMessage)
-        } else {
-            let attachments = attachments(from: contentHeaders)
-            
-            let rootMessageStub = OpenEmailModel.Message(
-                localUserAddress: localUser.address.address,
-                id: destinationMessageID,
-                size: contentHeaders.size,
-                authoredOn: contentHeaders.date,
-                receivedOn: .now,
-                author: authorProfile.address.address,
-                readers: readers,
-                subject: contentHeaders.subject,
-                body: payloadBody,
-                subjectId: contentHeaders.subjectId,
-                isBroadcast: isBroadcast,
-                accessKey: envelope.accessKey,
-                isRead: isMessageFromSelf,
-                deletedAt: nil,
-                attachments: attachments
-            )
-            try await self.messagesStore.storeMessage(rootMessageStub)
-            
-            downloadSmallAttachments(attachments)
+        let deletedMessage = try? await self.archivedMessagesStore.archivedMessage(
+            id: messageID
+        )
+        if (deletedMessage == nil) {
+            if var rootMessage = try? await self.messagesStore.message(id: messageID) {
+                rootMessage.size = contentHeaders.size
+                rootMessage.body = payloadBody
+                try await self.messagesStore.storeMessage(rootMessage)
+            } else {
+                let attachments = attachments(from: contentHeaders)
+                
+                let rootMessageStub = OpenEmailModel.Message(
+                    localUserAddress: localUser.address.address,
+                    id: destinationMessageID,
+                    size: contentHeaders.size,
+                    authoredOn: contentHeaders.date,
+                    receivedOn: .now,
+                    author: authorProfile.address.address,
+                    readers: readers,
+                    subject: contentHeaders.subject,
+                    body: payloadBody,
+                    subjectId: contentHeaders.subjectId,
+                    isBroadcast: isBroadcast,
+                    accessKey: envelope.accessKey,
+                    isRead: isMessageFromSelf,
+                    deletedAt: nil,
+                    attachments: attachments
+                )
+                try await self.messagesStore.storeMessage(rootMessageStub)
+                
+                downloadSmallAttachments(attachments)
+            }
         }
     }
     
