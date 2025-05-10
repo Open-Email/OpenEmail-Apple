@@ -30,6 +30,7 @@ struct SidebarView: View {
             ProfileButton()
         }
         .padding(.Spacing.xSmall)
+        .frame(idealWidth: 175)
         .frame(maxHeight: .infinity, alignment: .top)
         .onChange(of: navigationState.selectedScope) {
             viewModel.selectedScope = navigationState.selectedScope

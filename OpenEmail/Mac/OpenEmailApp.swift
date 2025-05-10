@@ -35,6 +35,7 @@ struct OpenEmailApp: App {
                     .fixedSize(horizontal: true, vertical: true)
             }
         }
+        .defaultSize(width: 1000, height: 800)
         .environment(navigationState)
         .windowToolbarStyle(.unified(showsTitle: false))
         .windowResizability(hasCompletedOnboarding ? .automatic : .contentSize)

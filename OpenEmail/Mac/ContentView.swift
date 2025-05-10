@@ -115,7 +115,7 @@ struct ContentView: View {
                     }
                 }
             }
-            .frame(minWidth: 300)
+            .frame(minWidth: 300, idealWidth: 650)
             .toolbar {
                 ToolbarItemGroup(placement: .primaryAction) {
                     HStack {

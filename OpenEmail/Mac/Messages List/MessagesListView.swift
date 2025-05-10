@@ -41,6 +41,7 @@ struct MessagesListView: View {
                 ))
             }
         }
+        .frame(idealWidth: 200)
         .listStyle(.automatic)
         .scrollBounceBehavior(.basedOnSize)
         .contextMenu(forSelectionType: String.self, menu: { messageIDs in
