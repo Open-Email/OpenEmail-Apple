@@ -178,7 +178,7 @@ struct ProfilePopover: View {
                             
                         }
                     }
-                }
+                }.padding(.Spacing.default)
             }
         }
     }

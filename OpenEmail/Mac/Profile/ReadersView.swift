@@ -4,6 +4,7 @@ import OpenEmailCore
 import OpenEmailPersistence
 import OpenEmailModel
 import AppKit
+import Logging
 
 @MainActor
 struct ReadersView: View {
@@ -27,6 +28,7 @@ struct ReadersView: View {
     @Binding private var readers: [Profile]
     @Binding private var tickedReaders: [String]
     @Binding private var hasInvalidReader: Bool
+    @Binding private var addingContactProgress: Bool
 
     @State private var inputText = zeroWidthSpace
     @State private var didFixCursorPositionAfterFocus: Bool = false
@@ -39,6 +41,7 @@ struct ReadersView: View {
     @State private var showLegacySuggestions = false
     @State private var allContacts: [Contact] = []
     @State private var suggestions: [Contact] = []
+    @State private var newContact: Profile? = nil
 
     @FocusState private var isInputFocused: Bool
     @FocusState private var isFocused: Bool
@@ -57,12 +60,14 @@ struct ReadersView: View {
         readers: Binding<[Profile]>,
         tickedReaders: Binding<[String]>,
         hasInvalidReader: Binding<Bool>,
+        addingContactProgress: Binding<Bool>,
         showProfileType: ShowProfileType
     ) {
         self.isEditable = isEditable
         _readers = readers
         _tickedReaders = tickedReaders
         _hasInvalidReader = hasInvalidReader
+        _addingContactProgress = addingContactProgress
         self.showProfileType = showProfileType
     }
 
@@ -84,6 +89,10 @@ struct ReadersView: View {
                         onShowProfile: showProfileType.onShowProfile
                     ).id(reader.address.address)
                 }
+            }
+            
+            if addingContactProgress {
+                ProgressView().controlSize(.small)
             }
 
             if isEditable {
@@ -237,6 +246,62 @@ struct ReadersView: View {
                 updateSuggestions()
             }
         }
+        .sheet(isPresented: Binding(
+            get: {
+                Binding($newContact) != nil
+            },
+            set: { newValue in
+                if !newValue {
+                    newContact = nil
+                }
+            })
+        ) {
+            VStack {
+                Text("This person should be added to your contact list first")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .padding(.top, .Spacing.default)
+                    .padding(.horizontal, .Spacing.default)
+                
+                ProfileView(profile: newContact!)
+                HStack {
+                    Spacer()
+                    Button("Cancel") {
+                        newContact = nil
+                    }
+                    AsyncButton("Add to contacts") {
+                        if let localUser = LocalUser.current, let profile = newContact {
+                            newContact = nil
+                            addingContactProgress = true
+                            do {
+                                try await client
+                                    .storeContact(
+                                        localUser: localUser,
+                                        address: profile.address
+                                    )
+                                let contact = Contact(
+                                    id: localUser.connectionLinkFor(remoteAddress: profile.address.address),
+                                    addedOn: Date(),
+                                    address: profile.address.address,
+                                    receiveBroadcasts: true,
+                                    cachedName: profile[.name],
+                                    cachedProfileImageURL: nil
+                                )
+                                try await contactsStore.storeContact(contact)
+                            } catch {
+                                Log.error("could not add contact", context: error)
+                            }
+                            inputText = ReadersView.zeroWidthSpace
+                            readers.append(profile)
+                            newContact = nil
+                            addingContactProgress = false
+                            
+                        }
+                        
+                    }
+                }.padding(.Spacing.default)
+            }
+        }
     }
 
     private func addCurrentInput() {
@@ -250,12 +315,20 @@ struct ReadersView: View {
                 showAlreadyAddedAlert = true
             } else {
                 Task {
-                    inputText = ReadersView.zeroWidthSpace
+                    let savedContact = try? await contactsStore.contact(
+                        address: emailAddress.address
+                    )
+                    
                     if let profile = try? await client.fetchProfile(
                         address: emailAddress,
                         force: false
                     ) {
-                        readers.append(profile)
+                        if savedContact == nil {
+                            newContact = profile
+                        } else {
+                            inputText = ReadersView.zeroWidthSpace
+                            readers.append(profile)
+                        }
                     }
                 }
             }
@@ -347,7 +420,16 @@ struct ReadersView: View {
 
 #Preview("1 reader") {
     VStack(alignment: .leading) {
-        ReadersView(isEditable: false, readers: .constant([Profile(address: EmailAddress("mickey.mouse@disneymail.com")!, profileData: [:])].compactMap { $0 }), tickedReaders: .constant([]), hasInvalidReader: .constant(false), showProfileType: .popover)
+        ReadersView(
+            isEditable: false,
+            readers:
+                    .constant(
+                        [Profile(address: EmailAddress("mickey.mouse@disneymail.com")!, profileData: [:])].compactMap { $0
+                        }),
+            tickedReaders: .constant([]),
+            hasInvalidReader: .constant(false),
+            addingContactProgress: .constant(false), showProfileType: .popover
+        )
     }
     .padding()
     .frame(width: 500)
@@ -375,6 +457,7 @@ struct ReadersView: View {
                 "minnie.mouse@magicmail.com"
             ].compactMap { $0 }),
             hasInvalidReader: .constant(false),
+            addingContactProgress: .constant(false),
             showProfileType: .popover)
     }
     .padding()
@@ -413,6 +496,7 @@ struct ReadersView: View {
                 "minnie.mouse@magicmail.com"
             ].compactMap { $0 }),
             hasInvalidReader: .constant(false),
+            addingContactProgress: .constant(false),
             showProfileType: .popover)
     }
     .padding()

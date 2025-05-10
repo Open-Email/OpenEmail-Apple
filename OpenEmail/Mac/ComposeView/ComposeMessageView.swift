@@ -26,6 +26,7 @@ struct ComposeMessageView: View {
 
     @State private var hoveredFileItem: AttachedFileItem?
     @State private var isDropping: Bool = false
+    @State private var addingContactProgress: Bool = false
 
     @State private var shownProfileAddress: EmailAddress?
 
@@ -129,7 +130,7 @@ struct ComposeMessageView: View {
                     } label: {
                         Image(systemName: "paperplane")
                     }
-                    .disabled(hasInvalidReader || !viewModel.isSendButtonEnabled)
+                    .disabled(hasInvalidReader || !viewModel.isSendButtonEnabled || addingContactProgress)
                     .help(viewModel.hasAllDataForSending ? "" : "Subject and message fields are required")
                 }
                
@@ -201,6 +202,7 @@ struct ComposeMessageView: View {
                     readers: $viewModel.readers,
                     tickedReaders: .constant([]),
                     hasInvalidReader: $hasInvalidReader,
+                    addingContactProgress: $addingContactProgress,
                     showProfileType: .popover
                 )
                 .focused($isReadersFocused)

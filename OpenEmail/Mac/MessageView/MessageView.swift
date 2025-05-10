@@ -159,6 +159,7 @@ struct MessageView: View {
                                 ),
                                 tickedReaders: deliveries,
                                 hasInvalidReader: .constant(false),
+                                addingContactProgress: .constant(false),
                                 showProfileType: .popover
                             )
                         }
