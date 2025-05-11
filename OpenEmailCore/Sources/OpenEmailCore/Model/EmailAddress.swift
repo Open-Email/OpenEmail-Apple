@@ -10,7 +10,7 @@ public struct EmailAddress: Comparable, Codable, Identifiable, Hashable, Equatab
             return false
         }
 
-        guard let emailRegex = try? Regex("^[a-z0-9][a-z0-9\\.\\-_\\+]{2,}@[a-z0-9.-]+\\.[a-z]{2,}|xn--[a-z0-9]{2,}$").ignoresCase() else {
+        guard let emailRegex = try? Regex("^[a-z0-9][a-z0-9\\.\\-_\\+]{1,}@[a-z0-9.-]+\\.[a-z]{2,}|xn--[a-z0-9]{2,}$").ignoresCase() else {
             fatalError("invalid regular expression")
         }
 
