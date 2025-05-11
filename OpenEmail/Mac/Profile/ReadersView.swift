@@ -43,6 +43,7 @@ struct ReadersView: View {
     @State private var suggestions: [Contact] = []
     @State private var newContact: Profile? = nil
     @State private var noProfileFoundAlertShown: Bool = false
+    @State private var invalidAddressAlertShown: Bool = false
 
     @FocusState private var isInputFocused: Bool
     @FocusState private var isFocused: Bool
@@ -241,6 +242,7 @@ struct ReadersView: View {
             isInputFocused = true
         }
         .alert("Reader already added", isPresented: $showAlreadyAddedAlert) {}
+        .alert("Address format is invalid", isPresented: $invalidAddressAlertShown) {}
         .alert("No profile registered with address: \(inputText.trimmingCharacters(in: .whitespacesAndNewlines))", isPresented: $noProfileFoundAlertShown) {}
         .onAppear {
             Task {
@@ -336,6 +338,8 @@ struct ReadersView: View {
                     }
                 }
             }
+        } else {
+            invalidAddressAlertShown = true
         }
     }
 
