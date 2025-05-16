@@ -209,9 +209,8 @@ struct MessageView: View {
     private func messageBody(message: Message) -> some View {
         if let text = message.body {
             Text(text)
-                .font(.body)
+                .font(.system(size: 13, weight: .regular))
                 .textSelection(.enabled)
-                .lineSpacing(.Spacing.xxxSmall)
         } else {
             Text("Loading…").italic().disabled(true)
         }
