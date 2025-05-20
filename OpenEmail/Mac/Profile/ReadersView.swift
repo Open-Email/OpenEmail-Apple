@@ -339,7 +339,7 @@ struct ReadersView: View {
                 }
             }
         } else {
-            invalidAddressAlertShown = true
+            inputText = ReadersView.zeroWidthSpace
         }
     }
 

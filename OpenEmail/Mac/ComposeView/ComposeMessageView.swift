@@ -2,141 +2,68 @@ import SwiftUI
 import OpenEmailCore
 import OpenEmailPersistence
 import OpenEmailModel
-import Logging 
+import Logging
 import Inspect
 import Flow
 import UniformTypeIdentifiers
+import HighlightedTextEditor
 
 @MainActor
 struct ComposeMessageView: View {
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
     @AppStorage(UserDefaultsKeys.profileName) private var profileName: String?
-
+    
     @Bindable var viewModel: ComposeMessageViewModel
-    @FocusState private var isTextEditorFocused: Bool
     @FocusState private var isReadersFocused: Bool
-
+    
     @Environment(\.dismiss) private var dismiss
-
+    
     @State private var hasInvalidReader = false
     @State private var filePickerOpen: Bool = false
-
+    
     @State private var showsError = false
     @State private var error: Error?
-
+    
     @State private var hoveredFileItem: AttachedFileItem?
     @State private var isDropping: Bool = false
     @State private var addingContactProgress: Bool = false
-
+    
     @State private var shownProfileAddress: EmailAddress?
-
+    @State private var bodyText: String = ""
     init(viewModel: ComposeMessageViewModel) {
         self.viewModel = viewModel
     }
-
+    
     var body: some View {
         VStack(spacing: 0) {
             readersRow
-
             Divider()
-
             subjectRow
-
             Divider()
-
-            ScrollView {
-                VStack(alignment: .leading) {
-                    TextEditor(text: $viewModel.fullText)
-                        .inspect { nsTextView in
-                            nsTextView.textContainerInset = .init(width: -5, height: 0)
-                        }
-                        .scrollDisabled(true)
-                        .focused($isTextEditorFocused)
-                        .font(.body)
-                        .lineSpacing(5)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .padding(.vertical, .Spacing.xSmall)
-
-                    if !viewModel.attachedFileItems.isEmpty {
-                        Spacer()
-
-                        HFlow(alignment: .bottom, itemSpacing: .Spacing.small, rowSpacing: .Spacing.small) {
-                            ForEach(viewModel.attachedFileItems) { item in
-                                fileItemView(item: item)
-                            }
-                        }
-                        .padding(.vertical, .Spacing.default)
-                        .fixedSize(horizontal: false, vertical: true)
+           
+            HighlightedTextEditor(text: $bodyText, highlightRules: .markdown)
+                .padding(.vertical, .Spacing.xSmall)
+                .scrollDisabled(true)
+            
+            if !viewModel.attachedFileItems.isEmpty {
+                HFlow(itemSpacing: .Spacing.small, rowSpacing: .Spacing.small) {
+                    ForEach(viewModel.attachedFileItems) { item in
+                        fileItemView(item: item)
                     }
+                    Spacer()
                 }
+                
+                .padding(.vertical, .Spacing.default)
             }
-            .contentShape(Rectangle())
-            .onTapGesture {
-                isTextEditorFocused = true
-            }
-            .padding(.bottom, .Spacing.default)
-            .frame(maxWidth: .infinity)
-            .scrollBounceBehavior(.basedOnSize)
-            .overlay {
-                RoundedRectangle(cornerRadius: .CornerRadii.default) // use invisible rectangle as drop target
-                    .fill(.clear)
-                    .stroke(isDropping ? .accent : .clear, lineWidth: 2)
-                    .onDrop(of: [.fileURL], isTargeted: $isDropping) { items -> Bool in
-                        Task {
-                            await dropItems(items)
-                        }
-                        return true
-                        
-                    }
+            
+        }
+        .onAppear {
+            Task {
+                self.bodyText = await viewModel.getInitialBodyOfDraft()
             }
         }
-        .toolbar {
-            
-            ToolbarItem(placement: .primaryAction) {
-                HStack {
-                    HStack {
-                        Text("Broadcast").font(.subheadline).onTapGesture {
-                            viewModel.isBroadcast.toggle()
-                        }
-                        Toggle("Broadcast", isOn: $viewModel.isBroadcast)
-                            .toggleStyle(.switch)
-                            .labelsHidden()
-                    }.disabled(!viewModel.canBroadcast).padding(
-                        .horizontal,
-                        .Spacing.default
-                    )
-                    Button {
-                        filePickerOpen = true
-                    } label: {
-                        Image( systemName: "paperclip")
-                           
-                    }
-                    .help("Add files to the message")
-                    Divider()
-                    AsyncButton {
-                        //TODO save to pending local store simmilar to Android
-                        do {
-                            try await viewModel.send()
-                            dismiss()
-                        } catch {
-                            guard !(error is CancellationError) else {
-                                return
-                            }
-
-                            showsError = true
-                            self.error = error
-                            Log.error("Error sending message: \(error)")
-                        }
-                    } label: {
-                        Image(systemName: "paperplane")
-                    }
-                    .disabled(hasInvalidReader || !viewModel.isSendButtonEnabled || addingContactProgress)
-                    .help(viewModel.hasAllDataForSending ? "" : "Subject and message fields are required")
-                }
-               
-                
-            }
-            
+        .onChange(of: bodyText) {
+            viewModel.fullText = bodyText
         }
         .padding(.horizontal, .Spacing.default)
         .background(.themeViewBackground)
@@ -149,6 +76,18 @@ struct ComposeMessageView: View {
             catch {
                 Log.error("error reading files: \(error)")
             }
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: .CornerRadii.default) // use invisible rectangle as drop target
+                .fill(.clear)
+                .stroke(isDropping ? .accent : .clear, lineWidth: 2)
+                .onDrop(of: [.fileURL], isTargeted: $isDropping) { items -> Bool in
+                    Task {
+                        await dropItems(items)
+                    }
+                    return true
+                    
+                }
         }
         .alert(
             "Could not send message",
@@ -163,16 +102,16 @@ struct ComposeMessageView: View {
         .overlay {
             if viewModel.isSending {
                 Color(nsColor: .windowBackgroundColor).opacity(0.7)
-
+                
                 VStack(spacing: .Spacing.xSmall) {
                     ProgressView()
-
+                    
                     if !viewModel.attachedFileItems.isEmpty {
                         ProgressView(value: viewModel.uploadProgress)
                             .progressViewStyle(.linear)
                             .frame(width: 200)
                             .tint(.white)
-
+                        
                         Button("Cancel") {
                             viewModel.cancelSending()
                         }
@@ -180,8 +119,51 @@ struct ComposeMessageView: View {
                 }
             }
         }.animation(.default, value: viewModel.isBroadcast)
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    HStack {
+                        HStack {
+                            Text("Broadcast").font(.subheadline).onTapGesture {
+                                viewModel.isBroadcast.toggle()
+                            }
+                            Toggle("Broadcast", isOn: $viewModel.isBroadcast)
+                                .toggleStyle(.switch)
+                                .labelsHidden()
+                        }.disabled(!viewModel.canBroadcast).padding(
+                            .horizontal,
+                            .Spacing.default
+                        )
+                        Button {
+                            filePickerOpen = true
+                        } label: {
+                            Image( systemName: "paperclip")
+                            
+                        }
+                        .help("Add files to the message")
+                        Divider()
+                        AsyncButton {
+                            //TODO save to pending local store simmilar to Android
+                            do {
+                                try await viewModel.send()
+                                dismiss()
+                            } catch {
+                                guard !(error is CancellationError) else {
+                                    return
+                                }
+                                
+                                showsError = true
+                                self.error = error
+                                Log.error("Error sending message: \(error)")
+                            }
+                        } label: {
+                            Image(systemName: "paperplane")
+                        }
+                        .disabled(hasInvalidReader || !viewModel.isSendButtonEnabled || addingContactProgress)
+                        .help(viewModel.hasAllDataForSending ? "" : "Subject and message fields are required")
+                    }
+                }
+            }
     }
-
     
     @ViewBuilder
     private var readersRow: some View {
@@ -196,7 +178,7 @@ struct ComposeMessageView: View {
                 } else {
                     ReadersLabelView()
                 }
-
+                
                 ReadersView(
                     isEditable: true,
                     readers: $viewModel.readers,
@@ -209,7 +191,7 @@ struct ComposeMessageView: View {
             }
         }
     }
-
+    
     @ViewBuilder
     private var subjectRow: some View {
         HStack {
@@ -221,7 +203,7 @@ struct ComposeMessageView: View {
                 .padding(.vertical, .Spacing.xSmall)
         }
     }
-
+    
     @ViewBuilder
     private func fileItemView(item: AttachedFileItem) -> some View {
         HStack(spacing: .Spacing.small) {
@@ -234,13 +216,13 @@ struct ComposeMessageView: View {
             } else {
                 WarningIcon()
             }
-
+            
             VStack(alignment: .leading, spacing: .Spacing.xxxSmall) {
                 Text(item.url.lastPathComponent)
                     .lineLimit(1)
                     .truncationMode(.middle)
                     .help(item.url.lastPathComponent)
-
+                
                 if let size = item.size {
                     Text(Formatters.fileSizeFormatter.string(fromByteCount: size))
                         .font(.caption)
@@ -249,7 +231,7 @@ struct ComposeMessageView: View {
             }
             .foregroundStyle(item.exists ? Color.primary : Color.red)
             .frame(maxWidth: .infinity, alignment: .leading)
-
+            
             let canDelete = hoveredFileItem?.url == item.url
             Button {
                 viewModel.removeAttachedFileItem(item: item)
@@ -285,7 +267,7 @@ struct ComposeMessageView: View {
             }
         }
     }
-
+    
     private func dropItems(_ items: [NSItemProvider]) async -> Bool {
         do {
             var droppedUrls: [URL] = []

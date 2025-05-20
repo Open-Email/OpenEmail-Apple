@@ -3,6 +3,8 @@ import OpenEmailModel
 import OpenEmailCore
 import OpenEmailPersistence
 import Logging
+import MarkdownUI
+
 
 struct MessageView: View {
     @Binding private var viewModel: MessageViewModel
@@ -208,9 +210,7 @@ struct MessageView: View {
     @ViewBuilder
     private func messageBody(message: Message) -> some View {
         if let text = message.body {
-            Text(text)
-                .font(.system(size: 13, weight: .regular))
-                .textSelection(.enabled)
+            Markdown(text)
         } else {
             Text("Loading…").italic().disabled(true)
         }

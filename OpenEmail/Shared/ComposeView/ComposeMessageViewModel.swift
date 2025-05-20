@@ -385,6 +385,15 @@ class ComposeMessageViewModel {
             copyReadersFromMessage(message, author: localAuthorAddress)
         }
     }
+    
+    func getInitialBodyOfDraft() async -> String {
+        switch action {
+            case .editDraft(let messageId):
+                return (try? await messagesStore.message(id: messageId))?.body ?? ""
+            default:
+                return ""
+        }
+    }
 
     @MainActor
     private func setupEditDraft(messageId: String) async {
