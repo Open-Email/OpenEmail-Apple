@@ -81,15 +81,6 @@ struct OpenEmailApp: App {
                 .frame(minWidth: 400, minHeight: 300)
         }
         .windowResizability(.contentSize)
-
-        #if DEBUG
-        Window("Debug", id: WindowIDs.debug) {
-            DebugView()
-                .environment(navigationState)
-        }
-        .windowResizability(.contentSize)
-        .defaultPosition(.topLeading)
-        #endif
     }
 
     private func closeAllWindowOnTerminate() {
