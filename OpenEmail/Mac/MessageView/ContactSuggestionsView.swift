@@ -3,7 +3,7 @@ import OpenEmailPersistence
 import OpenEmailModel
 import Logging
 
-fileprivate let rowHeight: CGFloat = 38
+fileprivate let rowHeight: CGFloat = 56
 
 struct ContactSuggestionsView: View {
     private let suggestions: [Contact]

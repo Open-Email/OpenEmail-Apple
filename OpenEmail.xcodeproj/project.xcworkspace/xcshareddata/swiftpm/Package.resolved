@@ -19,6 +19,15 @@
       }
     },
     {
+      "identity" : "highlightedtexteditor",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/kyle-n/HighlightedTextEditor",
+      "state" : {
+        "revision" : "759d7b4bd2c10d0bbe93bc62d68572a3702049e3",
+        "version" : "2.1.2"
+      }
+    },
+    {
       "identity" : "keychainaccess",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/kishikawakatsumi/KeychainAccess",

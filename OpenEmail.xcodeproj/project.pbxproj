@@ -253,6 +253,7 @@
 		9D0A38572DA8319C00F4BB73 /* DeleteAccountUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */; };
 		9D97BDE52DC8ECC70076EEFD /* VisualEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D97BDE42DC8ECBE0076EEFD /* VisualEffectView.swift */; };
 		9D97BDE62DC8ECC70076EEFD /* VisualEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D97BDE42DC8ECBE0076EEFD /* VisualEffectView.swift */; };
+		9DCE42552DDC90D9001AABB1 /* HighlightedTextEditor in Frameworks */ = {isa = PBXBuildFile; productRef = 9DCE42542DDC90D9001AABB1 /* HighlightedTextEditor */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -441,6 +442,7 @@
 				5BFDDAEA2B51731C009DDCDA /* Logging in Frameworks */,
 				5B61F7352CB942A8006C0C92 /* OpenEmailPersistence in Frameworks */,
 				5B4E7DFE2B109D9E00E92A75 /* Flow in Frameworks */,
+				9DCE42552DDC90D9001AABB1 /* HighlightedTextEditor in Frameworks */,
 				5B7C810D2AF546860088E2EA /* KeychainAccess in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1079,6 +1081,7 @@
 				5B61F7342CB942A8006C0C92 /* OpenEmailPersistence */,
 				5B61F73B2CB9434E006C0C92 /* OpenEmailCore */,
 				5B43DD712D3148C3002CC7B0 /* Inspect */,
+				9DCE42542DDC90D9001AABB1 /* HighlightedTextEditor */,
 			);
 			productName = Email2;
 			productReference = 5B7C80772AEBF1110088E2EA /* OpenEmail.app */;
@@ -1149,6 +1152,7 @@
 				5B4E7DFC2B109D9E00E92A75 /* XCRemoteSwiftPackageReference "SwiftUI-Flow" */,
 				5BDA2EFE2C5CEDBC009FB2BD /* XCRemoteSwiftPackageReference "CodeScanner" */,
 				5B43DD702D3148C3002CC7B0 /* XCRemoteSwiftPackageReference "SwiftUI-Inspect" */,
+				9DCE42532DDC90D9001AABB1 /* XCRemoteSwiftPackageReference "HighlightedTextEditor" */,
 			);
 			productRefGroup = 5B7C80782AEBF1110088E2EA /* Products */;
 			projectDirPath = "";
@@ -1797,6 +1801,14 @@
 				minimumVersion = 2.5.0;
 			};
 		};
+		9DCE42532DDC90D9001AABB1 /* XCRemoteSwiftPackageReference "HighlightedTextEditor" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kyle-n/HighlightedTextEditor";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.1.2;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1914,6 +1926,11 @@
 		5BFDDAE92B51731C009DDCDA /* Logging */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Logging;
+		};
+		9DCE42542DDC90D9001AABB1 /* HighlightedTextEditor */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9DCE42532DDC90D9001AABB1 /* XCRemoteSwiftPackageReference "HighlightedTextEditor" */;
+			productName = HighlightedTextEditor;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
