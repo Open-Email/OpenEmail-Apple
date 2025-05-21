@@ -13,7 +13,7 @@ class DeleteContactUseCase {
 
         let link = localUser.connectionLinkFor(remoteAddress: emailAddress.address)
         try await contactsStore.deleteContact(id: link)
-        try await notificationsStore.deleteNotifications(forLink: link)
+        try await notificationsStore.markAsProcessed(link: link)
 
         Task.detached {
             try await self.client.deleteContact(localUser: localUser, address: emailAddress)

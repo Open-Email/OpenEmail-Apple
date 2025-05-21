@@ -4,6 +4,10 @@ import OpenEmailPersistence
 
 #if DEBUG
 class NotificationStoreMock: NotificationStoring {
+    func markAsProcessed(link: String) async throws {
+        
+    }
+
     func storeNotification(_ notification: OpenEmailModel.Notification) async throws {
     }
     
