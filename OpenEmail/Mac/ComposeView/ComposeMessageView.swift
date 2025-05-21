@@ -57,13 +57,11 @@ struct ComposeMessageView: View {
             }
             
         }
-        .onAppear {
-            Task {
-                self.bodyText = await viewModel.getInitialBodyOfDraft()
-            }
-        }
         .onChange(of: bodyText) {
             viewModel.fullText = bodyText
+        }
+        .onChange(of: viewModel.fullText) {
+            self.bodyText = viewModel.fullText
         }
         .padding(.horizontal, .Spacing.default)
         .background(.themeViewBackground)
