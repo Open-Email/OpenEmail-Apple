@@ -30,20 +30,6 @@ public class AttachmentDownloadProgress: Identifiable, Equatable {
     }
 }
 
-public protocol AttachmentsManaging {
-    /// Returns the local url of the attachment
-    /// Returns `nil` if the attachment has not yet been downloaded.
-    func fileUrl(for attachment: Attachment) -> URL?
-
-    /// Returns a download progress object with information about the ongoing download.
-    /// Returns `nil` if the file has already been downloaded.
-    @discardableResult
-    func download(attachment: Attachment) -> AttachmentDownloadProgress?
-
-    /// All ongoing downloads
-    var downloadInfos: [Attachment.ID: DownloadInfo] { get }
-}
-
 public typealias AttachmentDownloadTask = Task<(), Never>
 
 public struct DownloadInfo: Equatable {
@@ -52,7 +38,7 @@ public struct DownloadInfo: Equatable {
 }
 
 @Observable
-public final class AttachmentsManager: AttachmentsManaging {
+public class AttachmentsManager {
     @ObservationIgnored
     private let client = DefaultClient.shared
 
