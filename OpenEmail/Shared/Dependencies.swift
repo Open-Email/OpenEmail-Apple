@@ -44,7 +44,7 @@ private struct ClientKey: InjectionKey {
 }
 
 private struct AttachmentsManagerKey: InjectionKey {
-    static var currentValue: AttachmentsManaging = AttachmentsManager.shared
+    static var currentValue: AttachmentsManager = AttachmentsManager.shared
 }
 
 private struct NetworkConnectionMonitorKey: InjectionKey {
@@ -77,7 +77,7 @@ extension InjectedValues {
         set { Self[ClientKey.self] = newValue }
     }
 
-    var attachmentsManager: AttachmentsManaging {
+    var attachmentsManager: AttachmentsManager {
         get { Self[AttachmentsManagerKey.self] }
         set { Self[AttachmentsManagerKey.self] = newValue }
     }

@@ -6,7 +6,9 @@ import OpenEmailPersistence
 import AppKit
 import UniformTypeIdentifiers
 import Logging
+import SwiftUICore
 import Utils
+import Combine
 
 struct AttachmentItem: Identifiable {
     var id: String { attachment?.id ?? draftFileUrl?.path() ?? UUID().uuidString }
@@ -14,6 +16,7 @@ struct AttachmentItem: Identifiable {
     let localUserAddress: String
     let attachment: Attachment?
     let isAvailable: Bool
+    let isDraft: Bool
     let formattedFileSize: String?
     let icon: OEImage
     let draftFileUrl: URL?
@@ -38,73 +41,48 @@ struct AttachmentItem: Identifiable {
 
 @Observable
 class AttachmentsListViewModel {
+    
     var items: [AttachmentItem] = []
-    var isDraft: Bool
-    var isMessageDeleted: Bool {
-        message.isDeleted
-    }
-
-    private let localUserAddress: String
-    private let message: Message
-
-    private let attachments: [Attachment]
+    private var subscriptions = Set<AnyCancellable>()
+    private var message: Message?
 
     @ObservationIgnored
     @Injected(\.messagesStore) private var messagesStore
-
+    
     @ObservationIgnored
-    @Injected(\.attachmentsManager) private var attachmentsManager
+    @Injected(\.attachmentsManager) var attachmentsManager: AttachmentsManager
 
-    init(localUserAddress: String, message: Message, attachments: [Attachment]) {
+    func setMessage(message: Message?) {
         self.message = message
-        self.localUserAddress = localUserAddress
-        self.isDraft = false
-        self.attachments = attachments
-
-        Task {
-            await updateItems()
-        }
+        refresh()
     }
-
-    init(localUserAddress: String, message: Message, draftAttachmentUrls: [URL]) {
-        self.message = message
-        self.localUserAddress = localUserAddress
-        self.isDraft = true
-        self.attachments = []
-
-        items = draftAttachmentUrls.map {
-            let path = $0.path(percentEncoded: false)
-            return AttachmentItem(
-                localUserAddress: localUserAddress,
-                attachment: nil,
-                isAvailable: !isMessageDeleted && $0.fileExists,
-                formattedFileSize: $0.formattedFileSie,
-                icon: NSWorkspace.shared.icon(forFile: path),
-                draftFileUrl: $0
-            )
-        }
-    }
-
-    @MainActor
-    func updateItems() async {
-        var items: [AttachmentItem] = []
-        for attachment in attachments {
-            let isAvailable = attachmentsManager.fileUrl(for: attachment) != nil
-
-            let fileSize = Formatters.fileSizeFormatter.string(fromByteCount: Int64(attachment.size))
-            let item = AttachmentItem(
-                localUserAddress: localUserAddress,
-                attachment: attachment,
-                isAvailable: !isMessageDeleted && isAvailable,
-                formattedFileSize: fileSize,
-                icon: attachment.fileIcon,
-                draftFileUrl: nil
-            )
-            items.append(item)
-        }
-
-        self.items = items.sorted { item1, item2 in
-            item1.displayName.localizedStandardCompare(item2.displayName) == .orderedAscending
+    
+    func refresh() {
+        if let currentUser = LocalUser.current,
+        let message = message {
+            self.items = message.isDraft ? message.draftAttachmentUrls.map {
+                let path = $0.path(percentEncoded: false)
+                return AttachmentItem(
+                    localUserAddress: currentUser.address.address,
+                    attachment: nil,
+                    isAvailable: $0.fileExists,
+                    isDraft: message.isDraft,
+                    formattedFileSize: $0.formattedFileSie,
+                    icon: NSWorkspace.shared.icon(forFile: path),
+                    draftFileUrl: $0
+                )
+            } : message.attachments.map {
+                return AttachmentItem(
+                    localUserAddress: currentUser.address.address,
+                    attachment: $0,
+                    isAvailable: attachmentsManager.fileUrl(for: $0) != nil,
+                    isDraft: message.isDraft,
+                    formattedFileSize: Formatters.fileSizeFormatter
+                        .string(fromByteCount: Int64($0.size)),
+                    icon: $0.fileIcon,
+                    draftFileUrl: nil
+                )
+            }
         }
     }
 
@@ -223,7 +201,7 @@ class AttachmentsListViewModel {
     }
 }
 
-private extension Attachment {
+extension Attachment {
     var fileIcon: OEImage {
         guard let type = UTType(mimeType: mimeType) else {
             return NSWorkspace.shared.defaultFileIcon

@@ -23,14 +23,15 @@ struct ContactsListView: View {
                         icon: SidebarScope.contacts.imageResource,
                         text: "Your contact list is empty."
                     )
-                }
-                
-                ForEach(viewModel.contactRequestItems + viewModel.contactItems) { item in
-                    ContactListItemView(item: item)
-                        .alignmentGuide(.listRowSeparatorLeading) { d in
-                                    d[.leading]
-                                }
-                        .tag(item)
+                } else {
+                    ForEach(viewModel.contactRequestItems + viewModel.contactItems) { item in
+                        ContactListItemView(item: item)
+                            .alignmentGuide(.listRowSeparatorLeading) { d in
+                                d[.leading]
+                            }
+                            .tag(item)
+                            .id(item)
+                    }
                 }
             }
             .listStyle(.automatic)

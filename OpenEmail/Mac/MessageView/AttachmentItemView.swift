@@ -4,7 +4,6 @@ import OpenEmailModel
 struct AttachmentItemView: View {
     let item: AttachmentItem
     let isDraft: Bool
-    let isMessageDeleted: Bool
 
     @Injected(\.attachmentsManager) private var attachmentsManager
 
@@ -38,7 +37,7 @@ struct AttachmentItemView: View {
             .foregroundStyle(isMissingDraftFile ? Color.red : Color.primary)
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            if attachmentNotDownloaded, let attachment = item.attachment, !isMessageDeleted {
+            if attachmentNotDownloaded, let attachment = item.attachment {
                 Spacer()
 
                 if let downloadInfo = attachmentsManager.downloadInfos[attachment.id] {
@@ -88,12 +87,13 @@ struct AttachmentItemView: View {
         localUserAddress: "mickey@mouse.com",
         attachment: .init(id: "123", parentMessageId: "1", fileMessageIds: ["2"], filename: "hello.jpg", size: 123, mimeType: ""),
         isAvailable: false,
+        isDraft: false,
         formattedFileSize: "123 kB",
         icon: NSWorkspace.shared.defaultFileIcon,
         draftFileUrl: nil
     )
 
-    AttachmentItemView(item: item, isDraft: false, isMessageDeleted: false)
+    AttachmentItemView(item: item, isDraft: false)
         .padding()
 }
 
@@ -102,11 +102,12 @@ struct AttachmentItemView: View {
         localUserAddress: "mickey@mouse.com",
         attachment: .init(id: "123", parentMessageId: "1", fileMessageIds: ["2"], filename: "hello.jpg", size: 123, mimeType: ""),
         isAvailable: true,
+        isDraft: true,
         formattedFileSize: "123 kB",
         icon: NSWorkspace.shared.defaultFileIcon,
         draftFileUrl: nil
     )
 
-    AttachmentItemView(item: item, isDraft: false, isMessageDeleted: false)
+    AttachmentItemView(item: item, isDraft: false)
         .padding()
 }

@@ -5,11 +5,9 @@ import AppKit
 import Flow
 
 struct AttachmentsListView: View {
-    var viewModel: AttachmentsListViewModel
+    let viewModel: AttachmentsListViewModel
 
     @State private var selection = Set<AttachmentItem.ID>()
-
-    @Injected(\.attachmentsManager) private var attachmentsManager
 
     var body: some View {
         VStack(alignment: .leading, spacing: .Spacing.small) {
@@ -20,8 +18,7 @@ struct AttachmentsListView: View {
                 ForEach(viewModel.items) { item in
                     AttachmentItemView(
                         item: item,
-                        isDraft: viewModel.isDraft,
-                        isMessageDeleted: viewModel.isMessageDeleted
+                        isDraft: item.isDraft
                     )
                     .onTapGesture(count: 2) {
                         if item.isAvailable {
@@ -30,7 +27,7 @@ struct AttachmentsListView: View {
                     }
                     .contextMenu {
                         if item.isAvailable {
-                            if viewModel.isDraft {
+                            if item.isDraft {
                                 draftFileContextMenuItems(items: [item.id])
                             } else {
                                 messageFileContextMenuItems(items: [item.id])
@@ -40,11 +37,6 @@ struct AttachmentsListView: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .onChange(of: attachmentsManager.downloadInfos) {
-            Task {
-                await viewModel.updateItems()
-            }
         }
     }
 
@@ -81,19 +73,13 @@ struct AttachmentsListView: View {
 
 #if DEBUG
 #Preview {
-    let messageStore = MessageStoreMock()
-    messageStore.stubMessages = [
-        .makeRandom(id: "1"),
-        .makeRandom(id: "2"),
-        .makeRandom(id: "3")
-    ]
-    InjectedValues[\.messagesStore] = messageStore
+   
 
     let attachment1 = Attachment(id: "1_picture.jpg", parentMessageId: "1", fileMessageIds: ["2"], filename: "picture.jpg", size: 123456, mimeType: "image/jpeg")
     let attachment2 = Attachment(id: "1_documents.zip.jpg", parentMessageId: "2", fileMessageIds: ["3"], filename: "documents.zip", size: 654321, mimeType: "application/zip")
 
-    let viewModel = AttachmentsListViewModel(localUserAddress: "pera@toons.com", message: messageStore.stubMessages[0], attachments: [attachment1, attachment2])
-    return AttachmentsListView(viewModel: viewModel)
+    let viewModel = AttachmentsListViewModel()
+    AttachmentsListView(viewModel: viewModel)
         .frame(width: 800)
         .padding()
         .background(.themeViewBackground)

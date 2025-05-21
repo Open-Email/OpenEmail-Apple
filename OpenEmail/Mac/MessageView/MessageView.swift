@@ -8,16 +8,18 @@ import MarkdownUI
 
 struct MessageView: View {
     @Binding private var viewModel: MessageViewModel
-    @State private var attachmentsListViewModel: AttachmentsListViewModel?
+    @State private var attachmentsListViewModel = AttachmentsListViewModel()
     
     
     @Environment(NavigationState.self) private var navigationState
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
+    @Injected(\.attachmentsManager) var attachmentsManager: AttachmentsManager
     
     @State private var showRecallConfirmationAlert = false
     
     init(messageViewModel: Binding<MessageViewModel>) {
         _viewModel = messageViewModel
+        attachmentsListViewModel.setMessage(message: viewModel.message)
     }
     
     var body: some View {
@@ -28,7 +30,7 @@ struct MessageView: View {
                         header(message: viewModel.message)
                         messageBody(message: message)
                         
-                        if let attachmentsListViewModel, !attachmentsListViewModel.items.isEmpty {
+                        if attachmentsListViewModel.items.isNotEmpty {
                             Divider()
                             AttachmentsListView(viewModel: attachmentsListViewModel)
                         }
@@ -49,31 +51,11 @@ struct MessageView: View {
                     .background(.background.opacity(0.75))
             }
         }
-        .onChange(of: viewModel.message) {
-            attachmentsListViewModel = nil
-
-            guard
-                let message = viewModel.message,
-                let registeredEmailAddress
-            else {
-                return
-            }
-
-            if message.isDraft {
-                if !message.draftAttachmentUrls.isEmpty {
-                    attachmentsListViewModel = AttachmentsListViewModel(
-                        localUserAddress: registeredEmailAddress,
-                        message: message,
-                        draftAttachmentUrls: message.draftAttachmentUrls
-                    )
-                }
-            } else {
-                attachmentsListViewModel = AttachmentsListViewModel(
-                    localUserAddress: registeredEmailAddress,
-                    message: message,
-                    attachments: message.attachments
-                )
-            }
+        .onChange(of: attachmentsManager.downloadInfos) {_, infos in
+            attachmentsListViewModel.refresh()
+        }
+        .onChange(of: viewModel.message) { _, message in
+            attachmentsListViewModel.setMessage(message: message)
         }
         .onReceive(NotificationCenter.default.publisher(for: .didSynchronizeMessages)) { _ in
             viewModel.fetchMessage()
