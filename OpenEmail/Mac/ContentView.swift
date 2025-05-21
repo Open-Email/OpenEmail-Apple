@@ -238,18 +238,14 @@ struct ContentView: View {
             Button("Cancel", role: .cancel) {}
             AsyncButton(navigationState.selectedContact?.isContactRequest == true ? "Dismiss" : "Delete", role: .destructive) {
                 if let contact = navigationState.selectedContact {
-                    if (contact.isContactRequest) {
-                        //TODO dismiss notification
-                    } else {
-                        if let email = EmailAddress(
-                            contact.email
-                        ) {
-                            do {
-                                try await DeleteContactUseCase().deleteContact(emailAddress: email)
-                                navigationState.clearSelection()
-                            } catch {
-                                Log.error("Could not delete contact \(email): \(error)")
-                            }
+                    if let email = EmailAddress(
+                        contact.email
+                    ) {
+                        do {
+                            try await DeleteContactUseCase().deleteContact(emailAddress: email)
+                            navigationState.clearSelection()
+                        } catch {
+                            Log.error("Could not delete contact \(email): \(error)")
                         }
                     }
                 }

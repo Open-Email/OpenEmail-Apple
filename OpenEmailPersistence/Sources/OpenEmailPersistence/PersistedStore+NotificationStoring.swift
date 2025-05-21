@@ -9,6 +9,7 @@ public protocol NotificationStoring {
     func allNotifications() async throws -> [OpenEmailModel.Notification]
     func deleteNotification(id: String) async throws
     func deleteNotifications(forLink link: String) async throws
+    func markAsProcessed(link: String) async throws
     func deleteAllNotifications() async throws
 }
 
@@ -71,6 +72,19 @@ extension PersistedStore: NotificationStoring {
 
         try modelContext.save()
         await postUpdateNotification()
+    }
+    
+    public func markAsProcessed(link: String) async throws {
+        let fetch = FetchDescriptor<PersistedNotification>(
+            predicate: #Predicate { $0.link == link }
+        )
+        
+        if let result = try modelContext.fetch(fetch).first {
+            result.isProccessed = true
+            modelContext.insert(result)
+            try modelContext.save()
+            await postUpdateNotification()
+        }
     }
 
     public func deleteAllNotifications() async throws {
