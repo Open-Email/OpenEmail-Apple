@@ -45,3 +45,9 @@ extension [Message] {
         }
     }
 }
+
+extension Message {
+    func isOutbox() -> Bool {
+        self.author == LocalUser.current?.address.address
+    }
+}

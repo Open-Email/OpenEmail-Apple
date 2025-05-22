@@ -39,39 +39,86 @@ struct MessagesListView: View {
                     trailing: .Spacing.xxSmall,
                     
                 ))
+                .swipeActions(edge: .trailing) {
+                    Button(message.isDeleted ? "Delete Permanently" : "Delete") {
+                        if message.isDeleted {
+                            viewModel
+                                .deletePermanently(
+                                    messageIDs: [message.id],
+                                )
+                        } else {
+                            viewModel.markAsDeleted(messageIDs: [message.id], isDeleted: true)
+                        }
+                    }
+                    .tint(.red)
+                }
+                
+                .swipeActions(edge: .leading) {
+                    if message.isDeleted {
+                        Button("Restore") {
+                            viewModel.markAsDeleted(messageIDs: [message.id], isDeleted: false)
+                        }
+                        .tint(.accentColor)
+                    } else {
+                        if !message.isDraft && !message.isOutbox() {
+                            Button(message.isRead ? "Mark as Unread" : "Mark as Read") {
+                                if message.isRead {
+                                    viewModel.markAsUnread(messageIDs: [message.id])
+                                } else {
+                                    viewModel.markAsRead(messageIDs: [message.id])
+                                }
+                            }
+                            .tint(.accentColor)
+                        }
+                    }
+                }
             }
         }
         .frame(idealWidth: 200)
         .listStyle(.automatic)
         .scrollBounceBehavior(.basedOnSize)
-        .contextMenu(forSelectionType: String.self, menu: { messageIDs in
-            if !messageIDs.isEmpty {
-                let allMessages = viewModel.messages
-                    .filter {
-                        messageIDs.contains($0.id)
-                        && $0.author != registeredEmailAddress // ignore messages from self
-                    }
-
-                if !allMessages.isEmpty {
-                    if allMessages.unreadCount == 0 {
-                        Button("Mark as Unread") {
-                            viewModel.markAsUnread(messageIDs: messageIDs)
-                        }
-                    } else {
-                        Button("Mark as Read") {
-                            viewModel.markAsRead(messageIDs: messageIDs)
-                        }
-                    }
-                }
+        .contextMenu(
+            forSelectionType: String.self,
+            menu: { messageIDs in
                 
                 if (navigationState.selectedScope == .trash) {
                     Button("Restore") {
                         viewModel.markAsDeleted(messageIDs: messageIDs, isDeleted: false)
                         navigationState.clearSelection()
                     }
+                    Button("Delete permanently") {
+                        viewModel
+                            .deletePermanently(
+                                messageIDs: messageIDs,
+                            )
+                        navigationState.clearSelection()
+                    }
+                } else {
+                    let allMessages = viewModel.messages
+                        .filter {
+                            messageIDs.contains($0.id)
+                            && $0.author != registeredEmailAddress // ignore messages from self
+                        }
+                    
+                    if !allMessages.isEmpty {
+                        if allMessages.unreadCount == 0 {
+                            Button("Mark as Unread") {
+                                viewModel.markAsUnread(messageIDs: messageIDs)
+                            }
+                        } else {
+                            Button("Mark as Read") {
+                                viewModel.markAsRead(messageIDs: messageIDs)
+                            }
+                        }
+                        Button("Delete") {
+                            viewModel.markAsDeleted(messageIDs: messageIDs, isDeleted: true,
+                            )
+                            navigationState.clearSelection()
+                        }
                 }
             }
-        }, primaryAction: { messageIDs in
+        },
+ primaryAction: { messageIDs in
             // this runs on double-click of a selected row
             if let id = messageIDs.first,
                let msg = viewModel.messages.first(where: { $0.id == id }) {

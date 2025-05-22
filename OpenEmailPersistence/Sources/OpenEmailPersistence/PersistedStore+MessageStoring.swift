@@ -13,6 +13,7 @@ public protocol MessageStoring {
     func allUnreadMessages() async throws -> [Message]
     func allDeletedMessages() async throws -> [Message]
     func deleteMessage(id: String) async throws
+    func deleteMessages(ids: [String]) async throws
     func deleteAllMessages() async throws
     func markAsDeleted(message: Message, deleted: Bool) async throws
 }
@@ -102,6 +103,12 @@ extension PersistedStore: MessageStoring {
 
         try modelContext.save()
         await postUpdateNotification()
+    }
+    
+    public func deleteMessages(ids: [String]) async throws {
+        for id in ids {
+            try await deleteMessage(id: id)
+        }
     }
 
     public func deleteAllMessages() async throws {
