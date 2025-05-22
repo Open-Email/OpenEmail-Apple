@@ -1,4 +1,6 @@
 import SwiftUI
+import Logging
+import OpenEmailCore
 
 struct ContactListItemView: View {
     private let item: ContactListItem
@@ -40,6 +42,19 @@ struct ContactListItemView: View {
                             .fill(.accent)
                     }
             }
+        }
+        .swipeActions(edge: .trailing) {
+            AsyncButton("Delete") {
+                if let address = EmailAddress(item.email) {
+                    do {
+                        try await DeleteContactUseCase()
+                            .deleteContact(emailAddress: address)
+                    } catch {
+                        Log.error("Could not delete contact \(address.address): \(error)")
+                    }
+                }
+            }
+            .tint(.red)
         }
         .padding(.vertical, .Spacing.xSmall)
         .padding(.horizontal, .Spacing.xxSmall)

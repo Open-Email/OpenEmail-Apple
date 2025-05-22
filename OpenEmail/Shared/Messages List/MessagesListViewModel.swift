@@ -38,6 +38,12 @@ class MessagesListViewModel {
         setReadState(messageIDs: messageIDs, isRead: false)
     }
     
+    func deletePermanently(messageIDs: Set<String>) {
+        Task {
+            try? await messagesStore.deleteMessages(ids: Array(messageIDs))
+        }
+    }
+    
     func markAsDeleted(messageIDs: Set<String>, isDeleted: Bool) {
         Task {
             do {
