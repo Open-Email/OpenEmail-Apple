@@ -51,26 +51,27 @@ struct MessageListItemView: View {
                 ))
             
             VStack(alignment: .leading, spacing: 0) {
-                HStack {
+                HStack(alignment: .center) {
+                    if message.hasFiles || !message.draftAttachmentUrls.isEmpty {
+                        Image(systemName: "paperclip")
+                            .resizable()
+                            .scaledToFit()
+                            .foregroundStyle(.secondary)
+                            .frame(width:11)
+                    }
+                    
                     if message.isBroadcast {
                         Group {
-                            Image(.scopeBroadcasts)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 11)
-                                .padding(.bottom, 3)
-                            Text("Broadcast")
+                            Text(message.displayedSubject)
                                 .lineLimit(1)
                                 .truncationMode(.tail)
                                 .font(.headline)
-                                .padding(.bottom, 3)
                         }
                     } else {
                         Text(scope == .outbox ? formattedReadersLine : profileNames[message.author] ?? message.author)
                             .lineLimit(1)
                             .truncationMode(.tail)
                             .font(.headline)
-                            .padding(.bottom, 3)
                     }
                    
                     
@@ -89,27 +90,11 @@ struct MessageListItemView: View {
                         .font(.subheadline)
                 }
                 
-                HStack {
-                    Text(message.displayedSubject)
-                        .lineLimit(1)
-                        .font(.subheadline)
-                        .truncationMode(.tail)
-                        .padding(.bottom, 3)
-                    
-                    Spacer()
-                    if message.hasFiles || !message.draftAttachmentUrls.isEmpty {
-                        Image(systemName: "paperclip")
-                            .resizable()
-                            .scaledToFit()
-                            .foregroundStyle(.secondary)
-                            .frame(width:11)
-                    }
-                }
-                
                 Text(message.body?.cleaned ?? "")
                     .foregroundStyle(.secondary)
                     .font(.subheadline)
                     .lineLimit(3)
+                    .padding(.top, .Spacing.xxxSmall)
                     .truncationMode(.tail)
                 
             }
@@ -150,7 +135,11 @@ func getLabel(scope: SidebarScope) -> String? {
     NavigationStack {
         List(selection: $selection) {
             MessageListItemView(message: .makeRandom(isRead: true), scope: .inbox).tag("1")
-            MessageListItemView(message: .makeRandom(), scope: .inbox).tag("2")
+            MessageListItemView(
+                message: .makeRandomBroadcast(),
+                scope: .broadcasts
+            )
+                .tag("2")
             MessageListItemView(message: .makeRandom(), scope: .inbox).tag("3")
         }
         .listStyle(.plain)
@@ -158,15 +147,3 @@ func getLabel(scope: SidebarScope) -> String? {
     }
 }
 
-#Preview("outbox") {
-    @Previewable @State var selection: Set<String> = []
-    NavigationStack {
-        List {
-            MessageListItemView(message: .makeRandom(isRead: true), scope: .outbox).tag("1")
-            MessageListItemView(message: .makeRandom(isRead: true), scope: .outbox).tag("2")
-            MessageListItemView(message: .makeRandom(isRead: true), scope: .outbox).tag("3")
-        }
-        .listStyle(.plain)
-        .navigationTitle("Outbox")
-    }
-}
