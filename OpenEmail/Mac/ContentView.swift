@@ -404,9 +404,10 @@ struct ContactDetailView: View {
                     } label: {
                         Text("Add to contacts")
                             
-                    }
+                    }.buttonStyle(.borderedProminent)
                     Spacer()
-                }.padding(.top, .Spacing.default)
+                        
+                }.padding(.top, .Spacing.xSmall)
                     .padding(
                     .horizontal,
                     .Spacing.default
@@ -416,10 +417,10 @@ struct ContactDetailView: View {
                 ProfileView(
                     profile: profile,
                 )
+                .background(.themeViewBackground)
                 .id(profile.address.address)
             }
         }
-        .background(.themeViewBackground)
         .task {
             if let contact = selectedContactListItem, let address = EmailAddress(
                 contact.email
