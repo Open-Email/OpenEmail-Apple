@@ -1818,7 +1818,14 @@ public class DefaultClient: Client {
         if let existingContact = try? await contactsStore.contact(address: address.address) {
             contact = existingContact
         } else {
-            contact = Contact(id: id, addedOn: Date(), address: address.address, receiveBroadcasts: true)
+            let profile = try await fetchProfile(address: address)
+            contact = Contact(
+                id: id,
+                addedOn: Date(),
+                address: address.address,
+                receiveBroadcasts: true,
+                cachedName: profile?.name
+            )
         }
         try await contactsStore.storeContact(contact)
     }

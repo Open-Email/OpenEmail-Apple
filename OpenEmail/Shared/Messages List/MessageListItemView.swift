@@ -2,6 +2,7 @@ import SwiftUI
 import OpenEmailModel
 import OpenEmailCore
 import Utils
+import Logging
 
 struct MessageListItemView: View {
     private let message: Message
@@ -114,16 +115,20 @@ struct MessageListItemView: View {
             }
             .task {
                 // fetch cached profile names
-                if scope == .outbox {
-                    // readers
-                    message.readers.forEach { reader in
-                        Task {
-                            profileNames[reader] = (try? await contactsStore.contact(address: reader))?.cachedName
+                do {
+                    if scope == .outbox {
+                        // readers
+                        for reader in message.readers {
+                            let cachedReader = (try await contactsStore.contact(address: reader))
+                            profileNames[reader] = cachedReader?.cachedName
                         }
+                    } else {
+                        // author
+                        let cachedAuthor = (try await contactsStore.contact(address: message.author))
+                        profileNames[message.author] = cachedAuthor?.cachedName
                     }
-                } else {
-                    // author
-                    profileNames[message.author] = (try? await contactsStore.contact(address: message.author))?.cachedName
+                } catch {
+                    Log.error("Couldn't fetch contacts: \(error)")
                 }
             }
         }
