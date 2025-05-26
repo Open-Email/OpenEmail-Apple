@@ -47,18 +47,10 @@ struct MessageListItemView: View {
                     leading: .Spacing.xxxSmall,
                     bottom: .Spacing.xxxSmall,
                     trailing: .Spacing.xSmall,
-                    
                 ))
             
             VStack(alignment: .leading, spacing: 0) {
                 HStack(alignment: .center) {
-                    if message.hasFiles || !message.draftAttachmentUrls.isEmpty {
-                        Image(systemName: "paperclip")
-                            .resizable()
-                            .scaledToFit()
-                            .foregroundStyle(.secondary)
-                            .frame(width:11)
-                    }
                     
                     if message.isBroadcast {
                         Group {
@@ -90,12 +82,34 @@ struct MessageListItemView: View {
                         .font(.subheadline)
                 }
                 
+                HStack {
+                    if !message.isBroadcast {
+                        Text(message.displayedSubject)
+                            .lineLimit(1)
+                            .font(.subheadline)
+                            .truncationMode(.tail)
+                            .padding(.bottom, 3)
+                    }
+                   
+                    
+                    Spacer()
+                    if message.hasFiles || !message.draftAttachmentUrls.isEmpty {
+                        Image(systemName: "paperclip")
+                            .resizable()
+                            .scaledToFit()
+                            .foregroundStyle(.secondary)
+                            .frame(width:11)
+                    }
+                }.padding(.top, .Spacing.xSmall)
+
+                
                 Text(message.body?.cleaned ?? "")
                     .foregroundStyle(.secondary)
                     .font(.subheadline)
                     .lineLimit(3)
                     .padding(.top, .Spacing.xxxSmall)
                     .truncationMode(.tail)
+                
                 
             }
             .task {
