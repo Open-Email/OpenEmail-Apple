@@ -93,11 +93,24 @@ class SyncService: MessageSyncing {
         guard let localUser = LocalUser.current else {
             return
         }
+        
+        let localProfile: Profile?
 
-        guard let localProfile = try? await client.fetchProfile(address: localUser.address, force: true) else {
+          do {
+            localProfile = try await client.fetchProfile(address: localUser.address, force: true)
+              
+        } catch {
+            if let userError = error as? UserError, userError == .profileNotFound {
+                LogoutUseCase().logout()
+            }
             Log.error("could not fetch local profile")
             return
         }
+        
+        guard let localProfile else {
+            return
+        }
+        
         if localProfile[.name] != localUser.name {
             UserDefaults.standard.profileName = localProfile[.name]
         }
