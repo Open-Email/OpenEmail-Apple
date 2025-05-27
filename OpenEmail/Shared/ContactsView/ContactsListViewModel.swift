@@ -157,6 +157,7 @@ class ContactsListViewModel {
         }
     }
     
+    @MainActor
     private func reloadContactRequests() async {
         contactRequests.removeAll()
         contactRequests
