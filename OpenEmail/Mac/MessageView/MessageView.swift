@@ -192,7 +192,48 @@ struct MessageView: View {
     @ViewBuilder
     private func messageBody(message: Message) -> some View {
         if let text = message.body {
-            Markdown(text)
+            Markdown(text).markdownTheme(.basic.blockquote { configuration in
+                let rawMarkdown = configuration.content.renderMarkdown()
+                
+                let maxDepth = rawMarkdown
+                    .components(separatedBy: "\n")
+                    .map { line -> Int in
+                        var level = 0
+                        for char in line {
+                            if char == " " {
+                                continue
+                            }
+                            if (char != ">") {
+                                break
+                            } else {
+                                level += 1
+                            }
+                        }
+                        return level
+                    }.max() ?? 0
+                
+                let depth = max(maxDepth, 1)
+                
+                let barColor: Color = if depth % 3 == 0 {
+                    .red
+                } else if depth % 2 == 0 {
+                    .green
+                } else {
+                    .accent
+                }
+                
+                HStack(spacing: 0) {
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(barColor)
+                        .relativeFrame(width: .em(0.2))
+                    configuration.label
+                        //.markdownTextStyle { ForegroundColor(.secondaryText) }
+                        .relativePadding(.horizontal, length: .em(1))
+                }
+                .fixedSize(horizontal: false, vertical: true)
+            })
+                
+            
         } else {
             Text("Loading…").italic().disabled(true)
         }
