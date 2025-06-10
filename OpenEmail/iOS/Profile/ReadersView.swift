@@ -69,59 +69,43 @@ struct ReadersView: View {
             }
             
             if isEditable {
-                /*
-                 The TextField's first character is an invisible space which helps with a more natural
-                 editing experience. E.g. when deleting the current input with backspace and the invisible space
-                 is deleted, we can load the previous tag's text into the TextField and continue editing there.
-                 */
-                
-                TextField("", text: $inputText)
-                    .font(.body)
-                    .padding(.vertical, .Spacing.xSmall)
-                    .textFieldStyle(.plain)
-                    .frame(minWidth: 20, maxWidth: .infinity)
-                    .onChange(of: inputText) {
-                        if !readers.isEmpty && inputText.isEmpty {
-                            let last = readers.removeLast()
-                            inputText = ReadersView.zeroWidthSpace + last.address.address
+                HStack(spacing: .Spacing.xxxSmall) {
+                    ReadersLabelView()
+                    TextField("", text: $inputText)
+                        .font(.body)
+                        .padding(.vertical, .Spacing.xSmall)
+                        .textFieldStyle(.plain)
+                        .frame(minWidth: 20, maxWidth: .infinity)
+                        .onChange(of: inputText) {
+                            if !readers.isEmpty && inputText.isEmpty {
+                                let last = readers.removeLast()
+                                inputText = ReadersView.zeroWidthSpace + last.address.address
+                            }
+                            
+                            let trimmed = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
+                            hasInvalidReader = !trimmed.isEmpty && !EmailAddress.isValid(trimmed)
+                            
+                            updateSuggestions()
+                            
+                            showSuggestions = inputText
+                                .trimmingCharacters(
+                                    in: .whitespacesAndNewlines
+                                ).count >= 1 && !suggestions.isEmpty
                         }
-                        
-                        let trimmed = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
-                        hasInvalidReader = !trimmed.isEmpty && !EmailAddress.isValid(trimmed)
-                        
-                        updateSuggestions()
-                        
-                        showSuggestions = inputText
-                            .trimmingCharacters(
-                                in: .whitespacesAndNewlines
-                            ).count >= 1 && !suggestions.isEmpty
-                    }
-                    .onSubmit {
-                        addCurrentInput()
-                    }
-
-//                    .onReceive(NotificationCenter.default.publisher(for: NSTextView.didChangeSelectionNotification)) {
-//                        guard let textView = $0.object as? NSTextView else { return }
-//                        DispatchQueue.main.async {
-//                            guard isInputFocused else { return }
-//                            
-//                            // delay fixing cursor position because isInputFocused is only set after this notification
-//                            fixInitialCursorPositionIfNeeded(textView: textView)
-//                            
-//                            fixSelection(textView: textView)
-//                            
-//                            inputEditingPosition = textView.selectedRange().location
-//                        }
-//                    }
-                    .popover(
-                        isPresented: $showSuggestions,
-                    ) {
-                        ContactSuggestionsView(suggestions: suggestions) { suggestion in
-                            inputText = suggestion.address
+                        .onSubmit {
                             addCurrentInput()
-                            showSuggestions = false
-                        }.presentationCompactAdaptation(.popover)
-                    }
+                        }
+                        .popover(
+                            isPresented: $showSuggestions,
+                        ) {
+                            ContactSuggestionsView(suggestions: suggestions) { suggestion in
+                                inputText = suggestion.address
+                                addCurrentInput()
+                                showSuggestions = false
+                            }.presentationCompactAdaptation(.popover)
+                        }
+                }
+                
             }
         }
         .frame(maxWidth: .infinity, minHeight: 20, alignment: .leading)
