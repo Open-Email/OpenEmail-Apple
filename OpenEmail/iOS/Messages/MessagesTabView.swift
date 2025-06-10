@@ -3,25 +3,22 @@ import SwiftUI
 struct MessagesTabView: View {
     @State private var selectedMessageID: String?
     @State var tabBarVisibility: Visibility = .visible
+    @Environment(NavigationState.self) private var navigationState
 
     var body: some View {
         NavigationSplitView(
             columnVisibility: .constant(.doubleColumn),
             preferredCompactColumn: .constant(.sidebar)
         ) {
-            SidebarView(selectedScope: $selectedScope)
+            SidebarView()
         } content: {
-            if let selectedScope {
-                MessagesListView(selectedScope: selectedScope, selectedMessageID: $selectedMessageID)
-                    .navigationTitle(selectedScope.displayName)
-            } else {
-                EmptyListView(icon: .messagesTab, text: "No folder selected.")
-            }
+            MessagesListView(selectedMessageID: $selectedMessageID)
+                .navigationTitle(navigationState.selectedScope.displayName)
         } detail: {
-            if let selectedMessageID, let selectedScope {
+            if let selectedMessageID {
                 MessageView(
                     messageID: selectedMessageID,
-                    selectedScope: selectedScope,
+                    selectedScope: navigationState.selectedScope,
                     selectedMessageID: $selectedMessageID
                 )
                 .onAppear {

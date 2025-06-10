@@ -2,7 +2,7 @@ import SwiftUI
 import OpenEmailCore
 
 struct SidebarView: View {
-    @Environment(NavigationState.self) var navigationState
+    @Environment(NavigationState.self) private var navigationState
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
 
     @State private var viewModel = ScopesSidebarViewModel()
@@ -10,33 +10,22 @@ struct SidebarView: View {
     @Injected(\.syncService) private var syncService
 
     var body: some View {
-        List(selection: $selectedScope) {
-            Section {
-                ForEach(viewModel.items) { item in
-                    NavigationLink(value: item.scope) {
-                        HStack {
-                            Image(item.scope.imageResource)
-                            Text(item.scope.displayName).fontWeight(.medium)
-                        }
-                    }
-                    .padding(.vertical, .Spacing.xSmall)
-                    .if(item.scope == .broadcasts) {
-                        $0.listRowSeparator(.hidden, edges: .top)
-                    }
-                    .if(item.scope == .trash) {
-                        $0.listRowSeparator(.hidden, edges: .bottom)
+        List(selection: Binding<SidebarScope?>(
+            get: { navigationState.selectedScope },
+            set: { navigationState.selectedScope = $0 ?? .inbox }
+        )) {
+            ForEach(viewModel.items, id: \.scope) { item in
+                HStack {
+                    Image(item.scope.imageResource)
+                    Text(item.scope.displayName)
+                        .fontWeight(.medium)
+                    Spacer()
+                    if item.unreadCount > 0 {
+                        Text("\(item.unreadCount)").badge(item.unreadCount)
                     }
                 }
-            } header: {
-                VStack(alignment: .leading) {
-                    Image(.logo)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(height: .Spacing.xLarge)
-                }
-                .padding(.vertical, .Spacing.default)
-            } footer: {
-                nextSyncInfo
+                .tag(item.scope)
+                .padding(.vertical, .Spacing.xSmall)
             }
         }
         .listStyle(.grouped)
@@ -58,39 +47,23 @@ struct SidebarView: View {
             reloadItems()
         }
         .task {
-            await viewModel.reloadItems(isInitialUpdate: true)
+            await viewModel.reloadItems()
         }
     }
 
     private func reloadItems() {
         Task {
-            await viewModel.reloadItems(isInitialUpdate: false)
+            await viewModel.reloadItems()
         }
-    }
-
-    @ViewBuilder
-    private var nextSyncInfo: some View {
-        HStack(spacing: .Spacing.xSmall) {
-            Image(.refresh)
-            Group {
-                let syncDate = syncService.nextSyncDate ?? .distantFuture
-                Text("Next sync in ") + Text(syncDate, format: .relative(presentation: .numeric))
-            }
-            .fontWeight(.medium)
-            .monospacedDigit()
-            .foregroundStyle(.primary)
-        }
-        .padding(.top, .Spacing.large)
     }
 }
 
 #if DEBUG
 
 private struct ScopesSidebarViewPreviewContainer: View {
-    @State private var scope: SidebarScope?
 
     var body: some View {
-        SidebarView(selectedScope: $scope)
+        SidebarView()
     }
 }
 

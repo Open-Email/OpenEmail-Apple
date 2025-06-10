@@ -5,11 +5,13 @@ import OpenEmailCore
 import Logging
 
 struct ContactsListView: View {
-    @State private var viewModel: ContactsListViewModelProtocol
+    @State private var viewModel = ContactsListViewModel()
+    @Injected(\.client) private var client
     @State private var searchText = ""
 
     @State private var showAddContactView = false
     @State private var addressToAdd: String = ""
+    @State private var profileToAdd: Profile? = nil
 
     @State private var showsAddContactError = false
     @State private var showsContactExistsError = false
@@ -19,10 +21,8 @@ struct ContactsListView: View {
     @Binding private var selectedContactListItem: ContactListItem?
 
     init(
-        viewModel: ContactsListViewModelProtocol = ContactsListViewModel(),
         selectedContactListItem: Binding<ContactListItem?>
     ) {
-        _viewModel = .init(initialValue: viewModel)
         _selectedContactListItem = selectedContactListItem
     }
 
@@ -94,21 +94,32 @@ struct ContactsListView: View {
                 showAddContactView = false
             }
         }
+        .onChange(of: addressToAdd) {
+            if let emailAddress = EmailAddress(addressToAdd) {
+                Task {
+                    profileToAdd = try? await client
+                        .fetchProfile(
+                            address: emailAddress,
+                            force: false
+                        )
+                }
+            }
+            
+        }
         .sheet(isPresented: Binding(get: {
-            EmailAddress.isValid(addressToAdd) && !showAddContactView && !showsContactExistsError
+            profileToAdd != nil
         }, set: {
             if $0 == false {
+                profileToAdd = nil
                 addressToAdd = ""
             }
         })) {
-            if let emailAddress = EmailAddress(addressToAdd) {
-                NavigationStack {
-                    ProfileView(emailAddress: emailAddress, showActionButtons: true)
-                        .profilePopoverToolbar {
-                            addressToAdd = ""
-                            showAddContactView = true
-                        }
-                }
+            NavigationStack {
+                ProfileView(profile: profileToAdd!, showActionButtons: true)
+                    .profilePopoverToolbar {
+                        addressToAdd = ""
+                        showAddContactView = true
+                    }
             }
         }
         .alert("Could not add contact", isPresented: $showsAddContactError, actions: {
@@ -144,14 +155,13 @@ struct ContactsListView: View {
 #Preview {
     @Previewable @State var selectedContactListItem: ContactListItem?
 
-    let viewModel = ContactsListViewModelMock.makeMock()
-    ContactsListView(viewModel: viewModel, selectedContactListItem: $selectedContactListItem)
+    ContactsListView(selectedContactListItem: $selectedContactListItem)
 }
 
 #Preview("empty") {
     @Previewable @State var selectedContactListItem: ContactListItem?
     let viewModel = ContactsListViewModelMock()
-    ContactsListView(viewModel: viewModel, selectedContactListItem: $selectedContactListItem)
+    ContactsListView(selectedContactListItem: $selectedContactListItem)
 }
 
 #endif

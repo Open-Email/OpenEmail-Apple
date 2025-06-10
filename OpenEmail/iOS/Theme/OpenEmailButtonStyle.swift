@@ -67,7 +67,7 @@ struct OpenEmailButtonStyle: ButtonStyle {
                 } else {
                     Color.primary
                 }
-            case .secondary: Color.themeBlue
+                case .secondary: Color.accentColor
             }
         }
 

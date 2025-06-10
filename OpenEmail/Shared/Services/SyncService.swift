@@ -33,10 +33,15 @@ class SyncService: MessageSyncing {
     @Injected(\.messagesStore) private var messagesStore
 
     private var subscriptions = Set<AnyCancellable>()
-    private var outgoingMessageIds: [String] = []
-    private var scheduler: NSBackgroundActivityScheduler?
+    
 
+    private var outgoingMessageIds: [String] = []
+#if os(macOS)
+    private var scheduler: NSBackgroundActivityScheduler?
+#endif
+    
     private init() {
+#if os(macOS)
         UserDefaults.standard.publisher(for: \.notificationFetchingInterval)
             .removeDuplicates()
             .sink { interval in
@@ -56,7 +61,7 @@ class SyncService: MessageSyncing {
                 self.scheduler = newScheduler
             }
             .store(in: &subscriptions)
-        
+#endif
 
         NotificationCenter.default.publisher(for: .didUpdateContacts)
             .sink { notification in

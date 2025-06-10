@@ -8,8 +8,8 @@ struct OnboardingHeaderView: View {
             ZStack {
                 LinearGradient(
                     gradient: Gradient(stops: [
-                        .init(color: Color.themeBlue.opacity(0.4), location: 0),
-                        .init(color: Color.themeBlue.opacity(0.0), location: 1.0)
+                        .init(color: Color.accentColor.opacity(0.4), location: 0),
+                        .init(color: Color.accentColor.opacity(0.0), location: 1.0)
                     ]),
                     startPoint: .top,
                     endPoint: .bottom

@@ -6,8 +6,10 @@ import Logging
 
 struct MessagesListView: View {
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
-
-    let selectedScope: SidebarScope
+    @Environment(NavigationState.self) private var navigationState
+    @Injected(\.syncService) private var syncService
+    @Injected(\.messagesStore) private var messagesStore
+    
     @Binding var selectedMessageID: String?
 
     @State private var viewModel = MessagesListViewModel()
@@ -16,13 +18,14 @@ struct MessagesListView: View {
     @State private var messageToDelete: Message?
     @State private var showsComposeView = false
 
-    @Injected(\.syncService) private var syncService
-    @Injected(\.messagesStore) private var messagesStore
+    init(selectedMessageID: Binding<String?>) {
+        _selectedMessageID = selectedMessageID
+    }
 
     var body: some View {
         List(selection: _selectedMessageID) {
             ForEach(viewModel.messages) { message in
-                MessageListItemView(message: message, scope: selectedScope)
+                MessageListItemView(message: message, scope: navigationState.selectedScope)
                     .swipeActions(edge: .trailing) {
                         trailingSwipeActionButtons(message: message)
                     }
@@ -68,7 +71,7 @@ struct MessagesListView: View {
         }
         .overlay {
             if viewModel.messages.isEmpty && searchText.isEmpty {
-                EmptyListView(icon: selectedScope.imageResource, text: "Your \(selectedScope.displayName) message list is empty.")
+                EmptyListView(icon: navigationState.selectedScope.imageResource, text: "Your \(navigationState.selectedScope.displayName) message list is empty.")
             }
         }
         .sheet(isPresented: $showsComposeView) {
@@ -99,7 +102,7 @@ struct MessagesListView: View {
 
     private func reloadMessages() {
         Task {
-            await viewModel.reloadMessagesFromStore(searchText: searchText, scope: selectedScope)
+            await viewModel.reloadMessagesFromStore(searchText: searchText, scope: navigationState.selectedScope)
         }
     }
 
@@ -110,7 +113,7 @@ struct MessagesListView: View {
 
     @ViewBuilder
     private func leadingSwipeActionButtons(message: Message) -> some View {
-        if selectedScope == .trash {
+        if navigationState.selectedScope == .trash {
             undeleteButton(message: message)
         }
 
@@ -122,7 +125,7 @@ struct MessagesListView: View {
     @ViewBuilder
     private func deleteButton(message: Message) -> some View {
         AsyncButton(role: .destructive) {
-            if selectedScope == .trash {
+            if navigationState.selectedScope == .trash {
                 messageToDelete = message
                 showsDeleteConfirmationAlert = true
             } else {
@@ -173,7 +176,7 @@ struct MessagesListView: View {
 #Preview {
     @Previewable @State var selectedMessageID: String?
     return NavigationStack {
-        MessagesListView(selectedScope: .inbox, selectedMessageID: $selectedMessageID)
+        MessagesListView(selectedMessageID: $selectedMessageID)
             .navigationTitle("Inbox")
     }
 }

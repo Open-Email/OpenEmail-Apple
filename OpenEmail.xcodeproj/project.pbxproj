@@ -251,10 +251,12 @@
 		9D0775832D9AFB9500C2A2E0 /* ArrayExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0775812D9AFB8100C2A2E0 /* ArrayExtensions.swift */; };
 		9D0A38562DA8319C00F4BB73 /* DeleteAccountUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */; };
 		9D0A38572DA8319C00F4BB73 /* DeleteAccountUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */; };
-		9D97BDE52DC8ECC70076EEFD /* VisualEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D97BDE42DC8ECBE0076EEFD /* VisualEffectView.swift */; };
-		9D97BDE62DC8ECC70076EEFD /* VisualEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D97BDE42DC8ECBE0076EEFD /* VisualEffectView.swift */; };
 		9DCE42552DDC90D9001AABB1 /* HighlightedTextEditor in Frameworks */ = {isa = PBXBuildFile; productRef = 9DCE42542DDC90D9001AABB1 /* HighlightedTextEditor */; };
 		9DCE42582DDCAD2E001AABB1 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = 9DCE42572DDCAD2E001AABB1 /* MarkdownUI */; };
+		9DD7B0A92DF82178002E81A4 /* ProfileTagView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BCF438D2B76482600D19A51 /* ProfileTagView.swift */; };
+		9DD7B0AA2DF826C8002E81A4 /* ContactSuggestionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B66B4B72C08A99B00CA34EE /* ContactSuggestionsView.swift */; };
+		9DF64BC82DF3514C00168B30 /* VisualEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DF64BC72DF3514C00168B30 /* VisualEffectView.swift */; };
+		9DF64BC92DF7161900168B30 /* NavigationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7C81072AF5175F0088E2EA /* NavigationState.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -428,7 +430,7 @@
 		5BFDDAEC2B51A408009DDCDA /* MultipleMessagesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipleMessagesView.swift; sourceTree = "<group>"; };
 		9D0775812D9AFB8100C2A2E0 /* ArrayExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayExtensions.swift; sourceTree = "<group>"; };
 		9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountUseCase.swift; sourceTree = "<group>"; };
-		9D97BDE42DC8ECBE0076EEFD /* VisualEffectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectView.swift; sourceTree = "<group>"; };
+		9DF64BC72DF3514C00168B30 /* VisualEffectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -500,7 +502,6 @@
 			children = (
 				5B4E7E062B10B6AA00E92A75 /* ProfileView.swift */,
 				5B4E7DFA2B10994E00E92A75 /* ReadersView.swift */,
-				5BCF438D2B76482600D19A51 /* ProfileTagView.swift */,
 				16468EB82B90BB360096BC0D /* ProfileEditor */,
 			);
 			path = Profile;
@@ -634,7 +635,6 @@
 			isa = PBXGroup;
 			children = (
 				5B7C80B02AEBF6120088E2EA /* MessageView.swift */,
-				5B66B4B72C08A99B00CA34EE /* ContactSuggestionsView.swift */,
 				5B8808B82B88B24A00E6E3B4 /* AttachmentsListView.swift */,
 				5BA3D0232CDE1DEA00D969BD /* AttachmentItemView.swift */,
 				5B8808BA2B88B32100E6E3B4 /* AttachmentsListViewModel.swift */,
@@ -671,7 +671,6 @@
 		5B7C80DB2AF4FDAB0088E2EA /* Utils */ = {
 			isa = PBXGroup;
 			children = (
-				9D97BDE42DC8ECBE0076EEFD /* VisualEffectView.swift */,
 				9D0775812D9AFB8100C2A2E0 /* ArrayExtensions.swift */,
 				5BC893422C1C56F8008C943B /* Mocks */,
 				5BC6E0A52C2EE84900C5951C /* Injection.swift */,
@@ -713,6 +712,8 @@
 		5B8DAF5F2D5F796000229F9E /* Shared Views */ = {
 			isa = PBXGroup;
 			children = (
+				5B66B4B72C08A99B00CA34EE /* ContactSuggestionsView.swift */,
+				5BCF438D2B76482600D19A51 /* ProfileTagView.swift */,
 				5B8DAF602D5F799300229F9E /* ReadersLabelView.swift */,
 			);
 			path = "Shared Views";
@@ -721,6 +722,7 @@
 		5BBE54A52C5CC94B008F25CC /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				5B7C81072AF5175F0088E2EA /* NavigationState.swift */,
 				9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */,
 				5B2C7CC62CCB978C00948B0F /* SharedImages.xcassets */,
 				5B4452652CCBB48200A2FE5E /* Theme */,
@@ -747,6 +749,7 @@
 		5BBE54A62C5CCA31008F25CC /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				9DF64BC72DF3514C00168B30 /* VisualEffectView.swift */,
 				5B3C03782BE245EE00A8B35B /* NSImageToImage.swift */,
 				5BCF438B2B762B4000D19A51 /* KeyCodes.swift */,
 				5B66B4BB2C09CF3B00CA34EE /* PressActions.swift */,
@@ -762,7 +765,6 @@
 				5BDA2F0A2C5D04D3009FB2BD /* WindowIDs.swift */,
 				5B7C807A2AEBF1110088E2EA /* OpenEmailApp.swift */,
 				5B7C807C2AEBF1110088E2EA /* ContentView.swift */,
-				5B7C81072AF5175F0088E2EA /* NavigationState.swift */,
 				5B66B4B92C09C89A00CA34EE /* SidebarView.swift */,
 				5B8C60E52D0365E400FEF5F1 /* OpenEmailTextEditor.swift */,
 				5B43DD732D314F5E002CC7B0 /* NSTextView+Background.swift */,
@@ -1255,7 +1257,6 @@
 				5B7C807B2AEBF1110088E2EA /* OpenEmailApp.swift in Sources */,
 				5B2A08CB2C25AC580005B075 /* GeneralSettingsView.swift in Sources */,
 				5BDA2F0B2C5D04D3009FB2BD /* WindowIDs.swift in Sources */,
-				9D97BDE52DC8ECC70076EEFD /* VisualEffectView.swift in Sources */,
 				5BC893442C1C5702008C943B /* EmailClientMock.swift in Sources */,
 				5B0F25852AFE77E300226455 /* MessageStoreMock.swift in Sources */,
 				5BDA2F132C5D0BF8009FB2BD /* OnboardingExistingAccountViewModel.swift in Sources */,
@@ -1303,6 +1304,7 @@
 				5B141C242C13203C00597F70 /* URL+File.swift in Sources */,
 				5BD1FA3F2C63AA7300DE4B5D /* ScopesSidebarViewModel.swift in Sources */,
 				5B4452672CCBB4A300A2FE5E /* OpenEmailButtonStyle.swift in Sources */,
+				9DF64BC82DF3514C00168B30 /* VisualEffectView.swift in Sources */,
 				5B5E88632D68C15A009EBE37 /* Bundle+Info.swift in Sources */,
 				5B43DD6F2D3143CB002CC7B0 /* String+Cleaning.swift in Sources */,
 				5B8808BB2B88B32100E6E3B4 /* AttachmentsListViewModel.swift in Sources */,
@@ -1341,12 +1343,14 @@
 				5BD1FA712C6787BE00DE4B5D /* UIImageToImage.swift in Sources */,
 				5BDA2EC92C5CCF48009FB2BD /* TrashPurgingService.swift in Sources */,
 				5BDA2ECA2C5CCF48009FB2BD /* URL+File.swift in Sources */,
+				9DD7B0A92DF82178002E81A4 /* ProfileTagView.swift in Sources */,
 				5BDA2F112C5D06F5009FB2BD /* OnboardingInitialViewModel.swift in Sources */,
 				5BDA2EFB2C5CD9A2009FB2BD /* OnboardingInitialView.swift in Sources */,
 				5BDA2ECB2C5CCF48009FB2BD /* SyncService.swift in Sources */,
 				5BD1FA392C63A92500DE4B5D /* SidebarScope+Display.swift in Sources */,
 				5BDA2ECC2C5CCF48009FB2BD /* ProfileAttribute+Info.swift in Sources */,
 				5BDA2ECD2C5CCF48009FB2BD /* AsyncButton.swift in Sources */,
+				9DF64BC92DF7161900168B30 /* NavigationState.swift in Sources */,
 				5BDD1D312CA69590004AF1D5 /* ReadersView.swift in Sources */,
 				5BF25D212D71C18A00720F54 /* ProfileEditorGroupItemView.swift in Sources */,
 				5BE2CF9D2D4CDBA600E9DB1A /* MessageTypeBadge.swift in Sources */,
@@ -1357,6 +1361,7 @@
 				5B30465A2C6BABC100B33157 /* Message+Display.swift in Sources */,
 				5BD1FA682C664C2A00DE4B5D /* SettingsView.swift in Sources */,
 				5BD1FA632C661CA400DE4B5D /* MessageListItemView.swift in Sources */,
+				9DD7B0AA2DF826C8002E81A4 /* ContactSuggestionsView.swift in Sources */,
 				5BE491772D5667350036DBBF /* ContactsListViewModelMock.swift in Sources */,
 				5BDA2ED22C5CCF48009FB2BD /* EmailClientMock.swift in Sources */,
 				5BE2CFA12D4D0E9800E9DB1A /* Modify.swift in Sources */,
@@ -1407,7 +1412,6 @@
 				5B5E88612D68A4CB009EBE37 /* IsNotEmpty.swift in Sources */,
 				5BDA2EDE2C5CCF48009FB2BD /* Formatters.swift in Sources */,
 				5BDA2F152C5D0FE7009FB2BD /* OnboardingNewAccountViewModel.swift in Sources */,
-				9D97BDE62DC8ECC70076EEFD /* VisualEffectView.swift in Sources */,
 				5BDA2EDF2C5CCF48009FB2BD /* Alerts.swift in Sources */,
 				5B84654C2D5F3F3F003626E4 /* UINavigationController+SwipeBack.swift in Sources */,
 				5BB910522CF9E80B00D2D8A5 /* ConditionalModifier.swift in Sources */,

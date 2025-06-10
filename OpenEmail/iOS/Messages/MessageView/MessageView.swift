@@ -8,7 +8,8 @@ import Inspect
 @MainActor
 struct MessageView: View {
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
-
+    @Injected(\.client) private var client
+    
     @Binding var selectedMessageID: String?
     let selectedScope: SidebarScope
 
@@ -17,7 +18,6 @@ struct MessageView: View {
 
     @State private var showDeleteConfirmationAlert = false
     @State private var showRecallConfirmationAlert = false
-    @State private var showAuthorProfilePopover = false
     @State private var showFilesPopover = false
     @State private var toolbarBarVisibility: Visibility = .hidden
     @State private var composeAction: ComposeAction?
@@ -215,7 +215,11 @@ struct MessageView: View {
     private func messageView(message: Message) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: .Spacing.default) {
-                header(message: message)
+                MessageHeaderView(
+                    message: message,
+                    selectedScope: selectedScope,
+                    viewModel: viewModel,
+                )
 
                 Divider()
 
@@ -285,78 +289,11 @@ struct MessageView: View {
     }
 
     @ViewBuilder
-    private func header(message: Message) -> some View {
-        VStack(alignment: .leading, spacing: .Spacing.large) {
-            HStack(alignment: .top, spacing: .Spacing.small) {
-                Text(message.subject)
-                    .font(.title2)
-                    .textSelection(.enabled)
-
-                MessageTypeBadge(scope: selectedScope)
-            }
-
-            HStack(alignment: .top) {
-                authorProfileImage(address: message.author)
-                authorInfo(message: message)
-                Spacer()
-                sendDateLine(message: message)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func authorProfileImage(address: String) -> some View {
-        ProfileImageView(emailAddress: address, size: .medium)
-            .onTapGesture {
-                showAuthorProfilePopover = true
-            }
-            .popover(isPresented: $showAuthorProfilePopover) {
-                if let emailAddress = EmailAddress(address) {
-                    NavigationStack {
-                        ProfileView(emailAddress: emailAddress)
-                            .profilePopoverToolbar {
-                                showAuthorProfilePopover = false
-                            }
-                    }
-                }
-            }
-    }
-
-    @ViewBuilder
-    private func authorInfo(message: Message) -> some View {
-        if message.isBroadcast {
-            HStack {
-                HStack(spacing: 2) {
-                    Image(.scopeBroadcasts)
-                    Text("Broadcast")
-                }
-            }
-        } else {
-            VStack(alignment: .leading, spacing: 0) {
-                if let profile = viewModel.authorProfile {
-                    Text(profile.name).font(.headline)
-                    Text(message.author)
-                } else {
-                    Text(message.author).font(.headline)
-                }
-            }
-            .frame(maxHeight: .infinity)
-        }
-    }
-
-    @ViewBuilder
-    private func sendDateLine(message: Message) -> some View {
-        Text(message.formattedAuthoredOnDate)
-            .font(.subheadline)
-            .foregroundStyle(.tertiary)
-    }
-
-    @ViewBuilder
     private func readers(message: Message) -> some View {
         VStack(alignment: .leading, spacing: .Spacing.small) {
             ReadersView(
                 isEditable: false,
-                readers: viewModel.readers,
+                readers: $viewModel.readers,
                 tickedReaders: .constant(viewModel.message?.deliveries ?? []),
                 hasInvalidReader: .constant(false)
             )
@@ -379,6 +316,73 @@ struct MessageView: View {
             selectedMessageID = nil
         } catch {
             Log.error("Could not recall message: \(error)")
+        }
+    }
+}
+
+struct MessageHeaderView: View {
+    
+    let message: Message
+    let selectedScope: SidebarScope
+    let viewModel: MessageViewModel
+    
+    @Injected(\.client) private var client
+    @State private var profile: Profile? = nil
+    @State private var showAuthorProfilePopover = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: .Spacing.large) {
+            HStack(alignment: .top, spacing: .Spacing.small) {
+                Text(message.subject)
+                    .font(.title2)
+                    .textSelection(.enabled)
+                
+                MessageTypeBadge(scope: selectedScope)
+            }
+            
+            HStack(alignment: .top) {
+                if profile != nil {
+                    ProfileImageView(emailAddress: profile!.address.address, size: .medium)
+                }
+                
+                if message.isBroadcast {
+                    HStack {
+                        HStack(spacing: 2) {
+                            Image(.scopeBroadcasts)
+                            Text("Broadcast")
+                        }
+                    }
+                } else {
+                    VStack(alignment: .leading, spacing: 0) {
+                        if let profile = viewModel.authorProfile {
+                            Text(profile.name).font(.headline)
+                            Text(message.author)
+                        } else {
+                            Text(message.author).font(.headline)
+                        }
+                    }
+                    .frame(maxHeight: .infinity)
+                }
+                
+                Spacer()
+                Text(message.formattedAuthoredOnDate)
+                    .font(.subheadline)
+                    .foregroundStyle(.tertiary)
+            }
+        }.task {
+            if let emailAddress = EmailAddress(message.author) {
+                profile = try? await client.fetchProfile(address: emailAddress, force: false)
+            }
+        }.onTapGesture {
+            showAuthorProfilePopover = profile != nil
+        }
+        .popover(isPresented: $showAuthorProfilePopover) {
+            NavigationStack {
+                ProfileView(profile: profile!)
+                    .profilePopoverToolbar {
+                        showAuthorProfilePopover = false
+                    }
+            }
         }
     }
 }

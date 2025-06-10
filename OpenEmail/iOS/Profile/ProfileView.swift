@@ -4,6 +4,7 @@ import Logging
 
 struct ProfileView: View {
     @State private var viewModel: ProfileViewModel
+    @Injected(\.client) private var client
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) var registeredEmailAddress: String?
 
     private let showActionButtons: Bool
@@ -16,15 +17,19 @@ struct ProfileView: View {
         showActionButtons: Bool = true,
         isContactRequest: Bool = false,
     ) {
+        self.viewModel = ProfileViewModel(profile: profile)
         self.showActionButtons = showActionButtons
         self.isContactRequest = isContactRequest
-        viewModel = ProfileViewModel(profile: profile)
     }
 
     var body: some View {
         let canEditReceiveBroadcasts = !viewModel.isSelf && viewModel.isInContacts
+        
         ProfileAttributesView(
-            profile: $viewModel.profile,
+            profile: Binding<Profile>(
+                get: { viewModel.profile },
+                set: { viewModel.profile = $0 }
+            ),
             showBroadcasts: canEditReceiveBroadcasts,
             receiveBroadcasts: Binding(
                 get: {
@@ -40,14 +45,21 @@ struct ProfileView: View {
         )
         .sheet(isPresented: $showsComposeView) {
             if let registeredEmailAddress {
-                ComposeMessageView(action: .newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: viewModel.profile.address.address))
+                ComposeMessageView(
+                    action:
+                            .newMessage(
+                                id: UUID(),
+                                authorAddress: registeredEmailAddress,
+                                readerAddress: viewModel.profile.address.address
+                            )
+                )
             }
         }
     }
 
     @ViewBuilder
     private func actionButtons() -> some View {
-        if !viewModel.isSelf, showActionButtons {
+        if !viewModel.isSelf && showActionButtons {
             HStack {
                 ProfileActionButton(title: "Refresh", icon: .refresh) {
                     viewModel.refreshProfile()
@@ -104,58 +116,3 @@ struct ProfileView: View {
         }
     }
 }
-
-#if DEBUG
-
-#Preview("full profile") {
-    let client = EmailClientMock()
-    client.stubFetchedProfile = .makeFake()
-    InjectedValues[\.client] = client
-
-    return ProfileView(
-        profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
-        showActionButtons: true,
-        isContactRequest: false,
-    )
-}
-
-#Preview("away") {
-    let client = EmailClientMock()
-    client.stubFetchedProfile = .makeFake(awayWarning: "Gone for vacation 🌴")
-    InjectedValues[\.client] = client
-
-    return ProfileView(
-        profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
-        showActionButtons: true,
-        isContactRequest: false,
-    )
-}
-
-#Preview("no name") {
-    let client = EmailClientMock()
-    client.stubFetchedProfile = .makeFake(name: nil)
-    InjectedValues[\.client] = client
-
-    return ProfileView(
-        profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
-        showActionButtons: true,
-        isContactRequest: false,
-    )
-}
-
-#Preview("no action buttons") {
-    let client = EmailClientMock()
-    client.stubFetchedProfile = .makeFake()
-    InjectedValues[\.client] = client
-
-    let contactsStore = ContactStoreMock()
-    InjectedValues[\.contactsStore] = contactsStore
-
-    return ProfileView(
-        profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
-        showActionButtons: false,
-        isContactRequest: false,
-    )
-}
-
-#endif

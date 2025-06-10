@@ -28,7 +28,6 @@ struct ContactSuggestionsView: View {
             }
         }
         .scrollBounceBehavior(.basedOnSize)
-        .fixedSize(horizontal: true, vertical: false)
         .frame(height: rowHeight * CGFloat(min(Self.maxVisibleRows, suggestions.count)))
         .padding(.Spacing.small)
     }
@@ -40,21 +39,23 @@ private struct SuggestionRowView: View {
 
     var body: some View {
         ZStack(alignment: .leading) {
-            RoundedRectangle(cornerRadius: .Spacing.xxxSmall, style: .continuous)
+            RoundedRectangle(
+                cornerRadius: .CornerRadii.default,
+                style: .continuous
+            )
                 .foregroundColor(isHovering ? .accentColor : .clear)
 
-            HStack(spacing: 0) {
+            HStack(spacing: .Spacing.xSmall) {
                 ProfileImageView(
                     emailAddress: contact.address,
                     name: contact.cachedName,
                     size: .medium
                 )
-                .padding(.horizontal, .Spacing.xxxSmall)
 
                 Text(text)
                     .multilineTextAlignment(.leading)
-                    .padding(.trailing, .Spacing.xxxSmall)
-            }
+                    .foregroundStyle(isHovering ? .white: .primary)
+            }.padding(.Spacing.xSmall)
         }
         .frame(height: rowHeight)
         .contentShape(Rectangle())

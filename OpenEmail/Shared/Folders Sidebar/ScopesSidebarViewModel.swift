@@ -132,7 +132,7 @@ class ScopesSidebarViewModel {
     }
     
     @MainActor
-    private func reloadItems() async {
+    func reloadItems() async {
         await updateUnreadCounts()
         
         items = SidebarScope.allCases.compactMap {
