@@ -9,24 +9,21 @@ struct SidebarView: View {
 
     @Injected(\.syncService) private var syncService
 
+   
     var body: some View {
-        List(selection: Binding<SidebarScope?>(
+        List(viewModel.items, selection: Binding<SidebarScope?>(
             get: { navigationState.selectedScope },
-            set: { navigationState.selectedScope = $0 ?? .inbox }
-        )) {
-            ForEach(viewModel.items, id: \.scope) { item in
-                HStack {
-                    Image(item.scope.imageResource)
-                    Text(item.scope.displayName)
-                        .fontWeight(.medium)
-                    Spacer()
-                    if item.unreadCount > 0 {
-                        Text("\(item.unreadCount)").badge(item.unreadCount)
-                    }
+            set: {
+                if let scope = $0 {
+                    navigationState.selectedScope = scope
                 }
-                .tag(item.scope)
-                .padding(.vertical, .Spacing.xSmall)
             }
+        )) { item in
+            Label(title: {
+                Text(item.scope.displayName)
+            }, icon: {
+                Image(item.scope.imageResource)
+            }).tag(item.scope)
         }
         .listStyle(.grouped)
         .scrollContentBackground(.hidden)
