@@ -379,9 +379,6 @@ struct MessageHeaderView: View {
         .popover(isPresented: $showAuthorProfilePopover) {
             NavigationStack {
                 ProfileView(profile: profile!)
-                    .profilePopoverToolbar {
-                        showAuthorProfilePopover = false
-                    }
             }
         }
     }

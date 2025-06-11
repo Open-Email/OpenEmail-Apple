@@ -125,10 +125,9 @@ struct ReadersView: View {
                 }
             })
         ) {
-            VStack {
+            VStack(alignment: .leading) {
                 Text("This person should be added to your contact list first")
                     .font(.title2)
-                    .fontWeight(.bold)
                     .padding(.top, .Spacing.default)
                     .padding(.horizontal, .Spacing.default)
                 
@@ -212,7 +211,6 @@ struct ReadersView: View {
                         .background(.themeViewBackground)
                     }
                 }
-                .profilePopoverToolbar(closeProfile: closeProfile)
             }
         }
     }

@@ -3,6 +3,7 @@ import OpenEmailCore
 import Logging
 
 struct ProfileView: View {
+    @Environment(\.dismiss) private var dismiss
     @State private var viewModel: ProfileViewModel
     @Injected(\.client) private var client
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) var registeredEmailAddress: String?
@@ -23,14 +24,19 @@ struct ProfileView: View {
     }
 
     var body: some View {
-        let canEditReceiveBroadcasts = !viewModel.isSelf && viewModel.isInContacts
         
+        ProfileImageView(
+            emailAddress: viewModel.profile.address.address,
+            shape: .rectangle,
+            size: .huge
+        ).frame(maxWidth: .infinity, maxHeight: 250)
+            
         ProfileAttributesView(
             profile: Binding<Profile>(
                 get: { viewModel.profile },
                 set: { viewModel.profile = $0 }
             ),
-            showBroadcasts: canEditReceiveBroadcasts,
+            showBroadcasts: !viewModel.isSelf && viewModel.isInContacts,
             receiveBroadcasts: Binding(
                 get: {
                     viewModel.receiveBroadcasts
@@ -40,9 +46,53 @@ struct ProfileView: View {
                         await viewModel.updateReceiveBroadcasts(newValue)
                     }
                 }),
-            profileImageStyle: .fullWidthHeader(height: 450),
-            actionButtonRow: actionButtons
+            profileImageStyle: .none,
         )
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button(role: .cancel) {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                }
+
+            }
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                if viewModel.isInContacts {
+                   
+                    Button {
+                        showRemoveContactConfirmationAlert = true
+                    } label: {
+                        Image(systemName: "trash")
+                    }
+                    
+                    Button {
+                        showsComposeView = true
+                    } label: {
+                        Image(systemName: "square.and.pencil")
+                    }
+                    
+                } else {
+                    if !viewModel.isSelf {
+                        Button {
+                            Task {
+                                await addToContacts()
+                            }
+                        } label: {
+                            Image(systemName: "person.badge.plus")
+                        }
+                    }
+                }
+            }
+        }
+        .alert("Are you sure you want to remove this contact?", isPresented: $showRemoveContactConfirmationAlert) {
+            Button("Cancel", role: .cancel) {}
+            AsyncButton("Remove", role: .destructive) {
+                await removeUser()
+            }
+        } message: {
+            Text("This action cannot be undone.")
+        }
         .sheet(isPresented: $showsComposeView) {
             if let registeredEmailAddress {
                 ComposeMessageView(
@@ -53,47 +103,6 @@ struct ProfileView: View {
                                 readerAddress: viewModel.profile.address.address
                             )
                 )
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func actionButtons() -> some View {
-        if !viewModel.isSelf && showActionButtons {
-            HStack {
-                ProfileActionButton(title: "Refresh", icon: .refresh) {
-                    viewModel.refreshProfile()
-                }
-
-                if viewModel.isInContacts {
-                    ProfileActionButton(title: "Fetch", icon: .attachmentDownload) {
-                        Task {
-                            await viewModel.fetchMessages()
-                        }
-                    }
-
-                    ProfileActionButton(title: "Message", icon: .compose) {
-                        showsComposeView = true
-                    }
-
-                    ProfileActionButton(title: "Delete", icon: .trash, role: .destructive) {
-                        showRemoveContactConfirmationAlert = true
-                    }
-                    .alert("Are you sure you want to remove this contact?", isPresented: $showRemoveContactConfirmationAlert) {
-                        Button("Cancel", role: .cancel) {}
-                        AsyncButton("Remove", role: .destructive) {
-                            await removeUser()
-                        }
-                    } message: {
-                        Text("This action cannot be undone.")
-                    }
-                } else {
-                    ProfileActionButton(title: "Add ", icon: .addContact) {
-                        Task {
-                            await addToContacts()
-                        }
-                    }
-                }
             }
         }
     }

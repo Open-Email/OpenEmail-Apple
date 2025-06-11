@@ -116,10 +116,6 @@ struct ContactsListView: View {
         })) {
             NavigationStack {
                 ProfileView(profile: profileToAdd!, showActionButtons: true)
-                    .profilePopoverToolbar {
-                        addressToAdd = ""
-                        showAddContactView = true
-                    }
             }
         }
         .alert("Could not add contact", isPresented: $showsAddContactError, actions: {

@@ -5,7 +5,7 @@ import Inspect
 import Utils
 import Logging
 
-struct ProfileAttributesView<ActionButtonRow: View>: View {
+struct ProfileAttributesView: View {
     enum ProfileImageStyle {
         case none
         case fullWidthHeader(height: CGFloat)
@@ -26,20 +26,17 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
     private let receiveBroadcasts: Binding<Bool>
     private let showBroadcasts: Bool
     private let profileImageStyle: ProfileImageStyle
-    @ViewBuilder private var actionButtonRow: () -> ActionButtonRow
 
     init(
         profile: Binding<Profile>,
         showBroadcasts: Bool = true,
         receiveBroadcasts: Binding<Bool>,
         profileImageStyle: ProfileImageStyle,
-        actionButtonRow: @escaping () -> ActionButtonRow = { EmptyView() }
     ) {
         _profile = profile
         self.showBroadcasts = showBroadcasts
         self.receiveBroadcasts = receiveBroadcasts
         self.profileImageStyle = profileImageStyle
-        self.actionButtonRow = actionButtonRow
     }
 
 #if canImport(UIKit)
@@ -51,24 +48,22 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
     var body: some View {
         List {
             VStack(alignment: .leading) {
-                Section {
-                    profileImage(profile: profile)
-
-                    // name and address
-                    VStack(alignment: .leading, spacing: .Spacing.xxxSmall) {
-                        awayMessage
-                            .padding(.bottom, .Spacing.default)
-
-                        if let name = profile[.name], !name.isEmpty {
-                            Text(name).font(.title2)
-                                .textSelection(.enabled)
-                        }
-                        Text(profile.address.address).font(.headline)
+                profileImage(profile: profile)
+                
+                // name and address
+                VStack(alignment: .leading, spacing: .Spacing.xxxSmall) {
+                    awayMessage
+                        .padding(.bottom, .Spacing.default)
+                    
+                    if let name = profile[.name], !name.isEmpty {
+                        Text(name).font(.title2)
                             .textSelection(.enabled)
-                            .foregroundStyle(.secondary)
                     }
-                    .listRowSeparator(.hidden)
+                    Text(profile.address.address).font(.headline)
+                        .textSelection(.enabled)
+                        .foregroundStyle(.secondary)
                 }
+                .listRowSeparator(.hidden)
 
                 // broadcasts
                 if showBroadcasts {
@@ -118,12 +113,7 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                         }
                     }
                 }
-            }.padding(EdgeInsets(
-                top: .Spacing.default,
-                leading: 0,
-                bottom: .Spacing.default,
-                trailing: .Spacing.default,
-            ))
+            }.padding(.vertical, .Spacing.default)
         }
 #if os(macOS)
         .inspect { tableView in
@@ -131,11 +121,6 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
         }
 #endif
         .listStyle(.plain)
-#if os(iOS)
-        .if(profileImageStyle.shouldIgnoreSafeArea) {
-            $0.ignoresSafeArea(.container, edges: .top)
-        }
-#endif
         .scrollContentBackground(.hidden)
         .scrollBounceBehavior(.basedOnSize)
     }
@@ -152,15 +137,6 @@ struct ProfileAttributesView<ActionButtonRow: View>: View {
                 size: .large
             )
             .background(.accent.gradient)
-#if os(iOS)
-            // account for additional padding
-            .padding(.horizontal, -20)
-            .padding(.top, -11)
-            .overlay(alignment: .bottom) {
-                actionButtonRow()
-                    .padding(.vertical, .Spacing.default)
-            }
-#endif
 
         case let .shape(type, _):
             ProfileImageView(
@@ -331,14 +307,6 @@ struct InfoButton: View {
         profile: .constant(.makeFake(awayWarning: "Away")),
         receiveBroadcasts: .constant(false),
         profileImageStyle: .fullWidthHeader(height: 500),
-        actionButtonRow: {
-            HStack {
-                ProfileActionButton(title: "Refresh", icon: .refresh, action: {})
-                ProfileActionButton(title: "Fetch", icon: .downloadMessages, action: {})
-                ProfileActionButton(title: "Message", icon: .compose, action: {})
-                ProfileActionButton(title: "Delete", icon: .delete, role: .destructive, action: {})
-            }
-        }
     )
     #endif
 }
