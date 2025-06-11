@@ -4,11 +4,13 @@ struct ReadersLabelView: View {
     var body: some View {
         HStack(spacing: .Spacing.xxxSmall) {
             Image(.readers)
-            Text("Readers:").font(.body)
+            Text("Readers:")
+#if os(iOS)
+                .font(.subheadline)
+#else
+                .font(.body)
+#endif
         }
         .foregroundStyle(.secondary)
-        #if os(iOS)
-        .font(.subheadline)
-        #endif
     }
 }

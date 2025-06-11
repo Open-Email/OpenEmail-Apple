@@ -53,6 +53,7 @@ private struct SuggestionRowView: View {
                 )
 
                 Text(text)
+                    .fixedSize(horizontal: false, vertical: true) 
                     .multilineTextAlignment(.leading)
                     .foregroundStyle(isHovering ? .white: .primary)
             }.padding(.Spacing.xSmall)

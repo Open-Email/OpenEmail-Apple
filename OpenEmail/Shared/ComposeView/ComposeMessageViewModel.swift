@@ -151,7 +151,6 @@ class ComposeMessageViewModel {
     private var sendTask: Task<Void, Error>?
 
     private var allContacts: [Contact] = []
-    var contactSuggestions: [Contact] = []
 
     init(action: ComposeAction) {
         self.action = action
@@ -723,28 +722,6 @@ class ComposeMessageViewModel {
         }
         
         try? await messagesStore.deleteMessage(id: draftMessage.id)
-    }
-
-    func loadContactSuggestions(for inputText: String) async {
-        let searchString = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard searchString.count >= 3 else {
-            contactSuggestions = []
-            return
-        }
-
-        contactSuggestions = allContacts.filter { contact in
-            guard let address = EmailAddress(contact.address) else {
-                return false
-            }
-
-            let readersListContains = readers.contains{ reader in reader.address == address }
-            
-            if !readersListContains {
-                return false
-            }
-
-            return contact.address.localizedStandardContains(searchString) || (contact.cachedName ?? "").localizedStandardContains(searchString)
-        }
     }
 }
 

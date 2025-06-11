@@ -41,12 +41,6 @@ struct MessagesListView: View {
         }
         .animation(.default, value: viewModel.messages)
         .toolbar {
-            if syncService.isSyncing {
-                ToolbarItem {
-                    SyncProgressView()
-                }
-            }
-
             ToolbarItem {
                 Button {
                     showsComposeView = true

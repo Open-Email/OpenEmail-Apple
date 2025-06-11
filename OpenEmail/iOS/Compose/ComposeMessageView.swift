@@ -37,10 +37,6 @@ struct ComposeMessageView: View {
 
     private var onClose: ((ComposeResult) -> Void)?
 
-    private var showsSuggestions: Bool {
-        isReadersFocused && !viewModel.contactSuggestions.isEmpty
-    }
-
     init(action: ComposeAction, onClose: ((ComposeResult) -> Void)? = nil) {
         viewModel = ComposeMessageViewModel(action: action)
         self.onClose = onClose
@@ -62,52 +58,39 @@ struct ComposeMessageView: View {
                     if !viewModel.isBroadcast {
                         ReadersView(isEditable: true, readers: $viewModel.readers, tickedReaders: .constant([]), hasInvalidReader: $hasInvalidReader, pendingText: $pendingEmailAddress)
                             .focused($isReadersFocused)
-
                         Divider()
-
-                        if showsSuggestions {
-                            suggestions
-                        }
-                    } else {
-                        TokenTextField(
-                            tokens: .constant([AllContactsToken.empty(isSelected: false)]),
-                            isEditable: false,
-                            label: { ReadersLabelView() }
+                    }
+                    
+                    HStack(spacing: .Spacing.xSmall) {
+                        Text("Subject:")
+                            .foregroundStyle(.secondary)
+                            .font(.subheadline)
+                        TextField("", text: $viewModel.subject)
+                    }
+                    .padding(.vertical, .Spacing.xSmall)
+                    
+                    Divider()
+                    
+                    VStack(alignment: .leading) {
+                        AutoResizingTextEditor(
+                            text: $viewModel.fullText,
+                            isFocused: $isBodyFocused
                         )
-
-                        Divider()
-                    }
-
-                    if !showsSuggestions {
-                        HStack(spacing: .Spacing.xSmall) {
-                            Text("Subject:")
-                                .foregroundStyle(.secondary)
-                                .font(.subheadline)
-                            TextField("", text: $viewModel.subject)
+                        
+                        if !viewModel.attachedFileItems.isEmpty {
+                            ComposeAttachmentsListView(attachedFileItems: $viewModel.attachedFileItems, onDelete: {
+                                viewModel.removeAttachedFileItem(item: $0)
+                            })
+                            .padding(.top, .Spacing.default)
                         }
-                        .padding(.vertical, .Spacing.xSmall)
-
-                        Divider()
-
-                        VStack(alignment: .leading) {
-                            AutoResizingTextEditor(
-                                text: $viewModel.fullText,
-                                isFocused: $isBodyFocused
-                            )
-
-                            if !viewModel.attachedFileItems.isEmpty {
-                                ComposeAttachmentsListView(attachedFileItems: $viewModel.attachedFileItems, onDelete: {
-                                    viewModel.removeAttachedFileItem(item: $0)
-                                })
-                                .padding(.top, .Spacing.default)
-                            }
-                            
-                            if viewModel.attachmentLoading {
-                                ProgressView()
-                            }
+                        
+                        if viewModel.attachmentLoading {
+                            ProgressView()
                         }
                     }
+
                 }
+                .animation(.default, value: viewModel.isBroadcast)
                 .padding(.horizontal)
             }
             .contentShape(Rectangle())
@@ -180,11 +163,6 @@ struct ComposeMessageView: View {
                     Log.error("error reading files: \(error)")
                 }
             }
-            .onChange(of: pendingEmailAddress) {
-                Task {
-                    await viewModel.loadContactSuggestions(for: pendingEmailAddress)
-                }
-            }
             .onChange(of: viewModel.attachedFileItems) {
                 viewModel.updateDraft()
             }
@@ -238,39 +216,6 @@ struct ComposeMessageView: View {
                 }
             }
         }
-    }
-
-    private var suggestions: some View {
-        LazyVStack {
-            ForEach(viewModel.contactSuggestions) { contact in
-                HStack {
-                    ProfileImageView(
-                        emailAddress: contact.address,
-                        size: .medium
-                    )
-
-                    VStack(alignment: .leading, spacing: 0) {
-                        if let name = contact.cachedName {
-                            Text(name)
-                            Text(contact.address)
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                        } else {
-                            Text(contact.address)
-                        }
-                    }
-
-                    Spacer()
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    guard let address = EmailAddress(contact.address) else { return }
-                    viewModel.addReader(address)
-                    pendingEmailAddress = ""
-                }
-            }
-        }
-        .listStyle(.plain)
     }
 
     private func sendMessage() async {

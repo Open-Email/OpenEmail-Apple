@@ -271,7 +271,6 @@ struct ReadersView: View {
                     }
                     AsyncButton("Add to contacts") {
                         if let localUser = LocalUser.current, let profile = newContact {
-                            newContact = nil
                             addingContactProgress = true
                             do {
                                 try await client
