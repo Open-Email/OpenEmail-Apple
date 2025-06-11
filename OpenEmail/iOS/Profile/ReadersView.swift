@@ -17,6 +17,7 @@ struct ReadersView: View {
     @State private var inputText = ""
     @State private var inputEditingPosition: Int = 0
     @State private var showAlreadyAddedAlert = false
+    @State private var noProfileFoundAlertShown: Bool = false
 
     @State private var showSuggestions = false
     @State private var allContacts: [Contact] = []
@@ -28,6 +29,7 @@ struct ReadersView: View {
     @Injected(\.client) private var client
 
     @State private var presentedProfile: Profile?
+    @State private var newContact: Profile?
 
     init(
         isEditable: Bool,
@@ -108,6 +110,69 @@ struct ReadersView: View {
                 
             }
         }
+        .onKeyPress(keys: [.space, ","]) { _ in
+            guard isEditable else { return .ignored }
+            addCurrentInput()
+            return .handled
+        }
+        .sheet(isPresented: Binding(
+            get: {
+                Binding($newContact) != nil
+            },
+            set: { newValue in
+                if !newValue {
+                    newContact = nil
+                }
+            })
+        ) {
+            VStack {
+                Text("This person should be added to your contact list first")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .padding(.top, .Spacing.default)
+                    .padding(.horizontal, .Spacing.default)
+                
+                ProfileView(profile: newContact!)
+                HStack {
+                    Spacer()
+                    Button("Cancel") {
+                        newContact = nil
+                    }
+//                    AsyncButton("Add to contacts") {
+//                        if let localUser = LocalUser.current, let profile = newContact {
+//                            newContact = nil
+//                            //addingContactProgress = true
+//                            do {
+//                                try await client
+//                                    .storeContact(
+//                                        localUser: localUser,
+//                                        address: profile.address
+//                                    )
+//                                let contact = Contact(
+//                                    id: localUser.connectionLinkFor(remoteAddress: profile.address.address),
+//                                    addedOn: Date(),
+//                                    address: profile.address.address,
+//                                    receiveBroadcasts: true,
+//                                    cachedName: profile[.name],
+//                                    cachedProfileImageURL: nil
+//                                )
+//                                try await contactsStore.storeContact(contact)
+//                            } catch {
+//                                Log.error("could not add contact", context: error)
+//                            }
+//                            inputText = ReadersView.zeroWidthSpace
+//                            readers.append(profile)
+//                            newContact = nil
+//                            //addingContactProgress = false
+//                            
+//                        }
+//                        
+//                    }
+                }.padding(.Spacing.default)
+            }
+        }
+        .alert("Reader already added", isPresented: $showAlreadyAddedAlert) {}
+        .alert("No profile registered with address: \(inputText.trimmingCharacters(in: .whitespacesAndNewlines))", isPresented: $noProfileFoundAlertShown) {}
         .frame(maxWidth: .infinity, minHeight: 20, alignment: .leading)
         .focusable()
         .focused($isFocused)
@@ -158,7 +223,37 @@ struct ReadersView: View {
 
     private func addCurrentInput() {
         showSuggestions = false
-        //TODO
+        
+        let address = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        if let emailAddress = EmailAddress(address) {
+            if readers
+                .contains(where: { reader in reader.address == emailAddress }) {
+                showAlreadyAddedAlert = true
+            } else {
+                Task {
+                    let savedContact = try? await contactsStore.contact(
+                        address: emailAddress.address
+                    )
+                    
+                    if let profile = try? await client.fetchProfile(
+                        address: emailAddress,
+                        force: false
+                    ) {
+                        if savedContact == nil {
+                            newContact = profile
+                        } else {
+                            inputText = ReadersView.zeroWidthSpace
+                            readers.append(profile)
+                        }
+                    } else {
+                        noProfileFoundAlertShown = true
+                    }
+                }
+            }
+        } else {
+            inputText = ReadersView.zeroWidthSpace
+        }
     }
  
     private func updateSuggestions() {
