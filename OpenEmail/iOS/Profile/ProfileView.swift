@@ -29,25 +29,30 @@ struct ProfileView: View {
                 emailAddress: viewModel.profile.address.address,
                 shape: .rectangle,
                 size: .huge
-            ).frame(maxWidth: .infinity, maxHeight: 400)
-            
-            ProfileAttributesView(
-                profile: Binding<Profile>(
-                    get: { viewModel.profile },
-                    set: { viewModel.profile = $0 }
-                ),
-                showBroadcasts: !viewModel.isSelf && viewModel.isInContacts,
-                receiveBroadcasts: Binding(
-                    get: {
-                        viewModel.receiveBroadcasts
-                    },
-                    set: { newValue in
-                        Task {
-                            await viewModel.updateReceiveBroadcasts(newValue)
-                        }
-                    }),
-                profileImageStyle: .none,
             )
+            .frame(maxWidth: .infinity, maxHeight: 400)
+            
+            
+            ScrollView {
+                ProfileAttributesView(
+                    profile: Binding<Profile>(
+                        get: { viewModel.profile },
+                        set: { viewModel.profile = $0 }
+                    ),
+                    showBroadcasts: !viewModel.isSelf && viewModel.isInContacts,
+                    receiveBroadcasts: Binding(
+                        get: {
+                            viewModel.receiveBroadcasts
+                        },
+                        set: { newValue in
+                            Task {
+                                await viewModel.updateReceiveBroadcasts(newValue)
+                            }
+                        }),
+                ).padding(.horizontal, .Spacing.default)
+                    .padding(.vertical, .Spacing.default)
+            }
+            
         }.ignoresSafeArea(.all, edges: .top)
        
         .toolbar {

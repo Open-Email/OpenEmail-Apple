@@ -227,7 +227,8 @@ struct MessageView: View {
 
                 Divider()
 
-                StaticTextEditorView(string: .constant(message.body ?? ""))
+                Text(message.body ?? "")
+                    .font(.body)
 
                 if let attachmentsListViewModel, !attachmentsListViewModel.items.isEmpty {
                     Divider()
@@ -302,7 +303,6 @@ struct MessageView: View {
 
     private func permanentlyDelete() async {
         do {
-            // TODO: Should the message also be recalled if outgoing and on server?
             try await viewModel.permanentlyDeleteMessage()
             selectedMessageID = nil
         } catch {
@@ -384,35 +384,6 @@ struct MessageHeaderView: View {
     }
 }
 
-private struct StaticTextEditorView: View {
-    @Binding var string: String
-    @State var textEditorHeight: CGFloat = 20
-    @State var font: Font = .system(.body)
-
-    private let marginOffset: CGFloat = 5
-
-    var body: some View {
-        ZStack(alignment: .leading) {
-            Text(string)
-                .font(font)
-                .foregroundColor(.clear)
-                .padding(marginOffset)
-                .background(GeometryReader {
-                    Color.clear.preference(key: ViewHeightKey.self, value: $0.frame(in: .local).size.height + 2 * marginOffset)
-                })
-
-            TextEditor(text: $string)
-                .inspect {
-                    $0.isEditable = false
-                }
-                .font(font)
-                .frame(height: max(0, textEditorHeight))
-                .scrollDisabled(true)
-        }
-        .onPreferenceChange(ViewHeightKey.self) { textEditorHeight = $0 }
-        .padding(-marginOffset)
-    }
-}
 
 
 struct ViewHeightKey: PreferenceKey {

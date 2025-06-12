@@ -6,37 +6,19 @@ import Utils
 import Logging
 
 struct ProfileAttributesView: View {
-    enum ProfileImageStyle {
-        case none
-        case fullWidthHeader(height: CGFloat)
-        case shape(
-            type: ProfileImageShapeType = .roundedRectangle(cornerRadius: .CornerRadii.default),
-            size: CGFloat = 288
-        )
-
-        var shouldIgnoreSafeArea: Bool {
-            switch self {
-            case .fullWidthHeader: true
-            default: false
-            }
-        }
-    }
 
     @Binding private var profile: Profile
     private let receiveBroadcasts: Binding<Bool>
     private let showBroadcasts: Bool
-    private let profileImageStyle: ProfileImageStyle
 
     init(
         profile: Binding<Profile>,
         showBroadcasts: Bool = true,
         receiveBroadcasts: Binding<Bool>,
-        profileImageStyle: ProfileImageStyle,
     ) {
         _profile = profile
         self.showBroadcasts = showBroadcasts
         self.receiveBroadcasts = receiveBroadcasts
-        self.profileImageStyle = profileImageStyle
     }
 
 #if canImport(UIKit)
@@ -46,104 +28,61 @@ struct ProfileAttributesView: View {
 #endif
 
     var body: some View {
-        List {
-            VStack(alignment: .leading) {
-                profileImage(profile: profile)
-                
-                // name and address
-                VStack(alignment: .leading, spacing: .Spacing.xxxSmall) {
-                    awayMessage
-                        .padding(.bottom, .Spacing.default)
-                    
-                    if let name = profile[.name], !name.isEmpty {
-                        Text(name).font(.title2)
-                            .textSelection(.enabled)
+        VStack(alignment: .leading) {
+            // name and address
+            awayMessage
+                .padding(.bottom, .Spacing.default)
+            
+            if let name = profile[.name], !name.isEmpty {
+                Text(name).font(.title2)
+                    .textSelection(.enabled)
+            }
+            Text(profile.address.address).font(.headline)
+                .textSelection(.enabled)
+                .foregroundStyle(.secondary)
+            
+            // broadcasts
+            if showBroadcasts {
+                VStack(alignment: .leading, spacing: .Spacing.small) {
+                    Divider()
+                    Toggle(isOn: receiveBroadcasts) {
+                        HStack(spacing: .Spacing.xSmall) {
+                            Image(.scopeBroadcasts)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 16, height: 16)
+                            Text("Receive Broadcasts")
+                        }
                     }
-                    Text(profile.address.address).font(.headline)
-                        .textSelection(.enabled)
-                        .foregroundStyle(.secondary)
+                    .toggleStyle(.switch)
+                    .tint(.accentColor)
+                    Divider()
                 }
-                .listRowSeparator(.hidden)
-
-                // broadcasts
-                if showBroadcasts {
+                .padding(.vertical, .Spacing.xxxSmall)
+            }
+            
+            ForEach(Profile.groupedAttributes) { group in
+                if shouldDisplayGroup(group) {
                     Section {
-                        VStack(alignment: .leading, spacing: .Spacing.small) {
-                            Divider()
-                            Toggle(isOn: receiveBroadcasts) {
-                                HStack(spacing: .Spacing.xSmall) {
-                                    Image(.scopeBroadcasts)
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(width: 16, height: 16)
-                                    Text("Receive Broadcasts")
-                                }
+                        ForEach(group.attributes, id: \.self) { attribute in
+                            if shouldDisplayAttribute(attribute) {
+                                component(for: attribute)
+                                    .listRowSeparator(.hidden)
                             }
-                            .toggleStyle(.switch)
-                            .tint(.accentColor)
-                            Divider()
                         }
-                        .padding(.vertical, .Spacing.xxxSmall)
-                        #if os(macOS)
-                        .listRowInsets(.init())
-                        #endif
-                        .listRowSeparator(.hidden)
-                    }
-                }
-
-                ForEach(Profile.groupedAttributes) { group in
-                    if shouldDisplayGroup(group) {
-                        Section {
-                            ForEach(group.attributes, id: \.self) { attribute in
-                                if shouldDisplayAttribute(attribute) {
-                                    component(for: attribute)
-                                        .listRowSeparator(.hidden)
-                                }
-                            }
-                        } header: {
-                            if (group.groupType.shouldShowInPreview) {
-                                Text(group.groupType.displayName)
-                                    .font(.title3)
-                                    .fontWeight(.semibold)
-                                    .foregroundStyle(.primary)
-                                    .padding(.top, .Spacing.xSmall)
-                            } else {
-                                Spacer()
-                            }
+                    } header: {
+                        if (group.groupType.shouldShowInPreview) {
+                            Text(group.groupType.displayName)
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.primary)
+                                .padding(.top, .Spacing.xSmall)
+                        } else {
+                            Spacer()
                         }
                     }
                 }
-            }.padding(.vertical, .Spacing.default)
-        }
-#if os(macOS)
-        .inspect { tableView in
-            tableView.floatsGroupRows = false
-        }
-#endif
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
-        .scrollBounceBehavior(.basedOnSize)
-    }
-
-    @ViewBuilder
-    private func profileImage(profile: Profile) -> some View {
-        switch profileImageStyle {
-        case .none:
-            EmptyView()
-        case .fullWidthHeader(_):
-            ProfileImageView(
-                emailAddress: profile.address.address,
-                shape: .rectangle,
-                size: .large
-            )
-            .background(.accent.gradient)
-
-        case let .shape(type, _):
-            ProfileImageView(
-                emailAddress: profile.address.address,
-                shape: type,
-                size: .large
-            )
+            }
         }
     }
 
@@ -290,7 +229,6 @@ struct InfoButton: View {
             },
             set: { _ in }
         ),
-        profileImageStyle: .none
     )
 }
 
@@ -299,14 +237,12 @@ struct InfoButton: View {
     ProfileAttributesView(
         profile: .constant(.makeFake(awayWarning: "Away")),
         receiveBroadcasts: .constant(false),
-        profileImageStyle: .shape(),
     )
     .frame(width: 320, height: 500)
     #else
     ProfileAttributesView(
         profile: .constant(.makeFake(awayWarning: "Away")),
         receiveBroadcasts: .constant(false),
-        profileImageStyle: .fullWidthHeader(height: 500),
     )
     #endif
 }

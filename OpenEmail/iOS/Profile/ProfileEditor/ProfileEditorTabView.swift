@@ -10,11 +10,9 @@ struct ProfileEditorTabView: View {
     var body: some View {
         NavigationSplitView {
             List(selection: $selectedGroup) {
-                if let profile = viewModel.profile {
-                    ForEach(Profile.groupedAttributes) { group in
-                        NavigationLink(value: group.groupType) {
-                            ProfileEditorGroupItemView(group: group, isSelected: false, onSelection: {})
-                        }
+                ForEach(Profile.groupedAttributes) { group in
+                    NavigationLink(value: group.groupType) {
+                        ProfileEditorGroupItemView(group: group)
                     }
                 }
             }
