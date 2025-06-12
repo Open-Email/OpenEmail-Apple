@@ -24,39 +24,33 @@ struct ProfileView: View {
     }
 
     var body: some View {
-        
-        ProfileImageView(
-            emailAddress: viewModel.profile.address.address,
-            shape: .rectangle,
-            size: .huge
-        ).frame(maxWidth: .infinity, maxHeight: 250)
+        VStack(spacing: .zero) {
+            ProfileImageView(
+                emailAddress: viewModel.profile.address.address,
+                shape: .rectangle,
+                size: .huge
+            ).frame(maxWidth: .infinity, maxHeight: 400)
             
-        ProfileAttributesView(
-            profile: Binding<Profile>(
-                get: { viewModel.profile },
-                set: { viewModel.profile = $0 }
-            ),
-            showBroadcasts: !viewModel.isSelf && viewModel.isInContacts,
-            receiveBroadcasts: Binding(
-                get: {
-                    viewModel.receiveBroadcasts
-                },
-                set: { newValue in
-                    Task {
-                        await viewModel.updateReceiveBroadcasts(newValue)
-                    }
-                }),
-            profileImageStyle: .none,
-        )
+            ProfileAttributesView(
+                profile: Binding<Profile>(
+                    get: { viewModel.profile },
+                    set: { viewModel.profile = $0 }
+                ),
+                showBroadcasts: !viewModel.isSelf && viewModel.isInContacts,
+                receiveBroadcasts: Binding(
+                    get: {
+                        viewModel.receiveBroadcasts
+                    },
+                    set: { newValue in
+                        Task {
+                            await viewModel.updateReceiveBroadcasts(newValue)
+                        }
+                    }),
+                profileImageStyle: .none,
+            )
+        }.ignoresSafeArea(.all, edges: .top)
+       
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button(role: .cancel) {
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark")
-                }
-
-            }
             ToolbarItemGroup(placement: .topBarTrailing) {
                 if viewModel.isInContacts {
                    

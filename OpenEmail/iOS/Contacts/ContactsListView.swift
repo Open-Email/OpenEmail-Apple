@@ -25,11 +25,13 @@ struct ContactsListView: View {
     ) {
         _selectedContactListItem = selectedContactListItem
     }
+    
+    private var hasContactRequests: Bool {
+        !viewModel.contactRequestItems.isEmpty
+    }
 
     var body: some View {
         List(selection: $selectedContactListItem) {
-            let hasContactRequests = !viewModel.contactRequestItems.isEmpty
-
             if hasContactRequests {
                 Section("Contact Requests (\(viewModel.contactRequestItems.count))") {
                     ForEach(viewModel.contactRequestItems) { item in
@@ -39,14 +41,26 @@ struct ContactsListView: View {
             }
 
             if viewModel.contactsCount > 0 {
-                Section(hasContactRequests ? "Contacts" : "") {
+                if hasContactRequests {
+                    Section("Contacts") {
+                        ForEach(viewModel.contactItems) { item in
+                            ContactListItemView(item: item).tag(item)
+                        }
+                    }
+                } else {
                     ForEach(viewModel.contactItems) { item in
                         ContactListItemView(item: item).tag(item)
                     }
                 }
             }
         }
-        .listStyle(.grouped)
+        .if(hasContactRequests) { view in
+            view.listStyle(.grouped)
+        }
+        .if(!hasContactRequests) { view in
+            view.listStyle(.plain)
+        }
+        
         .searchable(text: $searchText)
         .navigationTitle("Contacts")
         .toolbar {

@@ -17,7 +17,7 @@ struct ContactsTabView: View {
             )
         } detail: {
             if let contact = navigationState.selectedContact {
-                ContactDetails(listItem: contact)
+                ContactDetails(listItem: contact).id(contact.email)
             }
         }
     }
@@ -32,34 +32,23 @@ struct ContactDetails: View {
     let listItem: ContactListItem
     
     var body: some View {
-        Group {
+        VStack {
             if loading {
                 ProgressView()
             } else {
                 if let profile = profile {
                     ProfileView(profile: profile, showActionButtons: true)
-                        .navigationBarBackButtonHidden()
-                        .toolbar {
-                            ToolbarItem(placement: .topBarLeading) {
-                                Button {
-                                    navigationState.selectedContact = nil
-                                } label: {
-                                    Image(systemName: "chevron.backward")
-                                }
-                                .buttonStyle(RoundToolbarButtonStyle())
-                            }
-                        }
-                        .toolbarBackground(.hidden, for: .navigationBar)
                 }
             }
         }.task {
-                if let emailAddress = EmailAddress(listItem.email) {
-                    loading = true
-                    profile = try? await client
-                        .fetchProfile(address: emailAddress, force: false)
-                    loading = false
-                }
-            }
+            loading = true
+            profile = try? await client
+                .fetchProfile(
+                    address: EmailAddress(listItem.email)!,
+                    force: false
+                )
+            loading = false
+        }
     }
 }
 
