@@ -16,6 +16,7 @@ struct OpenEmailApp: App {
     init() {
         Log.start()
         UserDefaults.standard.registerDefaults()
+        SyncService.shared.setupPublishers()
     }
 
     private var hasCompletedOnboarding: Bool {
