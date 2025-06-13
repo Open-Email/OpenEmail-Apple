@@ -24,16 +24,16 @@ struct ProfileView: View {
     }
 
     var body: some View {
-        VStack(spacing: .zero) {
-            ProfileImageView(
-                emailAddress: viewModel.profile.address.address,
-                shape: .rectangle,
-                size: .huge
-            )
-            .frame(maxWidth: .infinity, maxHeight: 400)
-            
-            
-            ScrollView {
+        ScrollView {
+            VStack(spacing: .zero) {
+                ProfileImageView(
+                    emailAddress: viewModel.profile.address.address,
+                    shape: .rectangle,
+                    size: .huge
+                )
+                .frame(maxWidth: .infinity)
+                .frame(height: 400)
+                
                 ProfileAttributesView(
                     profile: Binding<Profile>(
                         get: { viewModel.profile },
@@ -52,9 +52,8 @@ struct ProfileView: View {
                 ).padding(.horizontal, .Spacing.default)
                     .padding(.vertical, .Spacing.default)
             }
-            
-        }.ignoresSafeArea(.all, edges: .top)
-       
+        }
+        
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 if viewModel.isInContacts {
@@ -62,13 +61,13 @@ struct ProfileView: View {
                     Button {
                         showRemoveContactConfirmationAlert = true
                     } label: {
-                        Image(systemName: "trash")
+                        Image(.scopeTrash).foregroundStyle(.accent)
                     }
                     
                     Button {
                         showsComposeView = true
                     } label: {
-                        Image(systemName: "square.and.pencil")
+                        Image(.compose).foregroundStyle(.accent)
                     }
                     
                 } else {
