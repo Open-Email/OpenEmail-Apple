@@ -253,6 +253,7 @@
 		9DD7B0A92DF82178002E81A4 /* ProfileTagView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BCF438D2B76482600D19A51 /* ProfileTagView.swift */; };
 		9DD7B0AA2DF826C8002E81A4 /* ContactSuggestionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B66B4B72C08A99B00CA34EE /* ContactSuggestionsView.swift */; };
 		9DDF95752DFC5A740077BCC1 /* HighlightedTextEditor in Frameworks */ = {isa = PBXBuildFile; productRef = 9DDF95742DFC5A740077BCC1 /* HighlightedTextEditor */; };
+		9DDF95772DFC60540077BCC1 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = 9DDF95762DFC60540077BCC1 /* MarkdownUI */; };
 		9DF64BC82DF3514C00168B30 /* VisualEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DF64BC72DF3514C00168B30 /* VisualEffectView.swift */; };
 		9DF64BC92DF7161900168B30 /* NavigationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7C81072AF5175F0088E2EA /* NavigationState.swift */; };
 /* End PBXBuildFile section */
@@ -459,6 +460,7 @@
 				5B61F72C2CB940F6006C0C92 /* OpenEmailModel in Frameworks */,
 				5BDA2F002C5CEDBC009FB2BD /* CodeScanner in Frameworks */,
 				5B61F73E2CB94356006C0C92 /* OpenEmailCore in Frameworks */,
+				9DDF95772DFC60540077BCC1 /* MarkdownUI in Frameworks */,
 				5B61F7332CB942A1006C0C92 /* OpenEmailPersistence in Frameworks */,
 				5B30467F2C6F68E700B33157 /* Flow in Frameworks */,
 			);
@@ -1116,6 +1118,7 @@
 				5B61F73D2CB94356006C0C92 /* OpenEmailCore */,
 				5B1C378A2D3AAE050017D57D /* Inspect */,
 				9DDF95742DFC5A740077BCC1 /* HighlightedTextEditor */,
+				9DDF95762DFC60540077BCC1 /* MarkdownUI */,
 			);
 			productName = ping.works;
 			productReference = 5BBE54AC2C5CCD3C008F25CC /* OpenEmail.app */;
@@ -1950,6 +1953,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9DCE42532DDC90D9001AABB1 /* XCRemoteSwiftPackageReference "HighlightedTextEditor" */;
 			productName = HighlightedTextEditor;
+		};
+		9DDF95762DFC60540077BCC1 /* MarkdownUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9DCE42562DDCAD2E001AABB1 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */;
+			productName = MarkdownUI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
