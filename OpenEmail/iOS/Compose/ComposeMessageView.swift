@@ -4,6 +4,7 @@ import OpenEmailPersistence
 import OpenEmailModel
 import Logging
 import PhotosUI
+import HighlightedTextEditor
 
 enum ComposeResult {
     case cancel
@@ -34,6 +35,7 @@ struct ComposeMessageView: View {
     @State private var mediaFilter: PHPickerFilter? = nil
     @State private var photoPickerItems: [PhotosPickerItem] = []
     @State private var videoPickerItems: [PhotosPickerItem] = []
+    @State private var bodyText: String = ""
 
     private var onClose: ((ComposeResult) -> Void)?
 
@@ -44,54 +46,52 @@ struct ComposeMessageView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading) {
-                    if viewModel.canBroadcast {
-                        Toggle("Broadcast", isOn: $viewModel.isBroadcast)
-                            .font(.subheadline)
-                            .tint(Color.accentColor)
-                            .foregroundStyle(.secondary)
-                            .padding(.vertical, .Spacing.xSmall)
-                        Divider()
-                    }
-
-                    if !viewModel.isBroadcast {
-                        ReadersView(isEditable: true, readers: $viewModel.readers, tickedReaders: .constant([]), hasInvalidReader: $hasInvalidReader, pendingText: $pendingEmailAddress)
-                            .focused($isReadersFocused)
-                        Divider()
-                    }
-                    
-                    HStack(spacing: .Spacing.xSmall) {
-                        Text("Subject:")
-                            .foregroundStyle(.secondary)
-                            .font(.subheadline)
-                        TextField("", text: $viewModel.subject)
-                    }
-                    .padding(.vertical, .Spacing.xSmall)
-                    
+            VStack(alignment: .leading) {
+                if viewModel.canBroadcast {
+                    Toggle("Broadcast", isOn: $viewModel.isBroadcast)
+                        .font(.subheadline)
+                        .tint(Color.accentColor)
+                        .foregroundStyle(.secondary)
+                        .padding(.vertical, .Spacing.xSmall)
                     Divider()
-                    
-                    VStack(alignment: .leading) {
-                        AutoResizingTextEditor(
-                            text: $viewModel.fullText,
-                            isFocused: $isBodyFocused
-                        )
-                        
-                        if !viewModel.attachedFileItems.isEmpty {
-                            ComposeAttachmentsListView(attachedFileItems: $viewModel.attachedFileItems, onDelete: {
-                                viewModel.removeAttachedFileItem(item: $0)
-                            })
-                            .padding(.top, .Spacing.default)
-                        }
-                        
-                        if viewModel.attachmentLoading {
-                            ProgressView()
-                        }
-                    }
-
                 }
-                .animation(.default, value: viewModel.isBroadcast)
-                .padding(.horizontal)
+                
+                if !viewModel.isBroadcast {
+                    ReadersView(isEditable: true, readers: $viewModel.readers, tickedReaders: .constant([]), hasInvalidReader: $hasInvalidReader, pendingText: $pendingEmailAddress)
+                        .focused($isReadersFocused)
+                    Divider()
+                }
+                
+                HStack(spacing: .Spacing.xSmall) {
+                    Text("Subject:")
+                        .foregroundStyle(.secondary)
+                        .font(.subheadline)
+                    TextField("", text: $viewModel.subject)
+                }
+                .padding(.vertical, .Spacing.xSmall)
+                
+                Divider()
+                
+                HighlightedTextEditor(text: $bodyText, highlightRules: .markdown)
+                
+                if !viewModel.attachedFileItems.isEmpty {
+                    ComposeAttachmentsListView(attachedFileItems: $viewModel.attachedFileItems, onDelete: {
+                        viewModel.removeAttachedFileItem(item: $0)
+                    })
+                    .padding(.top, .Spacing.default)
+                }
+                
+                if viewModel.attachmentLoading {
+                    ProgressView()
+                }
+            }
+            .animation(.default, value: viewModel.isBroadcast)
+            .padding(.horizontal, .Spacing.default)
+            .onChange(of: bodyText) {
+                viewModel.fullText = bodyText
+            }
+            .onChange(of: viewModel.fullText) {
+                self.bodyText = viewModel.fullText
             }
             .contentShape(Rectangle())
             .onTapGesture {

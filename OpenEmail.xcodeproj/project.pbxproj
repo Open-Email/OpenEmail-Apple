@@ -252,6 +252,7 @@
 		9DCE42582DDCAD2E001AABB1 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = 9DCE42572DDCAD2E001AABB1 /* MarkdownUI */; };
 		9DD7B0A92DF82178002E81A4 /* ProfileTagView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BCF438D2B76482600D19A51 /* ProfileTagView.swift */; };
 		9DD7B0AA2DF826C8002E81A4 /* ContactSuggestionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B66B4B72C08A99B00CA34EE /* ContactSuggestionsView.swift */; };
+		9DDF95752DFC5A740077BCC1 /* HighlightedTextEditor in Frameworks */ = {isa = PBXBuildFile; productRef = 9DDF95742DFC5A740077BCC1 /* HighlightedTextEditor */; };
 		9DF64BC82DF3514C00168B30 /* VisualEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DF64BC72DF3514C00168B30 /* VisualEffectView.swift */; };
 		9DF64BC92DF7161900168B30 /* NavigationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7C81072AF5175F0088E2EA /* NavigationState.swift */; };
 /* End PBXBuildFile section */
@@ -452,6 +453,7 @@
 			files = (
 				5B1C378B2D3AAE050017D57D /* Inspect in Frameworks */,
 				5BDA2EEE2C5CD23F009FB2BD /* KeychainAccess in Frameworks */,
+				9DDF95752DFC5A740077BCC1 /* HighlightedTextEditor in Frameworks */,
 				5BDA2EEC2C5CCF6A009FB2BD /* Utils in Frameworks */,
 				5BDA2EEA2C5CCF6A009FB2BD /* Logging in Frameworks */,
 				5B61F72C2CB940F6006C0C92 /* OpenEmailModel in Frameworks */,
@@ -1113,6 +1115,7 @@
 				5B61F7322CB942A1006C0C92 /* OpenEmailPersistence */,
 				5B61F73D2CB94356006C0C92 /* OpenEmailCore */,
 				5B1C378A2D3AAE050017D57D /* Inspect */,
+				9DDF95742DFC5A740077BCC1 /* HighlightedTextEditor */,
 			);
 			productName = ping.works;
 			productReference = 5BBE54AC2C5CCD3C008F25CC /* OpenEmail.app */;
@@ -1942,6 +1945,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9DCE42562DDCAD2E001AABB1 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */;
 			productName = MarkdownUI;
+		};
+		9DDF95742DFC5A740077BCC1 /* HighlightedTextEditor */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9DCE42532DDC90D9001AABB1 /* XCRemoteSwiftPackageReference "HighlightedTextEditor" */;
+			productName = HighlightedTextEditor;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
