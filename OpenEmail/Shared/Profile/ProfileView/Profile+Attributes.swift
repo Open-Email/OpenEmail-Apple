@@ -1,5 +1,6 @@
 import Foundation
 import OpenEmailCore
+import SwiftUI
 
 enum ProfileAttributesGroupType: String {
     case general
@@ -24,6 +25,19 @@ enum ProfileAttributesGroupType: String {
         switch self {
         case .configuration: return false
         default: return true
+        }
+    }
+}
+
+extension ProfileAttributesGroup {
+    var icon: ImageResource {
+        switch groupType {
+            case .general: .ProfileAttributesGroup.general
+            case .work: .ProfileAttributesGroup.work
+            case .personal: .ProfileAttributesGroup.personal
+            case .interests: .ProfileAttributesGroup.interests
+            case .contacts: .ProfileAttributesGroup.contacts
+            case .configuration: .ProfileAttributesGroup.configuration
         }
     }
 }

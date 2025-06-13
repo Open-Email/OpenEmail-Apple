@@ -157,7 +157,6 @@
 		5BD1FA392C63A92500DE4B5D /* SidebarScope+Display.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BD1FA372C63A92500DE4B5D /* SidebarScope+Display.swift */; };
 		5BD1FA3F2C63AA7300DE4B5D /* ScopesSidebarViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BD1FA3E2C63AA7300DE4B5D /* ScopesSidebarViewModel.swift */; };
 		5BD1FA402C63AA7300DE4B5D /* ScopesSidebarViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BD1FA3E2C63AA7300DE4B5D /* ScopesSidebarViewModel.swift */; };
-		5BD1FA422C63AE4500DE4B5D /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BD1FA412C63AE4500DE4B5D /* SidebarView.swift */; };
 		5BD1FA5F2C66046500DE4B5D /* MessagesListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F25812AFE766600226455 /* MessagesListViewModel.swift */; };
 		5BD1FA602C6606E600DE4B5D /* MessagesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BD1FA5D2C66044000DE4B5D /* MessagesListView.swift */; };
 		5BD1FA632C661CA400DE4B5D /* MessageListItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F258C2AFE818400226455 /* MessageListItemView.swift */; };
@@ -239,7 +238,6 @@
 		5BF25D1C2D71BAB900720F54 /* ProfileEditorTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF25D1B2D71BAB900720F54 /* ProfileEditorTabView.swift */; };
 		5BF25D1E2D71BBD100720F54 /* ProfileEditorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16468EBB2B90BFCE0096BC0D /* ProfileEditorViewModel.swift */; };
 		5BF25D202D71C18A00720F54 /* ProfileEditorGroupItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF25D1F2D71C18A00720F54 /* ProfileEditorGroupItemView.swift */; };
-		5BF25D212D71C18A00720F54 /* ProfileEditorGroupItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF25D1F2D71C18A00720F54 /* ProfileEditorGroupItemView.swift */; };
 		5BF25D2D2D71C94100720F54 /* GeneralProfileAttributesEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF25D222D71C94100720F54 /* GeneralProfileAttributesEditorView.swift */; };
 		5BF25D302D71E3BD00720F54 /* OpenEmailTextEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF25D2F2D71E3BD00720F54 /* OpenEmailTextEditor.swift */; };
 		5BF25D312D71E4FD00720F54 /* PersonalProfileAttributesEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF25D232D71C94100720F54 /* PersonalProfileAttributesEditorView.swift */; };
@@ -383,7 +381,6 @@
 		5BD144DE2D43A10400BAAA3A /* OnboardingHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingHeaderView.swift; sourceTree = "<group>"; };
 		5BD1FA372C63A92500DE4B5D /* SidebarScope+Display.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SidebarScope+Display.swift"; sourceTree = "<group>"; };
 		5BD1FA3E2C63AA7300DE4B5D /* ScopesSidebarViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScopesSidebarViewModel.swift; sourceTree = "<group>"; };
-		5BD1FA412C63AE4500DE4B5D /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
 		5BD1FA5D2C66044000DE4B5D /* MessagesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagesListView.swift; sourceTree = "<group>"; };
 		5BD1FA672C664C2A00DE4B5D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		5BD1FA6B2C66551E00DE4B5D /* TrustedDomainsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrustedDomainsSettingsView.swift; sourceTree = "<group>"; };
@@ -926,7 +923,6 @@
 				5BDA2EB72C5CCD91009FB2BD /* Assets.xcassets */,
 				5BDA2EB92C5CCD91009FB2BD /* OpenEmailApp.swift */,
 				5BDA2EB82C5CCD91009FB2BD /* ContentView.swift */,
-				5BD1FA412C63AE4500DE4B5D /* SidebarView.swift */,
 				5BD144D92D43870300BAAA3A /* Theme */,
 				5BD1FA6F2C6787A500DE4B5D /* Utils */,
 				5BDA2EF92C5CD991009FB2BD /* Onboarding */,
@@ -1318,7 +1314,6 @@
 				5B88AF9A2C8B10D900385E03 /* NetworkConnectionMonitor.swift in Sources */,
 				5BDA2EC02C5CCF35009FB2BD /* Dependencies.swift in Sources */,
 				5BD1FA762C6A3F8600DE4B5D /* MessageView.swift in Sources */,
-				5BD1FA422C63AE4500DE4B5D /* SidebarView.swift in Sources */,
 				5BDA2EC32C5CCF35009FB2BD /* AddToContactsUseCase.swift in Sources */,
 				5BD1FA5F2C66046500DE4B5D /* MessagesListViewModel.swift in Sources */,
 				5BE4917A2D56679D0036DBBF /* ContactsListView.swift in Sources */,
@@ -1349,7 +1344,6 @@
 				5BDA2ECD2C5CCF48009FB2BD /* AsyncButton.swift in Sources */,
 				9DF64BC92DF7161900168B30 /* NavigationState.swift in Sources */,
 				5BDD1D312CA69590004AF1D5 /* ReadersView.swift in Sources */,
-				5BF25D212D71C18A00720F54 /* ProfileEditorGroupItemView.swift in Sources */,
 				5BE2CF9D2D4CDBA600E9DB1A /* MessageTypeBadge.swift in Sources */,
 				5BE491672D562BB70036DBBF /* ProfileActionButton.swift in Sources */,
 				5BDA2ECE2C5CCF48009FB2BD /* TimeInterval+Extension.swift in Sources */,

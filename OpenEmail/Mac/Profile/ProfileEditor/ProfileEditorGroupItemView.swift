@@ -15,19 +15,6 @@ struct ProfileEditorGroupItemView: View {
     }
 }
 
-private extension ProfileAttributesGroup {
-    var icon: ImageResource {
-        switch groupType {
-        case .general: .ProfileAttributesGroup.general
-        case .work: .ProfileAttributesGroup.work
-        case .personal: .ProfileAttributesGroup.personal
-        case .interests: .ProfileAttributesGroup.interests
-        case .contacts: .ProfileAttributesGroup.contacts
-        case .configuration: .ProfileAttributesGroup.configuration
-        }
-    }
-}
-
 #Preview {
     let groups: [ProfileAttributesGroupType] = [.general, .work, .personal]
 

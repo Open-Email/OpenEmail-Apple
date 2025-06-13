@@ -9,14 +9,14 @@ struct ProfileEditorTabView: View {
 
     var body: some View {
         NavigationSplitView {
-            List(selection: $selectedGroup) {
-                ForEach(Profile.groupedAttributes) { group in
-                    NavigationLink(value: group.groupType) {
-                        ProfileEditorGroupItemView(group: group)
-                    }
-                }
+            List(Profile.groupedAttributes, selection: $selectedGroup) { group in
+                Label(title: {
+                    Text(group.groupType.displayName)
+                }, icon: {
+                    Image(group.icon)
+                }).tag(group.groupType)
+                
             }
-            .listStyle(.plain)
             .navigationTitle("Profile")
         } detail: {
             if let selectedGroup {
