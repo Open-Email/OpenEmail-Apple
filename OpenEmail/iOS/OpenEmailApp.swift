@@ -13,6 +13,10 @@ struct OpenEmailApp: App {
     init() {
         Log.start()
         UserDefaults.standard.registerDefaults()
+        
+        let syncService = SyncService.shared
+        syncService.registerBackgroundTask()
+        syncService.setupPublishers()
     }
 
     private var hasCompletedOnboarding: Bool {

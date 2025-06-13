@@ -427,6 +427,7 @@
 		5BFDDAEC2B51A408009DDCDA /* MultipleMessagesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipleMessagesView.swift; sourceTree = "<group>"; };
 		9D0775812D9AFB8100C2A2E0 /* ArrayExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayExtensions.swift; sourceTree = "<group>"; };
 		9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountUseCase.swift; sourceTree = "<group>"; };
+		9DDF95782DFC69E90077BCC1 /* OpenEmail iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "OpenEmail iOS.entitlements"; sourceTree = "<group>"; };
 		9DF64BC72DF3514C00168B30 /* VisualEffectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -582,6 +583,7 @@
 		5B7C806E2AEBF1110088E2EA = {
 			isa = PBXGroup;
 			children = (
+				9DDF95782DFC69E90077BCC1 /* OpenEmail iOS.entitlements */,
 				5B7C80792AEBF1110088E2EA /* OpenEmail */,
 				5B7C80782AEBF1110088E2EA /* Products */,
 				5B7C80C92AF2A5CB0088E2EA /* Frameworks */,
@@ -1670,6 +1672,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColorMobile;
+				CODE_SIGN_ENTITLEMENTS = "OpenEmail iOS.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_ASSET_PATHS = "OpenEmail/Preview\\ Content";
@@ -1678,6 +1681,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = OpenEmail/iOS/info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = OpenEmail;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Scanning QR codes for easy login";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -1707,6 +1711,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColorMobile;
+				CODE_SIGN_ENTITLEMENTS = "OpenEmail iOS.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_ASSET_PATHS = "OpenEmail/Preview\\ Content";
@@ -1715,6 +1720,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = OpenEmail/iOS/info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = OpenEmail;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Scanning QR codes for easy login";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

@@ -5,6 +5,10 @@ import OpenEmailCore
 import OpenEmailPersistence
 import Logging
 import Utils
+#if os(iOS)
+import BackgroundTasks
+#endif
+
 
 extension Notification.Name {
     static let didSynchronizeMessages = Notification.Name("didSynchronizeMessages")
@@ -31,42 +35,25 @@ class SyncService: MessageSyncing {
 
     @ObservationIgnored
     @Injected(\.messagesStore) private var messagesStore
+    
+    @ObservationIgnored
+    private let userDefaults = UserDefaults.standard
 
     private var subscriptions = Set<AnyCancellable>()
     
 
     private var outgoingMessageIds: [String] = []
+    
 #if os(macOS)
     private var scheduler: NSBackgroundActivityScheduler?
 #endif
     
+    
     private init() {
-#if os(macOS)
-        UserDefaults.standard.publisher(for: \.notificationFetchingInterval)
-            .removeDuplicates()
-            .sink { interval in
-                self.scheduler?.invalidate()
-                
-                let newScheduler = NSBackgroundActivityScheduler(
-                    identifier: "\(String(describing: Bundle.main.bundleIdentifier)).refreshState"
-                )
-                newScheduler.repeats = true
-                newScheduler.interval = Double(interval * 60)
-                newScheduler.schedule { completion in
-                    Task {
-                        await self.synchronize()
-                        completion(.finished)
-                    }
-                }
-                self.scheduler = newScheduler
-            }
-            .store(in: &subscriptions)
-#endif
-
         NotificationCenter.default.publisher(for: .didUpdateContacts)
             .sink { notification in
                 let updateType = PersistedStore.UpdateType(rawValue: ((notification.userInfo?["type"] as? String) ?? "")) ?? .add
-
+                
                 if updateType == .add {
                     Task {
                         await self.synchronize()
@@ -75,7 +62,78 @@ class SyncService: MessageSyncing {
             }
             .store(in: &subscriptions)
     }
-
+    
+    public func setupPublishers() {
+        UserDefaults.standard.publisher(for: \.notificationFetchingInterval,
+                                        options: [.initial, .new])
+        .removeDuplicates()
+        .sink { [weak self] interval in
+            if interval > 0 {
+                self?.configureSchedulers(interval: Double(interval) * 60)
+            }
+        }
+        .store(in: &subscriptions)
+    }
+    
+    private func configureSchedulers(interval: TimeInterval) {
+#if os(macOS)
+        // Invalidate and recreate the macOS scheduler
+        scheduler?.invalidate()
+        let mac = NSBackgroundActivityScheduler(identifier: "\(String(describing: Bundle.main.bundleIdentifier)).refreshState")
+        mac.repeats = true
+        mac.interval = interval
+        mac.schedule { completion in
+            Task {
+                await self.synchronize()
+                completion(.finished)
+            }
+        }
+        scheduler = mac
+#elseif os(iOS)
+        // Schedule the iOS BGAppRefreshTask
+        scheduleAppRefresh(interval: interval)
+#endif
+    }
+    
+#if os(iOS)
+    private let refreshTaskID = "\(String(Bundle.main.bundleIdentifier!)).refreshState"
+    
+    public func registerBackgroundTask() {
+        BGTaskScheduler.shared.register(
+            forTaskWithIdentifier: refreshTaskID,
+            using: nil
+        ) { [weak self] task in
+            self?.handleAppRefresh(task: task as! BGAppRefreshTask)
+        }
+    }
+    
+    private func scheduleAppRefresh(interval: TimeInterval) {
+        let request = BGAppRefreshTaskRequest(identifier: refreshTaskID)
+        request.earliestBeginDate = Date(timeIntervalSinceNow: interval)
+        do {
+            try BGTaskScheduler.shared.submit(request)
+        } catch {
+            print("Could not schedule app refresh: \(error)")
+        }
+    }
+    
+    private func handleAppRefresh(task: BGAppRefreshTask) {
+        // Always reschedule for next time
+        scheduleAppRefresh(interval: Double(userDefaults.notificationFetchingInterval) * 60.0)
+        
+        task.expirationHandler = {
+            task.setTaskCompleted(success: false)
+        }
+        
+        Task {
+            await self.synchronize()
+            task.setTaskCompleted(success: true)
+        }
+    }
+#endif
+    
+    
+   
     func isActiveOutgoingMessageId(_ messageId: String) -> Bool {
         return outgoingMessageIds.contains(messageId)
     }
