@@ -90,7 +90,6 @@ struct ProfileImageView: View {
                 .shadow(color: .themeShadow, radius: 4, y: 2)
             case .rectangle:
                 Color.clear
-                    .frame(width: size.size, height: size.size)
                     .background {
                         makeImage()
                     }
@@ -149,8 +148,7 @@ struct ProfileImageView: View {
         if let image = image {
             image
                 .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: size.size, height: size.size)
+                .scaledToFill()
         } else {
             Image(.logoSmall)
                 .resizable()
@@ -159,6 +157,7 @@ struct ProfileImageView: View {
                 .frame(maxWidth: 64, maxHeight: 64)
                 .aspectRatio(contentMode: .fit)
                 .padding( .Spacing.xxxSmall)
+                .scaledToFit()
         }
     }
 }

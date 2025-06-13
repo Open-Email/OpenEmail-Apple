@@ -4,8 +4,9 @@ import Combine
 import OpenEmailCore
 import OpenEmailPersistence
 import OpenEmailModel
+import SwiftUI
 
-struct ScopeSidebarItem: Identifiable, Hashable {
+struct ScopeSidebarItem: Identifiable, Hashable, Equatable {
     var id: String { scope.rawValue }
     let scope: SidebarScope
     let unreadCount: Int
@@ -18,6 +19,18 @@ class ScopesSidebarViewModel {
     @Injected(\.messagesStore) private var messagesStore
     @ObservationIgnored
     @Injected(\.contactsStore) private var contactStore
+    
+    
+    var allCounts: [SidebarScope: Int] = [:]
+    var unreadCounts: [SidebarScope: Int] = [:]
+    var selectedScope: SidebarScope = .inbox
+    private var subscriptions = Set<AnyCancellable>()
+    
+    private(set) var items: [ScopeSidebarItem] = []
+    
+    private let contactRequestsController = ContactRequestsController()
+    
+    private let triggerReloadSubject = PassthroughSubject<Void, Never>()
     
     init() {
         NotificationCenter.default.publisher(for: .didUpdateNotifications).sink { notifications in
@@ -51,26 +64,15 @@ class ScopesSidebarViewModel {
                 group.addTask {
                     await self.refreshMessages()
                 }
-                
+#if os(MacOS)
                 group.addTask {
                     await self.refreshContacts()
                 }
-                
+#endif
                 await group.waitForAll()
             }
         }
     }
-    
-    var allCounts: [SidebarScope: Int] = [:]
-    var unreadCounts: [SidebarScope: Int] = [:]
-    var selectedScope: SidebarScope = .inbox
-    private var subscriptions = Set<AnyCancellable>()
-    
-    private(set) var items: [ScopeSidebarItem] = []
-    
-    private let contactRequestsController = ContactRequestsController()
-    
-    private let triggerReloadSubject = PassthroughSubject<Void, Never>()
     
     private func refreshMessages() async {
         let registeredEmailAddress: String = UserDefaults.standard.registeredEmailAddress ?? ""
@@ -132,7 +134,7 @@ class ScopesSidebarViewModel {
     }
     
     @MainActor
-    private func reloadItems() async {
+    func reloadItems() async {
         await updateUnreadCounts()
         
         items = SidebarScope.allCases.compactMap {

@@ -3,7 +3,9 @@ import OpenEmailCore
 import Logging
 
 struct ProfileView: View {
+    @Environment(\.dismiss) private var dismiss
     @State private var viewModel: ProfileViewModel
+    @Injected(\.client) private var client
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) var registeredEmailAddress: String?
 
     private let showActionButtons: Bool
@@ -16,72 +18,89 @@ struct ProfileView: View {
         showActionButtons: Bool = true,
         isContactRequest: Bool = false,
     ) {
+        self.viewModel = ProfileViewModel(profile: profile)
         self.showActionButtons = showActionButtons
         self.isContactRequest = isContactRequest
-        viewModel = ProfileViewModel(profile: profile)
     }
 
     var body: some View {
-        let canEditReceiveBroadcasts = !viewModel.isSelf && viewModel.isInContacts
-        ProfileAttributesView(
-            profile: $viewModel.profile,
-            showBroadcasts: canEditReceiveBroadcasts,
-            receiveBroadcasts: Binding(
-                get: {
-                    viewModel.receiveBroadcasts
-                },
-                set: { newValue in
-                    Task {
-                        await viewModel.updateReceiveBroadcasts(newValue)
-                    }
-                }),
-            profileImageStyle: .fullWidthHeader(height: 450),
-            actionButtonRow: actionButtons
-        )
-        .sheet(isPresented: $showsComposeView) {
-            if let registeredEmailAddress {
-                ComposeMessageView(action: .newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: viewModel.profile.address.address))
+        ScrollView {
+            VStack(spacing: .zero) {
+                ProfileImageView(
+                    emailAddress: viewModel.profile.address.address,
+                    shape: .rectangle,
+                    size: .huge
+                )
+                .frame(maxWidth: .infinity)
+                .frame(height: 400)
+                
+                ProfileAttributesView(
+                    profile: Binding<Profile>(
+                        get: { viewModel.profile },
+                        set: { viewModel.profile = $0 }
+                    ),
+                    showBroadcasts: !viewModel.isSelf && viewModel.isInContacts,
+                    receiveBroadcasts: Binding(
+                        get: {
+                            viewModel.receiveBroadcasts
+                        },
+                        set: { newValue in
+                            Task {
+                                await viewModel.updateReceiveBroadcasts(newValue)
+                            }
+                        }),
+                ).padding(.horizontal, .Spacing.default)
+                    .padding(.vertical, .Spacing.default)
             }
         }
-    }
-
-    @ViewBuilder
-    private func actionButtons() -> some View {
-        if !viewModel.isSelf, showActionButtons {
-            HStack {
-                ProfileActionButton(title: "Refresh", icon: .refresh) {
-                    viewModel.refreshProfile()
-                }
-
+        
+        .toolbar {
+            ToolbarItemGroup(placement: .topBarTrailing) {
                 if viewModel.isInContacts {
-                    ProfileActionButton(title: "Fetch", icon: .attachmentDownload) {
-                        Task {
-                            await viewModel.fetchMessages()
-                        }
-                    }
-
-                    ProfileActionButton(title: "Message", icon: .compose) {
-                        showsComposeView = true
-                    }
-
-                    ProfileActionButton(title: "Delete", icon: .trash, role: .destructive) {
+                   
+                    Button {
                         showRemoveContactConfirmationAlert = true
+                    } label: {
+                        Image(.scopeTrash).foregroundStyle(.accent)
                     }
-                    .alert("Are you sure you want to remove this contact?", isPresented: $showRemoveContactConfirmationAlert) {
-                        Button("Cancel", role: .cancel) {}
-                        AsyncButton("Remove", role: .destructive) {
-                            await removeUser()
-                        }
-                    } message: {
-                        Text("This action cannot be undone.")
+                    
+                    Button {
+                        showsComposeView = true
+                    } label: {
+                        Image(.compose).foregroundStyle(.accent)
                     }
+                    
                 } else {
-                    ProfileActionButton(title: "Add ", icon: .addContact) {
-                        Task {
-                            await addToContacts()
+                    if !viewModel.isSelf {
+                        Button {
+                            Task {
+                                await addToContacts()
+                            }
+                        } label: {
+                            Image(systemName: "person.badge.plus")
                         }
                     }
                 }
+            }
+        }
+        .alert("Are you sure you want to remove this contact?", isPresented: $showRemoveContactConfirmationAlert) {
+            Button("Cancel", role: .cancel) {}
+            AsyncButton("Remove", role: .destructive) {
+                await removeUser()
+            }
+        } message: {
+            Text("This action cannot be undone.")
+        }
+        .sheet(isPresented: $showsComposeView) {
+            if let registeredEmailAddress {
+                ComposeMessageView(
+                    action:
+                            .newMessage(
+                                id: UUID(),
+                                authorAddress: registeredEmailAddress,
+                                readerAddress: viewModel.profile.address.address
+                            )
+                )
             }
         }
     }
@@ -104,58 +123,3 @@ struct ProfileView: View {
         }
     }
 }
-
-#if DEBUG
-
-#Preview("full profile") {
-    let client = EmailClientMock()
-    client.stubFetchedProfile = .makeFake()
-    InjectedValues[\.client] = client
-
-    return ProfileView(
-        profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
-        showActionButtons: true,
-        isContactRequest: false,
-    )
-}
-
-#Preview("away") {
-    let client = EmailClientMock()
-    client.stubFetchedProfile = .makeFake(awayWarning: "Gone for vacation 🌴")
-    InjectedValues[\.client] = client
-
-    return ProfileView(
-        profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
-        showActionButtons: true,
-        isContactRequest: false,
-    )
-}
-
-#Preview("no name") {
-    let client = EmailClientMock()
-    client.stubFetchedProfile = .makeFake(name: nil)
-    InjectedValues[\.client] = client
-
-    return ProfileView(
-        profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
-        showActionButtons: true,
-        isContactRequest: false,
-    )
-}
-
-#Preview("no action buttons") {
-    let client = EmailClientMock()
-    client.stubFetchedProfile = .makeFake()
-    InjectedValues[\.client] = client
-
-    let contactsStore = ContactStoreMock()
-    InjectedValues[\.contactsStore] = contactsStore
-
-    return ProfileView(
-        profile: .init(address: .init("mickey@mouse.com")!, profileData: [:]),
-        showActionButtons: false,
-        isContactRequest: false,
-    )
-}
-
-#endif

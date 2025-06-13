@@ -32,7 +32,7 @@ struct ContentView: View {
     ).eraseToAnyPublisher()
     
     var amountLabel: String? {
-        switch sidebarViewModel.selectedScope {
+        switch navigationState.selectedScope {
         case .broadcasts:
             let broadcastsCount = sidebarViewModel.allCounts[.broadcasts] ?? 0
             let unreadProadcastsCount = sidebarViewModel.unreadCounts[.broadcasts] ?? 0

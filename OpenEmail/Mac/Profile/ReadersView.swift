@@ -48,9 +48,6 @@ struct ReadersView: View {
     @FocusState private var isInputFocused: Bool
     @FocusState private var isFocused: Bool
 
-    // store which profiles have been shown to not show them again automatically
-    @State private var profilesShown = Set<EmailAddress>()
-
     @Injected(\.contactsStore) private var contactsStore: ContactStoring
     @Injected(\.client) private var client
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
@@ -74,7 +71,6 @@ struct ReadersView: View {
     }
 
     var body: some View {
-        // TODO: only display first 10 readers with option to expand to see all
         HFlow(itemSpacing: 4, rowSpacing: 2) {
             ForEach(Array(readers.enumerated()), id: \.offset) { index, reader in
                 if reader.address.address != registeredEmailAddress || readers.count == 1 || isEditable {
@@ -85,7 +81,7 @@ struct ReadersView: View {
                         onRemoveReader: {
                             readers.remove(at: index)
                         },
-                        automaticallyShowProfileIfNotInContacts: isEditable && !profilesShown.contains(reader.address),
+                        automaticallyShowProfileIfNotInContacts: isEditable,
                         canRemoveReader: isEditable,
                         showsActionButtons: !isEditable,
                         onShowProfile: showProfileType.onShowProfile
@@ -275,7 +271,6 @@ struct ReadersView: View {
                     }
                     AsyncButton("Add to contacts") {
                         if let localUser = LocalUser.current, let profile = newContact {
-                            newContact = nil
                             addingContactProgress = true
                             do {
                                 try await client

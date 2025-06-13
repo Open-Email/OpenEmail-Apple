@@ -39,12 +39,18 @@ struct ProfileView: View {
                 bottom: 0,
                 trailing: 0,
             ))
-            ProfileAttributesView(
-                profile: $viewModel.profile,
-                showBroadcasts: canEditReceiveBroadcasts,
-                receiveBroadcasts: receiveBroadcastsBinding,
-                profileImageStyle: .none
-            ).frame(minWidth: 250, idealWidth: 300)
+            List {
+                ProfileAttributesView(
+                    profile: $viewModel.profile,
+                    showBroadcasts: canEditReceiveBroadcasts,
+                    receiveBroadcasts: receiveBroadcastsBinding,
+                ).padding(.vertical, .Spacing.small)
+                    .padding(.trailing, .Spacing.small)
+            }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .scrollBounceBehavior(.basedOnSize)
+            .frame(minWidth: 250, idealWidth: 300)
         }
     }
 }

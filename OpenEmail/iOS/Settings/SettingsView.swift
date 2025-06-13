@@ -16,7 +16,6 @@ struct SettingsView: View {
                     } label: {
                         Label("General", image: .settings)
                     }
-                    .listRowSeparator(.hidden, edges: .top)
 
                     NavigationLink {
                         TrustedDomainsSettingsView()
@@ -30,7 +29,6 @@ struct SettingsView: View {
                         Label("Keys", image: .key)
                     }
                 }
-                .foregroundStyle(Color.themePrimary)
 
                 Section {
                     Button(role: .destructive) {
@@ -39,7 +37,6 @@ struct SettingsView: View {
                         Label("Log Out", image: .logout)
                             .foregroundStyle(.red)
                     }
-                    .listRowSeparator(.hidden, edges: .top)
                     .alert("Log Out?", isPresented: $showLogoutConfirmation) {
                         Button("Log Out", role: .destructive) {
                             LogoutUseCase().logout()
@@ -53,7 +50,6 @@ struct SettingsView: View {
                         Label("Delete Account", image: .delete)
                             .foregroundStyle(.red)
                     }
-                    .listRowSeparator(.hidden, edges: .top)
                     .alert("Delete Account?", isPresented: $showDeleteAccountConfirmation) {
                         AsyncButton("Delete Account", role: .destructive) {
                             do {
@@ -77,9 +73,7 @@ struct SettingsView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, .Spacing.xLarge)
                 }
-                .listRowSeparator(.hidden, edges: .bottom)
             }
-            .listStyle(.plain)
             .navigationTitle("Settings")
         }
     }

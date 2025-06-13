@@ -8,7 +8,8 @@ import Inspect
 @MainActor
 struct MessageView: View {
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
-
+    @Injected(\.client) private var client
+    
     @Binding var selectedMessageID: String?
     let selectedScope: SidebarScope
 
@@ -17,7 +18,6 @@ struct MessageView: View {
 
     @State private var showDeleteConfirmationAlert = false
     @State private var showRecallConfirmationAlert = false
-    @State private var showAuthorProfilePopover = false
     @State private var showFilesPopover = false
     @State private var toolbarBarVisibility: Visibility = .hidden
     @State private var composeAction: ComposeAction?
@@ -215,7 +215,11 @@ struct MessageView: View {
     private func messageView(message: Message) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: .Spacing.default) {
-                header(message: message)
+                MessageHeaderView(
+                    message: message,
+                    selectedScope: selectedScope,
+                    viewModel: viewModel,
+                )
 
                 Divider()
 
@@ -223,7 +227,8 @@ struct MessageView: View {
 
                 Divider()
 
-                StaticTextEditorView(string: .constant(message.body ?? ""))
+                Text(message.body ?? "")
+                    .font(.body)
 
                 if let attachmentsListViewModel, !attachmentsListViewModel.items.isEmpty {
                     Divider()
@@ -285,78 +290,11 @@ struct MessageView: View {
     }
 
     @ViewBuilder
-    private func header(message: Message) -> some View {
-        VStack(alignment: .leading, spacing: .Spacing.large) {
-            HStack(alignment: .top, spacing: .Spacing.small) {
-                Text(message.subject)
-                    .font(.title2)
-                    .textSelection(.enabled)
-
-                MessageTypeBadge(scope: selectedScope)
-            }
-
-            HStack(alignment: .top) {
-                authorProfileImage(address: message.author)
-                authorInfo(message: message)
-                Spacer()
-                sendDateLine(message: message)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func authorProfileImage(address: String) -> some View {
-        ProfileImageView(emailAddress: address, size: .medium)
-            .onTapGesture {
-                showAuthorProfilePopover = true
-            }
-            .popover(isPresented: $showAuthorProfilePopover) {
-                if let emailAddress = EmailAddress(address) {
-                    NavigationStack {
-                        ProfileView(emailAddress: emailAddress)
-                            .profilePopoverToolbar {
-                                showAuthorProfilePopover = false
-                            }
-                    }
-                }
-            }
-    }
-
-    @ViewBuilder
-    private func authorInfo(message: Message) -> some View {
-        if message.isBroadcast {
-            HStack {
-                HStack(spacing: 2) {
-                    Image(.scopeBroadcasts)
-                    Text("Broadcast")
-                }
-            }
-        } else {
-            VStack(alignment: .leading, spacing: 0) {
-                if let profile = viewModel.authorProfile {
-                    Text(profile.name).font(.headline)
-                    Text(message.author)
-                } else {
-                    Text(message.author).font(.headline)
-                }
-            }
-            .frame(maxHeight: .infinity)
-        }
-    }
-
-    @ViewBuilder
-    private func sendDateLine(message: Message) -> some View {
-        Text(message.formattedAuthoredOnDate)
-            .font(.subheadline)
-            .foregroundStyle(.tertiary)
-    }
-
-    @ViewBuilder
     private func readers(message: Message) -> some View {
         VStack(alignment: .leading, spacing: .Spacing.small) {
             ReadersView(
                 isEditable: false,
-                readers: viewModel.readers,
+                readers: $viewModel.readers,
                 tickedReaders: .constant(viewModel.message?.deliveries ?? []),
                 hasInvalidReader: .constant(false)
             )
@@ -365,7 +303,6 @@ struct MessageView: View {
 
     private func permanentlyDelete() async {
         do {
-            // TODO: Should the message also be recalled if outgoing and on server?
             try await viewModel.permanentlyDeleteMessage()
             selectedMessageID = nil
         } catch {
@@ -383,35 +320,70 @@ struct MessageView: View {
     }
 }
 
-private struct StaticTextEditorView: View {
-    @Binding var string: String
-    @State var textEditorHeight: CGFloat = 20
-    @State var font: Font = .system(.body)
-
-    private let marginOffset: CGFloat = 5
-
+struct MessageHeaderView: View {
+    
+    let message: Message
+    let selectedScope: SidebarScope
+    let viewModel: MessageViewModel
+    
+    @Injected(\.client) private var client
+    @State private var profile: Profile? = nil
+    @State private var showAuthorProfilePopover = false
+    
     var body: some View {
-        ZStack(alignment: .leading) {
-            Text(string)
-                .font(font)
-                .foregroundColor(.clear)
-                .padding(marginOffset)
-                .background(GeometryReader {
-                    Color.clear.preference(key: ViewHeightKey.self, value: $0.frame(in: .local).size.height + 2 * marginOffset)
-                })
-
-            TextEditor(text: $string)
-                .inspect {
-                    $0.isEditable = false
+        VStack(alignment: .leading, spacing: .Spacing.large) {
+            HStack(alignment: .top, spacing: .Spacing.small) {
+                Text(message.subject)
+                    .font(.title2)
+                    .textSelection(.enabled)
+                
+                MessageTypeBadge(scope: selectedScope)
+            }
+            
+            HStack(alignment: .top) {
+                if profile != nil {
+                    ProfileImageView(emailAddress: profile!.address.address, size: .medium)
                 }
-                .font(font)
-                .frame(height: max(0, textEditorHeight))
-                .scrollDisabled(true)
+                
+                if message.isBroadcast {
+                    HStack {
+                        HStack(spacing: 2) {
+                            Image(.scopeBroadcasts)
+                            Text("Broadcast")
+                        }
+                    }
+                } else {
+                    VStack(alignment: .leading, spacing: 0) {
+                        if let profile = viewModel.authorProfile {
+                            Text(profile.name).font(.headline)
+                            Text(message.author)
+                        } else {
+                            Text(message.author).font(.headline)
+                        }
+                    }
+                    .frame(maxHeight: .infinity)
+                }
+                
+                Spacer()
+                Text(message.formattedAuthoredOnDate)
+                    .font(.subheadline)
+                    .foregroundStyle(.tertiary)
+            }
+        }.task {
+            if let emailAddress = EmailAddress(message.author) {
+                profile = try? await client.fetchProfile(address: emailAddress, force: false)
+            }
+        }.onTapGesture {
+            showAuthorProfilePopover = profile != nil
         }
-        .onPreferenceChange(ViewHeightKey.self) { textEditorHeight = $0 }
-        .padding(-marginOffset)
+        .popover(isPresented: $showAuthorProfilePopover) {
+            NavigationStack {
+                ProfileView(profile: profile!)
+            }
+        }
     }
 }
+
 
 
 struct ViewHeightKey: PreferenceKey {

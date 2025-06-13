@@ -23,16 +23,13 @@ struct ProfileEditorView: View {
                     .fontWeight(.semibold)
                     .padding(.Spacing.default)
 
-                List {
-                    ForEach(Profile.groupedAttributes) { group in
-                        ProfileEditorGroupItemView(group: group, isSelected: group.groupType == selectedGroup) {
-                            selectedGroup = group.groupType
-                        }.listRowSeparator(.hidden)
-                            .listRowInsets(EdgeInsets.init(top: 0, leading: 0, bottom: 0, trailing: 0))
-                    }
-                }
-                .scrollContentBackground(.hidden)
-                .listStyle(.plain)
+                List(
+                    Profile.groupedAttributes,
+                    selection: $selectedGroup
+                ) { attribute in
+                    ProfileEditorGroupItemView(group: attribute)
+                        .listRowSeparator(.hidden)
+                }.scrollContentBackground(.hidden)
                 
             }
             .frame(width: 175)
@@ -96,8 +93,7 @@ public func getEmptyBindingForField<T>(_ defaultValue: T) -> Binding<T> {
 
     List {
         ForEach(Profile.groupedAttributes) { group in
-            ProfileEditorGroupItemView(group: group, isSelected: group.groupType == .general) {
-            }
+            ProfileEditorGroupItemView(group: group)
         }
     }
     .listStyle(.plain)

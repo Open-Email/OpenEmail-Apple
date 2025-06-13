@@ -4,6 +4,7 @@ import OpenEmailCore
 
 @main
 struct OpenEmailApp: App {
+    @State private var navigationState = NavigationState()
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
 
     private let localUserUpdateService = LocalUserUpdateService()
@@ -25,6 +26,6 @@ struct OpenEmailApp: App {
             } else {
                 OnboardingInitialView()
             }
-        }
+        }.environment(navigationState)
     }
 }
