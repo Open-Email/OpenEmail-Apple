@@ -46,6 +46,10 @@ public actor PersistedStore {
                 try await self.deleteAllNotifications()
             }
             
+            group.addTask {
+                try await self.deleteAllPendingMessages()
+            }
+            
             try await group.waitForAll()
         }
     }

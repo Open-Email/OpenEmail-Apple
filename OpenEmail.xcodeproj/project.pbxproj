@@ -248,6 +248,8 @@
 		9D0775832D9AFB9500C2A2E0 /* ArrayExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0775812D9AFB8100C2A2E0 /* ArrayExtensions.swift */; };
 		9D0A38562DA8319C00F4BB73 /* DeleteAccountUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */; };
 		9D0A38572DA8319C00F4BB73 /* DeleteAccountUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */; };
+		9D5B51D22E00319E002E92E1 /* PendingMessageStoreMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D5B51D12E003191002E92E1 /* PendingMessageStoreMock.swift */; };
+		9D5B51D32E00319E002E92E1 /* PendingMessageStoreMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D5B51D12E003191002E92E1 /* PendingMessageStoreMock.swift */; };
 		9DCE42552DDC90D9001AABB1 /* HighlightedTextEditor in Frameworks */ = {isa = PBXBuildFile; productRef = 9DCE42542DDC90D9001AABB1 /* HighlightedTextEditor */; };
 		9DCE42582DDCAD2E001AABB1 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = 9DCE42572DDCAD2E001AABB1 /* MarkdownUI */; };
 		9DD7B0A92DF82178002E81A4 /* ProfileTagView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BCF438D2B76482600D19A51 /* ProfileTagView.swift */; };
@@ -427,6 +429,7 @@
 		5BFDDAEC2B51A408009DDCDA /* MultipleMessagesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipleMessagesView.swift; sourceTree = "<group>"; };
 		9D0775812D9AFB8100C2A2E0 /* ArrayExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayExtensions.swift; sourceTree = "<group>"; };
 		9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountUseCase.swift; sourceTree = "<group>"; };
+		9D5B51D12E003191002E92E1 /* PendingMessageStoreMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingMessageStoreMock.swift; sourceTree = "<group>"; };
 		9DDF95782DFC69E90077BCC1 /* OpenEmail iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "OpenEmail iOS.entitlements"; sourceTree = "<group>"; };
 		9DF64BC72DF3514C00168B30 /* VisualEffectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -803,6 +806,7 @@
 		5BC893422C1C56F8008C943B /* Mocks */ = {
 			isa = PBXGroup;
 			children = (
+				9D5B51D12E003191002E92E1 /* PendingMessageStoreMock.swift */,
 				5BC893432C1C5702008C943B /* EmailClientMock.swift */,
 				5B0F25842AFE77E300226455 /* MessageStoreMock.swift */,
 				5BC6E0A92C2F0ABE00C5951C /* NotificationStoreMock.swift */,
@@ -1274,6 +1278,7 @@
 				5B0F258D2AFE818400226455 /* MessageListItemView.swift in Sources */,
 				5B3046792C6F599E00B33157 /* ProfileImageView.swift in Sources */,
 				5B1757C22BADD5E000405169 /* SettingsView.swift in Sources */,
+				9D5B51D32E00319E002E92E1 /* PendingMessageStoreMock.swift in Sources */,
 				5B66B4B82C08A99B00CA34EE /* ContactSuggestionsView.swift in Sources */,
 				5B0F25892AFE789000226455 /* Message+Random.swift in Sources */,
 				9D0775822D9AFB9500C2A2E0 /* ArrayExtensions.swift in Sources */,
@@ -1374,6 +1379,7 @@
 				5BDA2EFD2C5CE1BC009FB2BD /* OnboardingExistingAccountView.swift in Sources */,
 				5BDA2ED42C5CCF48009FB2BD /* ContactRequestsController.swift in Sources */,
 				5BF25D312D71E4FD00720F54 /* PersonalProfileAttributesEditorView.swift in Sources */,
+				9D5B51D22E00319E002E92E1 /* PendingMessageStoreMock.swift in Sources */,
 				5B9DBEA72CAFEFA4009B37F1 /* ComposeAttachmentsListView.swift in Sources */,
 				5BDA2F142C5D0BF8009FB2BD /* OnboardingExistingAccountViewModel.swift in Sources */,
 				5BDA2ED52C5CCF48009FB2BD /* LocalUserUpdateService.swift in Sources */,
