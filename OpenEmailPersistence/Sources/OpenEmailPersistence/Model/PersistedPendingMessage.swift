@@ -11,9 +11,7 @@ import SwiftData
 class PersistedPendingMessage {
     @Attribute(.unique) var id: String
     var authoredOn: Date
-    var author: String
     var readers: String // [String] jined with ","
-    var readersStr: String
     var deliveries: String // [String] jined with ","
     var subject: String
     var body: String?
@@ -26,9 +24,7 @@ class PersistedPendingMessage {
     init(
         id: String,
         authoredOn: Date,
-        author: String,
         readers: [String] = [],
-        readersStr: String = "",
         deliveries: [String] = [],
         subject: String,
         body: String? = nil,
@@ -37,9 +33,7 @@ class PersistedPendingMessage {
     ) {
         self.id = id
         self.authoredOn = authoredOn
-        self.author = author
         self.readers = readers.joined(separator: ",")
-        self.readersStr = readersStr
         self.deliveries = deliveries.joined(separator: ",")
         self.subject = subject
         self.body = body

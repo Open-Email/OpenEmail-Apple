@@ -23,7 +23,7 @@ public actor PersistedStore {
         do {
             let config = ModelConfiguration(url: finalStoreUrl)
             let container = try ModelContainer(
-                for: PersistedMessage.self, PersistedContact.self, PersistedNotification.self,
+                for: PersistedMessage.self, PersistedContact.self, PersistedNotification.self, PersistedPendingMessage.self,
                 configurations: config
             )
             self.init(modelContainer: container)

@@ -59,17 +59,8 @@ extension PersistedStore: PendingMessageStoring {
     }
     
     public func allPendingMessages(searchText: String) async throws -> [PendingMessage] {
-        let cleanSearchText = searchText.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
         
-        var fetch = FetchDescriptor<PersistedPendingMessage>(
-            predicate: #Predicate { message in
-                cleanSearchText.isEmpty ||
-                message.subject.localizedStandardContains(cleanSearchText) ||
-                message.body?.localizedStandardContains(cleanSearchText) ?? false ||
-                message.author.localizedStandardContains(cleanSearchText) ||
-                message.readersStr.localizedStandardContains(cleanSearchText)
-            },
-            sortBy: [SortDescriptor<PersistedPendingMessage>(\.authoredOn, order: .reverse)])
+        var fetch = FetchDescriptor<PersistedPendingMessage>()
         fetch.includePendingChanges = true
         
         let results = try modelContext.fetch(fetch)

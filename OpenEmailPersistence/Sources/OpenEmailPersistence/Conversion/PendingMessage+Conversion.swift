@@ -14,7 +14,6 @@ extension PendingMessage {
         return PersistedPendingMessage(
             id: id,
             authoredOn: authoredOn,
-            author: author,
             readers: readers,
             subject: subject,
             body: body,
@@ -28,12 +27,11 @@ extension PersistedPendingMessage {
     func toLocal() -> PendingMessage {
         PendingMessage(
             id: id,
-            author: author,
             authoredOn: authoredOn,
             readers: readers.split(separator: ",").map { subStr in String(subStr) },
             draftAttachmentUrls: draftAttachmentUrls.split(separator: ",").map { subStr in URL(string : String(subStr))! },
             subject: subject,
-            body: body,
+            body: body ?? "",
             isBroadcast: isBroadcast
         )
     }

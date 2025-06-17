@@ -13,6 +13,5 @@ class SyncServiceMock: MessageSyncing {
         return true
     }
     func recallMessageId(_ messageId: String) {}
-    func appendOutgoingMessageId(_ messageId: String) {}
 }
 #endif

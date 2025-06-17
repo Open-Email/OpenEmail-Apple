@@ -45,6 +45,7 @@ struct MessagesListView: View {
                             viewModel
                                 .deletePermanently(
                                     messageIDs: [message.id],
+                                    scope: navigationState.selectedScope
                                 )
                         } else {
                             viewModel.markAsDeleted(messageIDs: [message.id], isDeleted: true)
@@ -90,6 +91,7 @@ struct MessagesListView: View {
                         viewModel
                             .deletePermanently(
                                 messageIDs: messageIDs,
+                                scope: navigationState.selectedScope
                             )
                         navigationState.clearSelection()
                     }
