@@ -123,7 +123,7 @@ struct MessagesListView: View {
                 )
         } label: {
             Label("Restore", systemImage: "trash.slash")
-        }
+        }.tint(.accent)
     }
 
     @ViewBuilder
