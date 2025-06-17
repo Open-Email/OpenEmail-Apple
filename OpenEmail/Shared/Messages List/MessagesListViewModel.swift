@@ -95,7 +95,7 @@ class MessagesListViewModel {
         }
     }
     
-    func markAsDeleted(messageIDs: Set<String>, isDeleted: Bool, scope: SidebarScope) async {
+    func markAsDeleted(messageIDs: Set<String>, isDeleted: Bool) async {
         guard let currentUser = LocalUser.current else {
             return
         }
@@ -107,7 +107,7 @@ class MessagesListViewModel {
                 group.addTask {
                     do {
                         if isDeleted {
-                            if scope == .outbox {
+                            if self.selectedScope == .outbox {
                                 try await self.client
                                     .recallAuthoredMessage(
                                         localUser: currentUser,

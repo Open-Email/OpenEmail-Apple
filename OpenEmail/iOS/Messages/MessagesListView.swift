@@ -105,8 +105,7 @@ struct MessagesListView: View {
                 await viewModel
                     .markAsDeleted(
                         messageIDs: [message.id],
-                        isDeleted: true,
-                        scope: navigationState.selectedScope
+                        isDeleted: true
                     )
             }
         } label: {
@@ -120,8 +119,7 @@ struct MessagesListView: View {
             await viewModel
                 .markAsDeleted(
                     messageIDs: [message.id],
-                    isDeleted: false,
-                    scope: navigationState.selectedScope
+                    isDeleted: false
                 )
         } label: {
             Label("Restore", systemImage: "trash.slash")
