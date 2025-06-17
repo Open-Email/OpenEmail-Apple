@@ -51,12 +51,14 @@ struct GeneralProfileAttributesEditorView: View {
     }
 
     private var profileImageView: some View {
-        VStack(spacing: .Spacing.large) {
+        VStack(spacing: .Spacing.default) {
             ProfileImageView(
                 emailAddress: profile.address.address,
-                shape: .circle,
-                size: .medium
+                shape: .rectangle,
+                size: .huge
             )
+            .frame(maxWidth: .infinity)
+            .frame(height: 400)
 
             HStack(spacing: .Spacing.default) {
                 Button {
