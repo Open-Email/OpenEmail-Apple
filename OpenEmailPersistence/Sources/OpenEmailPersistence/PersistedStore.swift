@@ -23,7 +23,7 @@ public actor PersistedStore {
         do {
             let config = ModelConfiguration(url: finalStoreUrl)
             let container = try ModelContainer(
-                for: PersistedMessage.self, PersistedContact.self, PersistedNotification.self,
+                for: PersistedMessage.self, PersistedContact.self, PersistedNotification.self, PersistedPendingMessage.self,
                 configurations: config
             )
             self.init(modelContainer: container)
@@ -44,6 +44,10 @@ public actor PersistedStore {
             
             group.addTask {
                 try await self.deleteAllNotifications()
+            }
+            
+            group.addTask {
+                try await self.deleteAllPendingMessages()
             }
             
             try await group.waitForAll()

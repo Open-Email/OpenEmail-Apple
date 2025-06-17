@@ -8,12 +8,10 @@ struct MessagesListView: View {
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
     @Environment(NavigationState.self) private var navigationState
     @Injected(\.syncService) private var syncService
-    @Injected(\.messagesStore) private var messagesStore
     
     @Binding var selectedMessageID: String?
 
     @State private var viewModel = MessagesListViewModel()
-    @State private var searchText: String = ""
     @State private var showsDeleteConfirmationAlert = false
     @State private var messageToDelete: Message?
     @State private var showsComposeView = false
@@ -35,7 +33,7 @@ struct MessagesListView: View {
             }
         }
         .listStyle(.plain)
-        .searchable(text: $searchText)
+        .searchable(text: $viewModel.searchText)
         .refreshable {
             await syncService.synchronize()
         }
@@ -53,18 +51,14 @@ struct MessagesListView: View {
         .alert("Are you sure you want to delete this message?", isPresented: $showsDeleteConfirmationAlert) {
             Button("Cancel", role: .cancel) {}
             AsyncButton("Delete", role: .destructive) {
-                do {
-                    try await messageToDelete?.permentlyDelete(messageStore: messagesStore)
-                    messageToDelete = nil
-                } catch {
-                    Log.error("Could not permanently delete message: \(error)")
-                }
+                await viewModel.deletePermanently(messageIDs: [messageToDelete!.id])
+                messageToDelete = nil
             }
         } message: {
             Text("This action cannot be undone.")
         }
         .overlay {
-            if viewModel.messages.isEmpty && searchText.isEmpty {
+            if viewModel.messages.isEmpty && viewModel.searchText.isEmpty {
                 EmptyListView(icon: navigationState.selectedScope.imageResource, text: "Your \(navigationState.selectedScope.displayName) message list is empty.")
             }
         }
@@ -80,23 +74,8 @@ struct MessagesListView: View {
                 Log.debug("selected message id: \(selectedMessageID)")
             }
         }
-        .onChange(of: searchText) {
-            reloadMessages()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .didSynchronizeMessages)) { _ in
-            reloadMessages()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .didUpdateMessages)) { _ in
-            reloadMessages()
-        }
-        .onAppear {
-            reloadMessages()
-        }
-    }
-
-    private func reloadMessages() {
-        Task {
-            await viewModel.reloadMessagesFromStore(searchText: searchText, scope: navigationState.selectedScope)
+        .onChange(of: navigationState.selectedScope) {
+            viewModel.selectedScope = navigationState.selectedScope
         }
     }
 
@@ -123,11 +102,11 @@ struct MessagesListView: View {
                 messageToDelete = message
                 showsDeleteConfirmationAlert = true
             } else {
-                do {
-                    try await messagesStore.markAsDeleted(message: message, deleted: true)
-                } catch {
-                    Log.error("Could not mark message as deleted: \(error)")
-                }
+                await viewModel
+                    .markAsDeleted(
+                        messageIDs: [message.id],
+                        isDeleted: true
+                    )
             }
         } label: {
             Label("Delete", systemImage: "trash")
@@ -137,14 +116,14 @@ struct MessagesListView: View {
     @ViewBuilder
     private func undeleteButton(message: Message) -> some View {
         AsyncButton {
-            do {
-                try await messagesStore.markAsDeleted(message: message, deleted: false)
-            } catch {
-                Log.error("Could not mark message as undeleted: \(error)")
-            }
+            await viewModel
+                .markAsDeleted(
+                    messageIDs: [message.id],
+                    isDeleted: false
+                )
         } label: {
-            Label("Undelete", systemImage: "trash.slash")
-        }
+            Label("Restore", systemImage: "trash.slash")
+        }.tint(.accent)
     }
 
     @ViewBuilder

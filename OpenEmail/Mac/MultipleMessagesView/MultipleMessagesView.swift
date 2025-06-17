@@ -2,12 +2,14 @@ import SwiftUI
 import OpenEmailPersistence
 import OpenEmailModel
 import Logging
+import OpenEmailCore
 
 struct MultipleMessagesView: View {
     @Environment(NavigationState.self) private var navigationState
 
     @Injected(\.messagesStore) private var messagesStore
     @State private var showingDeleteConfirmationAlert = false
+    @Injected(\.client) private var client
     
     var body: some View {
         VStack {
@@ -41,17 +43,55 @@ struct MultipleMessagesView: View {
             }
             .alert("Are you sure you want to delete these messages?", isPresented: $showingDeleteConfirmationAlert) {
                 Button("Cancel", role: .cancel) {}
-                Button("Delete", role: .destructive) {
-                    Task {
-                        do {
-                            for messageID in navigationState.selectedMessageIDs {
-                                if let message = try await messagesStore.message(id: messageID) {
-                                    try await message.permentlyDelete(messageStore: messagesStore)
+                AsyncButton("Delete", role: .destructive) {
+                    if navigationState.selectedScope == .trash {
+                        await withTaskGroup { group in
+                            for messageId in navigationState.selectedMessageIDs {
+                                group.addTask {
+                                    do {
+                                        try await self.messagesStore.deleteMessage(id: messageId)
+                                    } catch {
+                                        Log.error("Could not delete messages: \(error)")
+                                    }
                                 }
                             }
-                            navigationState.clearSelection()
+                            await group.waitForAll()
+                        }
+                    } else {
+                        guard let currentUser = LocalUser.current else {
+                            return
+                        }
+                        var updatedMessages = [Message]()
+                        await withTaskGroup { group in
+                            for message in navigationState.selectedMessageIDs {
+                                
+                                group.addTask {
+                                    do {
+                                        if await navigationState.selectedScope == .outbox {
+                                            try await self.client
+                                                .recallAuthoredMessage(
+                                                    localUser: currentUser,
+                                                    messageId: message
+                                                )
+                                        }
+                                        if var localMessage = try await messagesStore.message(id: message) {
+                                            localMessage.deletedAt = Date()
+                                            updatedMessages.append(localMessage)
+                                        }
+                                        
+                                        
+                                    } catch {
+                                        Log.error("Could not mark message as deleted: \(error)")
+                                    }
+                                }
+                            }
+                            await group.waitForAll()
+                        }
+                        
+                        do {
+                            try await messagesStore.storeMessages(updatedMessages)
                         } catch {
-                            Log.error("Could not delete message: \(error)")
+                            Log.error("Could not store updated messages: \(error)")
                         }
                     }
                 }

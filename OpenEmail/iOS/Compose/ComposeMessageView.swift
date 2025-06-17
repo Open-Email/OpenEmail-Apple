@@ -14,7 +14,7 @@ enum ComposeResult {
 struct ComposeMessageView: View {
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
     @AppStorage(UserDefaultsKeys.profileName) private var profileName: String?
-
+    @Injected(\.syncService) private var syncService
     @State private var viewModel: ComposeMessageViewModel
     @FocusState private var isTextEditorFocused: Bool
     @FocusState private var isReadersFocused: Bool
@@ -200,38 +200,18 @@ struct ComposeMessageView: View {
             if viewModel.isSending {
                 Color(uiColor: .systemBackground).opacity(0.7)
 
-                VStack(spacing: .Spacing.xSmall) {
-                    ProgressView()
-
-                    if !viewModel.attachedFileItems.isEmpty {
-                        ProgressView(value: viewModel.uploadProgress)
-                            .progressViewStyle(.linear)
-                            .frame(width: 200)
-                            .tint(.white)
-
-                        Button("Cancel") {
-                            viewModel.cancelSending()
-                        }
-                    }
-                }
+                ProgressView()
             }
         }
     }
 
     private func sendMessage() async {
-        do {
-            try await viewModel.send()
-            dismiss()
-            onClose?(.sent)
-        } catch {
-            guard !(error is CancellationError) else {
-                return
-            }
-
-            showsError = true
-            self.error = error
-            Log.error("Error sending message: \(error)")
+        await viewModel.send()
+        Task.detached(priority: .userInitiated) {
+            await syncService.synchronize()
         }
+        dismiss()
+        onClose?(.sent)
     }
 }
 

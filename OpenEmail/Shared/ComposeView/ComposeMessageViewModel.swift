@@ -79,6 +79,9 @@ class ComposeMessageViewModel {
 
     @ObservationIgnored
     @Injected(\.messagesStore) private var messagesStore
+    
+    @ObservationIgnored
+    @Injected(\.pendingMessageStore) private var pendingMessageStore
 
     @ObservationIgnored
     @Injected(\.contactsStore) private var contactsStore
@@ -147,7 +150,6 @@ class ComposeMessageViewModel {
     }
 
     var isSending: Bool = false
-    var uploadProgress = 0.0
     private var sendTask: Task<Void, Error>?
 
     private var allContacts: [Contact] = []
@@ -188,52 +190,30 @@ class ComposeMessageViewModel {
         }
     }
 
-    func send() async throws {
-        guard let localUser = LocalUser.current else {
-            return
+    func send() async {
+        isSending = true
+        
+        do {
+            try await pendingMessageStore
+                .storePendingMessage(
+                    PendingMessage(
+                        id: UUID().uuidString,
+                        authoredOn: Date(),
+                        readers: readers
+                            .map { reader in reader.address.address },
+                        draftAttachmentUrls: attachedFileItems.map { $0.url },
+                        subject: subject,
+                        body: fullText,
+                        isBroadcast: isBroadcast
+                    )
+                )
+            await deleteDraft()
+        } catch {
+            Log.error("Could not save pending message")
         }
-
-        sendTask = Task {
-            defer {
-                uploadProgress = 0
-                isSending = false
-            }
-
-            isSending = true
-
-            var messageId: String?
-            if isBroadcast {
-                messageId = try await client.uploadBroadcastMessage(
-                    localUser: localUser,
-                    subject: subject,
-                    body: Data(fullText.bytes),
-                    urls: attachedFileItems.map { $0.url }
-                ) { [weak self] progress in
-                    self?.uploadProgress = progress
-                }
-            } else {
-                let emailAddresses = readers.map { reader in reader.address }
-
-                messageId = try await client.uploadPrivateMessage(
-                    localUser: localUser,
-                    subject: subject,
-                    readersAddresses: emailAddresses,
-                    body: Data(fullText.bytes),
-                    urls: attachedFileItems.map { $0.url }
-                ) { [weak self] progress in
-                    self?.uploadProgress = progress
-                }
-            }
-
-            if let messageId {
-                // After sending, notify of the new messageId and trigger synchronizing
-                await notifyNewOutgoingMessageId(messageId)
-                await deleteDraft()
-                await addMissingReadersToContacts()
-            }
-        }
-
-        _ = try await sendTask?.value
+        
+        
+        isSending = false
     }
 
     func cancelSending() {
@@ -685,10 +665,6 @@ class ComposeMessageViewModel {
     }
 
     // MARK: - Drafts
-
-    func notifyNewOutgoingMessageId(_ messageId: String) async {
-        await syncService.appendOutgoingMessageId(messageId)
-    }
 
     func updateDraft() {
         Task {

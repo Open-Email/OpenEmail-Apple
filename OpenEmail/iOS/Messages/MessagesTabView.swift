@@ -13,8 +13,22 @@ struct MessagesTabView: View {
             preferredCompactColumn: .constant(.sidebar)
         ) {
             List(viewModel.items, id: \.self, selection: $scopeItem) { item in
+                let unreadCount = switch(item.scope) {
+                    case .broadcasts: viewModel.unreadCounts[.broadcasts] ?? 0
+                    case .inbox: viewModel.unreadCounts[.inbox] ?? 0
+                    case .outbox: viewModel.unreadCounts[.outbox] ?? 0
+                    case .drafts: viewModel.allCounts[.drafts] ?? 0
+                    case .trash: viewModel.allCounts[.trash] ?? 0
+                    case .contacts: viewModel.unreadCounts[.contacts] ?? 0
+                }
                 Label(title: {
-                    Text(item.scope.displayName)
+                    HStack {
+                        Text(item.scope.displayName)
+                        Spacer()
+                        if unreadCount > 0 {
+                            Text(String(unreadCount))
+                        }
+                    }
                 }, icon: {
                     Image(item.scope.imageResource)
                 })

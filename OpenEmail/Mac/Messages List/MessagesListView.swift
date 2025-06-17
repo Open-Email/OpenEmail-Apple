@@ -40,14 +40,11 @@ struct MessagesListView: View {
                     
                 ))
                 .swipeActions(edge: .trailing) {
-                    Button(message.isDeleted ? "Delete Permanently" : "Delete") {
+                    AsyncButton(message.isDeleted ? "Delete Permanently" : "Delete") {
                         if message.isDeleted {
-                            viewModel
-                                .deletePermanently(
-                                    messageIDs: [message.id],
-                                )
+                            await viewModel.deletePermanently(messageIDs: [message.id])
                         } else {
-                            viewModel.markAsDeleted(messageIDs: [message.id], isDeleted: true)
+                            await viewModel.markAsDeleted(messageIDs: [message.id], isDeleted: true)
                         }
                     }
                     .tint(.red)
@@ -55,8 +52,8 @@ struct MessagesListView: View {
                 
                 .swipeActions(edge: .leading) {
                     if message.isDeleted {
-                        Button("Restore") {
-                            viewModel.markAsDeleted(messageIDs: [message.id], isDeleted: false)
+                        AsyncButton("Restore") {
+                            await viewModel.markAsDeleted(messageIDs: [message.id], isDeleted: false)
                         }
                         .tint(.accentColor)
                     } else {
@@ -82,15 +79,13 @@ struct MessagesListView: View {
             menu: { messageIDs in
                 
                 if (navigationState.selectedScope == .trash) {
-                    Button("Restore") {
-                        viewModel.markAsDeleted(messageIDs: messageIDs, isDeleted: false)
+                    AsyncButton("Restore") {
+                        await viewModel.markAsDeleted(messageIDs: messageIDs, isDeleted: false)
                         navigationState.clearSelection()
                     }
-                    Button("Delete permanently") {
-                        viewModel
-                            .deletePermanently(
-                                messageIDs: messageIDs,
-                            )
+                    AsyncButton("Delete permanently") {
+                        await viewModel
+                            .deletePermanently(messageIDs: messageIDs)
                         navigationState.clearSelection()
                     }
                 } else {
@@ -110,9 +105,8 @@ struct MessagesListView: View {
                                 viewModel.markAsRead(messageIDs: messageIDs)
                             }
                         }
-                        Button("Delete") {
-                            viewModel.markAsDeleted(messageIDs: messageIDs, isDeleted: true,
-                            )
+                        AsyncButton("Delete") {
+                            await viewModel.markAsDeleted(messageIDs: messageIDs, isDeleted: true)
                             navigationState.clearSelection()
                         }
                 }
@@ -142,36 +136,12 @@ struct MessagesListView: View {
             }
         }
         .onChange(of: navigationState.selectedScope) {
-            reloadMessages()
+            viewModel.selectedScope = navigationState.selectedScope
         }
         .onChange(of: searchText) {
-            reloadMessages()
+            viewModel.searchText = searchText
         }
-        .onReceive(NotificationCenter.default.publisher(for: .didSynchronizeMessages)) { _ in
-            reloadMessages()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .didUpdateMessages)) { _ in
-            reloadMessages()
-        }
-        .onAppear {
-            reloadMessages()
-        }.background(Color(nsColor: .controlBackgroundColor))
-    }
-
-    private func reloadMessages() {
-        Task {
-            await viewModel.reloadMessagesFromStore(searchText: searchText, scope: navigationState.selectedScope)
-            updateSelectedDraftMessages()
-        }
-    }
-
-    @MainActor
-    private func updateSelectedDraftMessages() {
-        guard navigationState.selectedScope == .drafts else { return }
-        let selectedMessageIDs = Set(navigationState.selectedMessageIDs)
-        let messageIds = Set(viewModel.messages.map { $0.id })
-        let remainingSelectedMessageIDs = messageIds.intersection(selectedMessageIDs)
-        navigationState.selectedMessageIDs = remainingSelectedMessageIDs
+        .background(Color(nsColor: .controlBackgroundColor))
     }
 }
 

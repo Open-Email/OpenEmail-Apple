@@ -108,7 +108,6 @@
 		5B7C810D2AF546860088E2EA /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = 5B7C810C2AF546860088E2EA /* KeychainAccess */; };
 		5B7C810F2AFD2BC70088E2EA /* OnboardingNewAccountViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7C810E2AFD2BC70088E2EA /* OnboardingNewAccountViewModel.swift */; };
 		5B80C8482B35CCDD00F882F8 /* Messages+Filtering.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B80C8472B35CCDD00F882F8 /* Messages+Filtering.swift */; };
-		5B80C84A2B35E45A00F882F8 /* Message+Deleting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B80C8492B35E45A00F882F8 /* Message+Deleting.swift */; };
 		5B81944F2C4A86F1003B4009 /* KeysSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B81944E2C4A86F1003B4009 /* KeysSettingsView.swift */; };
 		5B84654A2D5F3CD3003626E4 /* RoundToolbarButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8465492D5F3CD3003626E4 /* RoundToolbarButtonStyle.swift */; };
 		5B84654C2D5F3F3F003626E4 /* UINavigationController+SwipeBack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B84654B2D5F3F3F003626E4 /* UINavigationController+SwipeBack.swift */; };
@@ -193,7 +192,6 @@
 		5BDA2ED72C5CCF48009FB2BD /* NotificationStoreMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC6E0A92C2F0ABE00C5951C /* NotificationStoreMock.swift */; };
 		5BDA2ED82C5CCF48009FB2BD /* Icons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B141C252C13260100597F70 /* Icons.swift */; };
 		5BDA2ED92C5CCF48009FB2BD /* Date+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F25952AFE959E00226455 /* Date+Extension.swift */; };
-		5BDA2EDA2C5CCF48009FB2BD /* Message+Deleting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B80C8492B35E45A00F882F8 /* Message+Deleting.swift */; };
 		5BDA2EDB2C5CCF48009FB2BD /* Message+Random.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F25882AFE789000226455 /* Message+Random.swift */; };
 		5BDA2EDC2C5CCF48009FB2BD /* RandomWordGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F25862AFE786000226455 /* RandomWordGenerator.swift */; };
 		5BDA2EDD2C5CCF48009FB2BD /* String+Truncating.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B5390D32B7F62E000387B6F /* String+Truncating.swift */; };
@@ -248,6 +246,8 @@
 		9D0775832D9AFB9500C2A2E0 /* ArrayExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0775812D9AFB8100C2A2E0 /* ArrayExtensions.swift */; };
 		9D0A38562DA8319C00F4BB73 /* DeleteAccountUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */; };
 		9D0A38572DA8319C00F4BB73 /* DeleteAccountUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */; };
+		9D5B51D22E00319E002E92E1 /* PendingMessageStoreMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D5B51D12E003191002E92E1 /* PendingMessageStoreMock.swift */; };
+		9D5B51D32E00319E002E92E1 /* PendingMessageStoreMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D5B51D12E003191002E92E1 /* PendingMessageStoreMock.swift */; };
 		9DCE42552DDC90D9001AABB1 /* HighlightedTextEditor in Frameworks */ = {isa = PBXBuildFile; productRef = 9DCE42542DDC90D9001AABB1 /* HighlightedTextEditor */; };
 		9DCE42582DDCAD2E001AABB1 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = 9DCE42572DDCAD2E001AABB1 /* MarkdownUI */; };
 		9DD7B0A92DF82178002E81A4 /* ProfileTagView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BCF438D2B76482600D19A51 /* ProfileTagView.swift */; };
@@ -343,7 +343,6 @@
 		5B7C81072AF5175F0088E2EA /* NavigationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationState.swift; sourceTree = "<group>"; };
 		5B7C810E2AFD2BC70088E2EA /* OnboardingNewAccountViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingNewAccountViewModel.swift; sourceTree = "<group>"; };
 		5B80C8472B35CCDD00F882F8 /* Messages+Filtering.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Messages+Filtering.swift"; sourceTree = "<group>"; };
-		5B80C8492B35E45A00F882F8 /* Message+Deleting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Message+Deleting.swift"; sourceTree = "<group>"; };
 		5B81944E2C4A86F1003B4009 /* KeysSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeysSettingsView.swift; sourceTree = "<group>"; };
 		5B8465492D5F3CD3003626E4 /* RoundToolbarButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundToolbarButtonStyle.swift; sourceTree = "<group>"; };
 		5B84654B2D5F3F3F003626E4 /* UINavigationController+SwipeBack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UINavigationController+SwipeBack.swift"; sourceTree = "<group>"; };
@@ -427,6 +426,7 @@
 		5BFDDAEC2B51A408009DDCDA /* MultipleMessagesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipleMessagesView.swift; sourceTree = "<group>"; };
 		9D0775812D9AFB8100C2A2E0 /* ArrayExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayExtensions.swift; sourceTree = "<group>"; };
 		9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountUseCase.swift; sourceTree = "<group>"; };
+		9D5B51D12E003191002E92E1 /* PendingMessageStoreMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingMessageStoreMock.swift; sourceTree = "<group>"; };
 		9DDF95782DFC69E90077BCC1 /* OpenEmail iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "OpenEmail iOS.entitlements"; sourceTree = "<group>"; };
 		9DF64BC72DF3514C00168B30 /* VisualEffectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -677,7 +677,6 @@
 				5B141C2D2C134A4B00597F70 /* TimeInterval+Extension.swift */,
 				5B0F25952AFE959E00226455 /* Date+Extension.swift */,
 				5B0F25942AFE959E00226455 /* DateFormatter+Shared.swift */,
-				5B80C8492B35E45A00F882F8 /* Message+Deleting.swift */,
 				5B80C8472B35CCDD00F882F8 /* Messages+Filtering.swift */,
 				5B0F25862AFE786000226455 /* RandomWordGenerator.swift */,
 				5B5390D32B7F62E000387B6F /* String+Truncating.swift */,
@@ -803,6 +802,7 @@
 		5BC893422C1C56F8008C943B /* Mocks */ = {
 			isa = PBXGroup;
 			children = (
+				9D5B51D12E003191002E92E1 /* PendingMessageStoreMock.swift */,
 				5BC893432C1C5702008C943B /* EmailClientMock.swift */,
 				5B0F25842AFE77E300226455 /* MessageStoreMock.swift */,
 				5BC6E0A92C2F0ABE00C5951C /* NotificationStoreMock.swift */,
@@ -1212,7 +1212,6 @@
 				5B0F25872AFE786000226455 /* RandomWordGenerator.swift in Sources */,
 				5BE2CF9E2D4CDBA600E9DB1A /* MessageTypeBadge.swift in Sources */,
 				5B0F25962AFE959E00226455 /* DateFormatter+Shared.swift in Sources */,
-				5B80C84A2B35E45A00F882F8 /* Message+Deleting.swift in Sources */,
 				5B34FF2A2D157C5E0033F0C1 /* ConfigurationProfileAttributesEditorView.swift in Sources */,
 				5B3C03582BDBF7F700A8B35B /* AddToContactsUseCase.swift in Sources */,
 				5B0F25822AFE766600226455 /* MessagesListViewModel.swift in Sources */,
@@ -1274,6 +1273,7 @@
 				5B0F258D2AFE818400226455 /* MessageListItemView.swift in Sources */,
 				5B3046792C6F599E00B33157 /* ProfileImageView.swift in Sources */,
 				5B1757C22BADD5E000405169 /* SettingsView.swift in Sources */,
+				9D5B51D32E00319E002E92E1 /* PendingMessageStoreMock.swift in Sources */,
 				5B66B4B82C08A99B00CA34EE /* ContactSuggestionsView.swift in Sources */,
 				5B0F25892AFE789000226455 /* Message+Random.swift in Sources */,
 				9D0775822D9AFB9500C2A2E0 /* ArrayExtensions.swift in Sources */,
@@ -1374,6 +1374,7 @@
 				5BDA2EFD2C5CE1BC009FB2BD /* OnboardingExistingAccountView.swift in Sources */,
 				5BDA2ED42C5CCF48009FB2BD /* ContactRequestsController.swift in Sources */,
 				5BF25D312D71E4FD00720F54 /* PersonalProfileAttributesEditorView.swift in Sources */,
+				9D5B51D22E00319E002E92E1 /* PendingMessageStoreMock.swift in Sources */,
 				5B9DBEA72CAFEFA4009B37F1 /* ComposeAttachmentsListView.swift in Sources */,
 				5BDA2F142C5D0BF8009FB2BD /* OnboardingExistingAccountViewModel.swift in Sources */,
 				5BDA2ED52C5CCF48009FB2BD /* LocalUserUpdateService.swift in Sources */,
@@ -1394,7 +1395,6 @@
 				5B84654A2D5F3CD3003626E4 /* RoundToolbarButtonStyle.swift in Sources */,
 				5B30467A2C6F599E00B33157 /* ProfileImageView.swift in Sources */,
 				5BD144DD2D438EAD00BAAA3A /* OpenEmailTextFieldStyle.swift in Sources */,
-				5BDA2EDA2C5CCF48009FB2BD /* Message+Deleting.swift in Sources */,
 				5BDA2EDB2C5CCF48009FB2BD /* Message+Random.swift in Sources */,
 				5BE74D8D2C9D7B8A003997D6 /* ComposeMessageView.swift in Sources */,
 				5BB70A382D71EA72005DDA48 /* WorkProfileAttributesEditorView.swift in Sources */,

@@ -20,7 +20,6 @@ protocol MessageSyncing {
     func fetchAuthorMessages(profile: Profile, includeBroadcasts: Bool) async
     func isActiveOutgoingMessageId(_ messageId: String) -> Bool
     func recallMessageId(_ messageId: String) async
-    func appendOutgoingMessageId(_ messageId: String) async
 }
 
 @Observable
@@ -35,6 +34,9 @@ class SyncService: MessageSyncing {
 
     @ObservationIgnored
     @Injected(\.messagesStore) private var messagesStore
+    
+    @ObservationIgnored
+    @Injected(\.pendingMessageStore) private var pendingMessageStore
     
     @ObservationIgnored
     private let userDefaults = UserDefaults.standard
@@ -142,10 +144,6 @@ class SyncService: MessageSyncing {
         self.outgoingMessageIds = outgoingMessageIds.filter { $0 != messageId }
     }
 
-    func appendOutgoingMessageId(_ messageId: String) async {
-        self.outgoingMessageIds.append(messageId)
-    }
-
     @MainActor
     func synchronize() async {
         guard !isSyncing else {
@@ -183,6 +181,43 @@ class SyncService: MessageSyncing {
         isSyncing = true
         Log.info("Starting syncing...")
 
+        do {
+            let pendingMessages = (try? await pendingMessageStore.allPendingMessages(searchText: "")) ?? []
+            try await withThrowingTaskGroup { group in
+                for pendingMessage in pendingMessages {
+                    group.addTask {
+                        let messageId: String?
+                        if pendingMessage.isBroadcast {
+                            messageId = try await self.client.uploadBroadcastMessage(
+                                localUser: localUser,
+                                subject: pendingMessage.subject,
+                                body: Data((pendingMessage.body ?? "").bytes),
+                                urls: pendingMessage.draftAttachmentUrls
+                            ) { _ in
+                            }
+                        } else {
+                            messageId = try await self.client.uploadPrivateMessage(
+                                localUser: localUser,
+                                subject: pendingMessage.subject,
+                                readersAddresses: pendingMessage.readers
+                                    .map { address in EmailAddress(address)! },
+                                body: Data((pendingMessage.body ?? "").bytes),
+                                urls: pendingMessage.draftAttachmentUrls
+                            ) { _ in
+                            }
+                        }
+                        if let messageId {
+                            self.outgoingMessageIds.append(messageId)
+                        }
+                        try await self.pendingMessageStore.deletePendingMessage(id: pendingMessage.id)
+                    }
+                }
+                try await group.waitForAll()
+            }
+        } catch {
+            Log.error("Could not upload pending messages: \(error)")
+        }
+        
         guard hasUserAccount() else { return }
 
         do {

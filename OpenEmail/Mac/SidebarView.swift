@@ -17,11 +17,19 @@ struct SidebarView: View {
                 if (item.scope == .broadcasts) {
                     Spacer().frame(height: .Spacing.default)
                 }
+                let unreadCount = switch(item.scope) {
+                    case .broadcasts: viewModel.unreadCounts[.broadcasts] ?? 0
+                    case .inbox: viewModel.unreadCounts[.inbox] ?? 0
+                    case .outbox: viewModel.unreadCounts[.outbox] ?? 0
+                    case .drafts: viewModel.allCounts[.drafts] ?? 0
+                    case .trash: viewModel.allCounts[.trash] ?? 0
+                    case .contacts: viewModel.unreadCounts[.contacts] ?? 0
+                }
                 SidebarItemView(
                     icon: item.scope.imageResource,
                     title: item.scope.displayName,
                     isSelected: item.scope.id == viewModel.selectedScope.id,
-                    unreadCount: item.unreadCount
+                    unreadCount: unreadCount
                 ) {
                     navigationState.selectedScope = item.scope
                 }

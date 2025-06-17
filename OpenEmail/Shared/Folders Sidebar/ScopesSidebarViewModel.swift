@@ -9,7 +9,6 @@ import SwiftUI
 struct ScopeSidebarItem: Identifiable, Hashable, Equatable {
     var id: String { scope.rawValue }
     let scope: SidebarScope
-    let unreadCount: Int
 }
 
 @Observable
@@ -17,6 +16,8 @@ class ScopesSidebarViewModel {
     
     @ObservationIgnored
     @Injected(\.messagesStore) private var messagesStore
+    @ObservationIgnored
+    @Injected(\.pendingMessageStore) private var pendingMessageStore
     @ObservationIgnored
     @Injected(\.contactsStore) private var contactStore
     
@@ -26,7 +27,17 @@ class ScopesSidebarViewModel {
     var selectedScope: SidebarScope = .inbox
     private var subscriptions = Set<AnyCancellable>()
     
-    private(set) var items: [ScopeSidebarItem] = []
+    var items: [ScopeSidebarItem] {
+        SidebarScope.allCases.compactMap {
+#if os(iOS)
+            // Contacts is a separate tab on iOS
+            if $0 == .contacts { return nil }
+#endif
+            return ScopeSidebarItem(
+                scope: $0,
+            )
+        }
+    }
     
     private let contactRequestsController = ContactRequestsController()
     
@@ -35,27 +46,45 @@ class ScopesSidebarViewModel {
     init() {
         NotificationCenter.default.publisher(for: .didUpdateNotifications).sink { notifications in
             Task {
-                await self.reloadItems()
+                await self.refreshMessages()
             }
         }.store(in: &subscriptions)
         
         NotificationCenter.default.publisher(for: .didUpdateMessages).sink { _ in
             Task {
                 await self.refreshMessages()
-                await self.reloadItems()
+            }
+        }.store(in: &subscriptions)
+        
+        NotificationCenter.default.publisher(for: .didUpdatePendingMessages).sink { _ in
+            Task {
+                await self.refreshPendingMessages()
             }
         }.store(in: &subscriptions)
         
         NotificationCenter.default.publisher(for: .didUpdateContacts).sink { _ in
             Task {
                 await self.refreshContacts()
-                await self.reloadItems()
             }
         }.store(in: &subscriptions)
         
         UserDefaults.standard.publisher(for: \.registeredEmailAddress).sink { _ in
             Task {
-                await self.reloadItems()
+                await withTaskGroup { group in
+                    group.addTask {
+                        await self.refreshMessages()
+                    }
+                    
+                    group.addTask {
+                        await self.refreshPendingMessages()
+                    }
+                    
+                    group.addTask {
+                        await self.refreshContacts()
+                    }
+                    
+                    await group.waitForAll()
+                }
             }
         }.store(in: &subscriptions)
         
@@ -74,15 +103,34 @@ class ScopesSidebarViewModel {
         }
     }
     
+    @MainActor
+    private func refreshPendingMessages() async {
+        if let pendingMessages = try? await pendingMessageStore.allPendingMessages(
+            searchText: ""
+        ) {
+            await MainActor.run {
+                self.unreadCounts[.outbox] = pendingMessages.count
+            }
+        }
+    }
+    
+    @MainActor
     private func refreshMessages() async {
+        guard let localUser = LocalUser.current else {
+            return
+        }
         let registeredEmailAddress: String = UserDefaults.standard.registeredEmailAddress ?? ""
         if let newMessages = try? await messagesStore.allMessages(searchText: "") {
             await withTaskGroup { group in
                 group.addTask {
+                    let unreads: Int = (try? await self.messagesStore
+                        .allUnreadMessages())?.filteredBy(scope: .broadcasts, localUser: localUser).count ?? 0
+                    
                     await MainActor.run {
+                        self.unreadCounts[.broadcasts] = unreads
                         self.allCounts[.broadcasts] = newMessages
                             .filter {
-                                message in message.isBroadcast && message.author != registeredEmailAddress
+                                message in message.isBroadcast && message.author != registeredEmailAddress && !message.isDeleted
                             }.count
                     }
                 }
@@ -97,10 +145,13 @@ class ScopesSidebarViewModel {
                 }
                 
                 group.addTask {
+                    let unreads: Int = (try? await self.messagesStore
+                        .allUnreadMessages())?.filteredBy(scope: .inbox, localUser: localUser).count ?? 0
                     await MainActor.run {
+                        self.unreadCounts[.inbox] = unreads
                         self.allCounts[.inbox] = newMessages
                             .filter {
-                                message in !message.isBroadcast && message.author != registeredEmailAddress
+                                message in !message.isBroadcast && message.author != registeredEmailAddress && !message.isDeleted
                             }.count
                     }
                 }
@@ -109,7 +160,7 @@ class ScopesSidebarViewModel {
                     await MainActor.run {
                         self.allCounts[.drafts] = newMessages
                             .filter {
-                                message in message.isDraft
+                                message in message.isDraft && !message.isDeleted
                             }.count
                     }
                 }
@@ -131,45 +182,6 @@ class ScopesSidebarViewModel {
         if let newContacts = try? await contactStore.allContacts() {
             self.allCounts[.contacts] = newContacts.count
         }
-    }
-    
-    @MainActor
-    func reloadItems() async {
-        await updateUnreadCounts()
-        
-        items = SidebarScope.allCases.compactMap {
-#if os(iOS)
-            // Contacts is a separate tab on iOS
-            if $0 == .contacts { return nil }
-#endif
-            
-            return ScopeSidebarItem(
-                scope: $0,
-                unreadCount: unreadCounts[$0] ?? 0
-            )
-        }
-    }
-    
-    private func updateUnreadCounts() async {
-        unreadCounts = [:]
-        
-        guard let localUser = LocalUser.current else {
-            return
-        }
-        
-        guard let newUnreadCounts = await fetchUnreadCounts(localUser: localUser) else { return }
-        unreadCounts = newUnreadCounts
-    }
-    
-    private func fetchUnreadCounts(localUser: LocalUser) async -> [SidebarScope: Int]? {
-        guard let allUnreadMessages = try? await messagesStore.allUnreadMessages() else {
-            return nil
-        }
-        
-        return [
-            .broadcasts: allUnreadMessages.filteredBy(scope: .broadcasts, localUser: localUser).count,
-            .inbox: allUnreadMessages.filteredBy(scope: .inbox, localUser: localUser).count,
-            .contacts: await contactRequestsController.contactRequests.count
-        ]
+        self.unreadCounts[.contacts] =  await contactRequestsController.contactRequests.count
     }
 }
