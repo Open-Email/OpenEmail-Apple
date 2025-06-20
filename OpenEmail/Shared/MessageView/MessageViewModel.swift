@@ -116,7 +116,7 @@ class MessageViewModel {
     }
 
     func permanentlyDeleteMessage() async throws {
-        try await client.recallAuthoredMessage(localUser: .current!, messageId: message!.id)
+        try? await client.recallAuthoredMessage(localUser: .current!, messageId: message!.id)
         try await messagesStore.deleteMessage(id: message!.id)
     }
 
@@ -134,7 +134,6 @@ class MessageViewModel {
 
         do {
             try await client.recallAuthoredMessage(localUser: localUser, messageId: message.id)
-            await syncService.recallMessageId(message.id)
             let ids = message.attachments.flatMap { $0.fileMessageIds }
 
             for id in ids {

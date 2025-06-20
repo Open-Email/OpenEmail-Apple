@@ -456,18 +456,6 @@ struct SyncProgressView: View {
     }
 }
 
-private extension Date {
-    var formattedNextSyncDate: String {
-        let minutes = Int(timeIntervalSinceNow.asMinutes)
-        if minutes >= 60 {
-            let hours = Int(timeIntervalSinceNow.asHours)
-            return "\(hours) hours"
-        } else {
-            return "\(minutes) min"
-        }
-    }
-}
-
 #Preview {
     ContentView()
         .environment(NavigationState())

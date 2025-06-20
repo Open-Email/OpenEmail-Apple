@@ -4,6 +4,14 @@ import Utils
 
 #if DEBUG
 class EmailClientMock: Client {
+    func uploadPrivateMessage(localUser: OpenEmailCore.LocalUser, subject: String, readersAddresses: [OpenEmailCore.EmailAddress], body: Data, urls: [URL], progressHandler: ((Double) -> Void)?) async throws -> String? {
+        nil
+    }
+
+    func uploadBroadcastMessage(localUser: OpenEmailCore.LocalUser, subject: String, body: Data, urls: [URL], progressHandler: ((Double) -> Void)?) async throws -> String? {
+        nil
+    }
+
     func updateBroadcastsForContact(localUser: LocalUser, address: EmailAddress, allowBroadcasts: Bool) async throws {
         
     }
@@ -53,14 +61,6 @@ class EmailClientMock: Client {
 
     func fetchLocalMessages(localUser: LocalUser, localProfile: Profile) async throws -> [String] {
         []
-    }
-
-    func uploadPrivateMessage(localUser: LocalUser, subject: String, readersAddresses: [EmailAddress], body: Data, urls: [URL], progressHandler: @escaping (Double) -> Void) async throws -> String? {
-        nil
-    }
-
-    func uploadBroadcastMessage(localUser: LocalUser, subject: String, body: Data, urls: [URL], progressHandler: @escaping (Double) -> Void) async throws -> String? {
-        nil
     }
 
     func recallAuthoredMessage(localUser: LocalUser, messageId: String) async throws {

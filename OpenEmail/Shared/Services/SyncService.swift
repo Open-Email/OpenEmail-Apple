@@ -18,8 +18,6 @@ protocol MessageSyncing {
     var isSyncing: Bool { get }
     func synchronize() async
     func fetchAuthorMessages(profile: Profile, includeBroadcasts: Bool) async
-    func isActiveOutgoingMessageId(_ messageId: String) -> Bool
-    func recallMessageId(_ messageId: String) async
 }
 
 @Observable
@@ -42,9 +40,6 @@ class SyncService: MessageSyncing {
     private let userDefaults = UserDefaults.standard
 
     private var subscriptions = Set<AnyCancellable>()
-    
-
-    private var outgoingMessageIds: [String] = []
     
 #if os(macOS)
     private var scheduler: NSBackgroundActivityScheduler?
@@ -134,16 +129,6 @@ class SyncService: MessageSyncing {
     }
 #endif
     
-    
-   
-    func isActiveOutgoingMessageId(_ messageId: String) -> Bool {
-        return outgoingMessageIds.contains(messageId)
-    }
-
-    func recallMessageId(_ messageId: String) async {
-        self.outgoingMessageIds = outgoingMessageIds.filter { $0 != messageId }
-    }
-
     @MainActor
     func synchronize() async {
         guard !isSyncing else {
@@ -181,42 +166,7 @@ class SyncService: MessageSyncing {
         isSyncing = true
         Log.info("Starting syncing...")
 
-        do {
-            let pendingMessages = (try? await pendingMessageStore.allPendingMessages(searchText: "")) ?? []
-            try await withThrowingTaskGroup { group in
-                for pendingMessage in pendingMessages {
-                    group.addTask {
-                        let messageId: String?
-                        if pendingMessage.isBroadcast {
-                            messageId = try await self.client.uploadBroadcastMessage(
-                                localUser: localUser,
-                                subject: pendingMessage.subject,
-                                body: Data((pendingMessage.body ?? "").bytes),
-                                urls: pendingMessage.draftAttachmentUrls
-                            ) { _ in
-                            }
-                        } else {
-                            messageId = try await self.client.uploadPrivateMessage(
-                                localUser: localUser,
-                                subject: pendingMessage.subject,
-                                readersAddresses: pendingMessage.readers
-                                    .map { address in EmailAddress(address)! },
-                                body: Data((pendingMessage.body ?? "").bytes),
-                                urls: pendingMessage.draftAttachmentUrls
-                            ) { _ in
-                            }
-                        }
-                        if let messageId {
-                            self.outgoingMessageIds.append(messageId)
-                        }
-                        try await self.pendingMessageStore.deletePendingMessage(id: pendingMessage.id)
-                    }
-                }
-                try await group.waitForAll()
-            }
-        } catch {
-            Log.error("Could not upload pending messages: \(error)")
-        }
+        await uploadPendingOutbox()
         
         guard hasUserAccount() else { return }
 
@@ -226,52 +176,105 @@ class SyncService: MessageSyncing {
             Log.error("Error synchronizing contacts: \(error)")
         }
         
-        // Execute notifications
-        var syncedAddresses: [String] = []
-        do {
-            guard hasUserAccount() else { return }
-
-            // First fetch notifications from own home mail agent
-            try await client.fetchNotifications(localUser: localUser)
-
-            // Execute valid notifications by fetching from remotes
-            guard hasUserAccount() else { return }
-
-            syncedAddresses = try await client.executeNotifications(localUser: localUser)
-
-        } catch {
-            Log.error("Error executing notifications: \(error)")
-        }
-
-         await withTaskGroup(of: Void.self) { group in
-             group.addTask {
-                 // Sync own outgoing messages
-                 guard self.hasUserAccount() else { return }
-                 
-                 do {
-                     self.outgoingMessageIds = try await self.client.fetchLocalMessages(localUser: localUser, localProfile: localProfile)
-                     await self.cleanUpOutboxMessages()
-                 } catch {
-                     Log.error("Error fetching local messages: \(error)")
-                 }
-             }
-             
-             group.addTask {
-                 // For all contacts, try fetch messages
-                 guard self.hasUserAccount() else { return }
-                 do {
-                     try await self.fetchMessagesForContacts(localUser, syncedAddresses)
-                 } catch {
-                     Log.error("Error fetching profile messages: \(error)")
-                 }
-                 
-             }
-             
-             await group.waitForAll()
+        let syncedAddresses = await getSyncedAddresses()
+        
+        await withTaskGroup(of: Void.self) { group in
+            group.addTask {
+                // Sync own outgoing messages
+                guard self.hasUserAccount() else { return }
+                
+                do {
+                    let remoteOutgoingMessageIds = try await self.client.fetchLocalMessages(localUser: localUser, localProfile: localProfile)
+                    await self.cleanUpOutboxMessages(remoteOutboxIds: remoteOutgoingMessageIds)
+                } catch {
+                    Log.error("Error fetching local messages: \(error)")
+                }
+            }
+            
+            group.addTask {
+                // For all contacts, try fetch messages
+                guard self.hasUserAccount() else { return }
+                do {
+                    try await self.fetchMessagesForContacts(localUser, syncedAddresses)
+                } catch {
+                    Log.error("Error fetching profile messages: \(error)")
+                }
+                
+            }
+            
+            await group.waitForAll()
         }
         
         postMessagesSyncedNotification()
         Log.info("Syncing complete")
+    }
+    
+    private func getSyncedAddresses() async -> [String] {
+        
+        guard let localUser = LocalUser.current else {
+            return []
+        }
+        
+        // Execute notifications
+        var syncedAddresses: [String] = []
+        do {
+            guard hasUserAccount() else { return [] }
+            
+            // First fetch notifications from own home mail agent
+            try await client.fetchNotifications(localUser: localUser)
+            
+            // Execute valid notifications by fetching from remotes
+            guard hasUserAccount() else { return [] }
+            
+            syncedAddresses = try await client.executeNotifications(localUser: localUser)
+            
+        } catch {
+            Log.error("Error executing notifications: \(error)")
+        }
+        
+        return syncedAddresses
+    }
+    
+    private func uploadPendingOutbox() async {
+        
+        guard let localUser = LocalUser.current else {
+            return
+        }
+        
+        do {
+            let pendingMessages = (try? await pendingMessageStore.allPendingMessages(searchText: "")) ?? []
+            try await withThrowingTaskGroup { group in
+                for pendingMessage in pendingMessages {
+                    group.addTask {
+                        
+                        if pendingMessage.isBroadcast {
+                            let _ = try await self.client.uploadBroadcastMessage(
+                                localUser: localUser,
+                                subject: pendingMessage.subject,
+                                body: Data((pendingMessage.body ?? "").bytes),
+                                urls: pendingMessage.draftAttachmentUrls,
+                                progressHandler: nil
+                            )
+                        } else {
+                            let _ = try await self.client.uploadPrivateMessage(
+                                localUser: localUser,
+                                subject: pendingMessage.subject,
+                                readersAddresses: pendingMessage.readers
+                                    .map { address in EmailAddress(address)! },
+                                body: Data((pendingMessage.body ?? "").bytes),
+                                urls: pendingMessage.draftAttachmentUrls,
+                                progressHandler: nil
+                            )
+                        }
+                       
+                        try await self.pendingMessageStore.deletePendingMessage(id: pendingMessage.id)
+                    }
+                }
+                try await group.waitForAll()
+            }
+        } catch {
+            Log.error("Could not upload pending messages: \(error)")
+        }
     }
     
     private func fetchMessagesForContacts(_ localUser: LocalUser, _ syncedAddresses: [String]) async throws {
@@ -351,22 +354,22 @@ class SyncService: MessageSyncing {
     /// storage in order to stay in sync with the server.
     ///
     /// This is best effort, ignoring any errors.
-    private func cleanUpOutboxMessages() async {
+    private func cleanUpOutboxMessages(remoteOutboxIds: [String]) async {
         guard
             let localUser = LocalUser.current,
             let allMessages = try? await messagesStore.allMessages(searchText: "")
         else {
             return
         }
-
+        
         let localOutboxMessageIds = allMessages
             .filteredBy(scope: .outbox, localUser: localUser)
-            .map { $0.id }
-            .toSet()
-
-        let messageIdsToDelete = localOutboxMessageIds.subtracting(outgoingMessageIds.toSet())
-        for messageId in messageIdsToDelete {
-            try? await messagesStore.deleteMessage(id: messageId)
+        
+        for localMessage in localOutboxMessageIds {
+            if !remoteOutboxIds.contains(localMessage.id) {
+                try? await messagesStore
+                    .markAsDeleted(message: localMessage, deleted: true)
+            }
         }
     }
 }

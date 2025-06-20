@@ -108,7 +108,7 @@ class MessagesListViewModel {
                     do {
                         if isDeleted {
                             if self.selectedScope == .outbox {
-                                try await self.client
+                                try? await self.client
                                     .recallAuthoredMessage(
                                         localUser: currentUser,
                                         messageId: message.id

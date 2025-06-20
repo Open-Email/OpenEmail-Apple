@@ -165,7 +165,6 @@ struct MessageView: View {
                 .frame(width: 18, height: 18)
         }
         .buttonStyle(ActionButtonStyle(isImageOnly: true))
-        .disabled(!viewModel.syncService.isActiveOutgoingMessageId(message.id))
         .help("Delete")
         .alert(
             "Do you want to edit or discard this message?",

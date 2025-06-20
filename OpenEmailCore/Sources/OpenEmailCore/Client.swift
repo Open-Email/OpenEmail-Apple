@@ -67,8 +67,8 @@ public protocol Client {
     func fetchRemoteMessages(localUser: LocalUser, authorProfile: Profile) async throws
     func fetchRemoteBroadcastMessages(localUser: LocalUser, authorProfile: Profile) async throws
     func fetchLocalMessages(localUser: LocalUser, localProfile: Profile) async throws -> [String]
-    func uploadPrivateMessage(localUser: LocalUser, subject: String, readersAddresses: [EmailAddress], body: Data, urls: [URL], progressHandler: @escaping (Double) -> Void) async throws -> String?
-    func uploadBroadcastMessage(localUser: LocalUser, subject: String, body: Data, urls: [URL], progressHandler: @escaping (Double) -> Void) async throws -> String?
+    func uploadPrivateMessage(localUser: LocalUser, subject: String, readersAddresses: [EmailAddress], body: Data, urls: [URL], progressHandler: ((Double) -> Void)?) async throws -> String?
+    func uploadBroadcastMessage(localUser: LocalUser, subject: String, body: Data, urls: [URL], progressHandler: ((Double) -> Void)?) async throws -> String?
     func recallAuthoredMessage(localUser: LocalUser, messageId: String) async throws
     func fetchMessageDeliveryInformation(localUser: LocalUser, messageId: String) async throws -> [(String, Date)]?
     func downloadFileAttachment(messageIds: [String], parentId: String, localUser: LocalUser, filename: String) async throws
@@ -1136,7 +1136,7 @@ public class DefaultClient: Client {
         readersAddresses: [EmailAddress],
         body: Data,
         urls: [URL],
-        progressHandler: @escaping (Double) -> Void
+        progressHandler: ((Double) -> Void)?
     ) async throws -> String? {
         guard !readersAddresses.isEmpty else {
             throw ClientError.invalidReaders
@@ -1242,7 +1242,7 @@ public class DefaultClient: Client {
                     try await uploadPrivateFileMessage(content: fileContent, localUser: localUser, accessProfilesMap: accessProfilesMap, messageFilePartInfo: fpart)
                     
                     let progress = Double(index + 1) / Double(allFileParts.count)
-                    progressHandler(progress)
+                    progressHandler?(progress)
                 }
             }
         }
@@ -1276,7 +1276,7 @@ public class DefaultClient: Client {
         subject: String,
         body: Data,
         urls: [URL],
-        progressHandler: @escaping (Double) -> Void
+        progressHandler: ((Double) -> Void)?
     ) async throws -> String? {
         let sendingDate = Date()
         let messageID = newMessageID(localUserAddress: localUser.address)
@@ -1357,7 +1357,7 @@ public class DefaultClient: Client {
                     try await uploadBroadcastFileMessage(content: fileContent, localUser: localUser, messageFilePartInfo: fpart)
                     
                     let progress = Double(index + 1) / Double(allFileParts.count)
-                    progressHandler(progress)
+                    progressHandler?(progress)
                 }
             }
         }

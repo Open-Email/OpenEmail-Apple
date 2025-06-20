@@ -150,7 +150,6 @@ struct MessageView: View {
         Button("Delete", image: .trash) {
             showRecallConfirmationAlert = true
         }
-        .disabled(!viewModel.syncService.isActiveOutgoingMessageId(message.id))
         .alert(
             "Do you want to edit or discard this message?",
             isPresented: $showRecallConfirmationAlert,
