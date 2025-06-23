@@ -199,7 +199,6 @@ class SyncService: MessageSyncing {
                 } catch {
                     Log.error("Error fetching profile messages: \(error)")
                 }
-                
             }
             
             await group.waitForAll()
@@ -241,13 +240,13 @@ class SyncService: MessageSyncing {
             return
         }
         
-        do {
-            let pendingMessages = (try? await pendingMessageStore.allPendingMessages(searchText: "")) ?? []
-            try await withThrowingTaskGroup { group in
-                for pendingMessage in pendingMessages {
-                    group.addTask {
-                        
-                        if pendingMessage.isBroadcast {
+        let pendingMessages = (try? await pendingMessageStore.allPendingMessages(searchText: "")) ?? []
+        await withTaskGroup { group in
+            for pendingMessage in pendingMessages {
+                group.addTask {
+                    
+                    if pendingMessage.isBroadcast {
+                        do {
                             let _ = try await self.client.uploadBroadcastMessage(
                                 localUser: localUser,
                                 subject: pendingMessage.subject,
@@ -255,7 +254,12 @@ class SyncService: MessageSyncing {
                                 urls: pendingMessage.draftAttachmentUrls,
                                 progressHandler: nil
                             )
-                        } else {
+                        } catch {
+                            Log.error("Could not upload pending broadcast: \(error)")
+                        }
+                        
+                    } else {
+                        do {
                             let _ = try await self.client.uploadPrivateMessage(
                                 localUser: localUser,
                                 subject: pendingMessage.subject,
@@ -265,15 +269,19 @@ class SyncService: MessageSyncing {
                                 urls: pendingMessage.draftAttachmentUrls,
                                 progressHandler: nil
                             )
+                        } catch {
+                            Log.error("Could not upload pending private message: \(error)")
                         }
-                       
+                        
+                    }
+                    do {
                         try await self.pendingMessageStore.deletePendingMessage(id: pendingMessage.id)
+                    } catch {
+                        Log.error("Could not delete pending message: \(error)")
                     }
                 }
-                try await group.waitForAll()
             }
-        } catch {
-            Log.error("Could not upload pending messages: \(error)")
+            await group.waitForAll()
         }
     }
     

@@ -41,6 +41,7 @@ enum ClientError: Error {
     case checksumMismatched
     case invalidProfile
     case requestFailed
+    case invalidAttachmentURL
     // Other error cases can be added here as needed
 }
 
@@ -1130,6 +1131,16 @@ public class DefaultClient: Client {
         }
     }
     
+    private func isInAppSandbox(_ url: URL) -> Bool {
+        let sandboxPaths = [
+            FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.path,
+            FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first!.path,
+            FileManager.default.temporaryDirectory.path
+        ]
+        
+        return sandboxPaths.contains { url.path.hasPrefix($0) }
+    }
+    
     public func uploadPrivateMessage(
         localUser: LocalUser,
         subject: String,
@@ -1141,7 +1152,12 @@ public class DefaultClient: Client {
         guard !readersAddresses.isEmpty else {
             throw ClientError.invalidReaders
         }
-        
+        defer {
+            // Clean up all sandbox files
+            for url in urls {
+                try? FileManager.default.removeItem(at: url)
+            }
+        }
         let sendingDate = Date()
         let messageID = newMessageID(localUserAddress: localUser.address)
         var accessProfilesMap:[String:Profile] = [:]
@@ -1278,6 +1294,13 @@ public class DefaultClient: Client {
         urls: [URL],
         progressHandler: ((Double) -> Void)?
     ) async throws -> String? {
+        defer {
+            // Clean up all sandbox files
+            for url in urls {
+                try? FileManager.default.removeItem(at: url)
+            }
+        }
+        
         let sendingDate = Date()
         let messageID = newMessageID(localUserAddress: localUser.address)
         
@@ -1398,6 +1421,30 @@ public class DefaultClient: Client {
         }
     }
     
+    private func readAndEncryptChunk(
+        at url: URL,
+        offset: UInt64?,
+        bytesCount: UInt64,
+        secretKey: [UInt8]
+    ) throws -> [UInt8] {
+        let isSecurityScoped = url.startAccessingSecurityScopedResource()
+        defer {
+            if isSecurityScoped {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+        
+        let fileHandle = try FileHandle(forReadingFrom: url)
+        defer { try? fileHandle.close() }
+        
+        if let offset = offset {
+            try fileHandle.seek(toOffset: offset)
+        }
+        
+        let data = fileHandle.readData(ofLength: Int(bytesCount))
+        return try Crypto.encrypt_xchacha20poly1305(plainText: Array(data), secretKey: secretKey)
+    }
+    
     private func uploadPrivateFileMessage(content: ContentHeaders, localUser: LocalUser, accessProfilesMap: [String:Profile], messageFilePartInfo: MessageFilePartInfo) async throws {
         guard let url = messageFilePartInfo.urlInfo.url else {
             throw ClientError.invalidFileURL
@@ -1408,7 +1455,12 @@ public class DefaultClient: Client {
         try envelope.embedPrivateContentHeaders(accessKey: accessKey, accessProfilesMap: accessProfilesMap)
         try envelope.seal(payloadSeal: PayloadSeal(algorithm: Crypto.SYMMETRIC_CIPHER))
         
-        let (_,sealedBody) = try Crypto.encryptFilePart_xchacha20poly1305(inputURL: url, secretkey: accessKey, bytesCount: messageFilePartInfo.size, offset: messageFilePartInfo.offset)
+        let sealedBody = try readAndEncryptChunk(
+            at: url,
+            offset: messageFilePartInfo.offset,
+            bytesCount: messageFilePartInfo.size,
+            secretKey: accessKey
+        )
         
         let uploader = Uploader(localUser: localUser)
         var oneSucceeded = false
@@ -1425,7 +1477,6 @@ public class DefaultClient: Client {
                 }
                 
                 for try await _ in taskGroup {
-                    try FileManager.default.removeItem(at: url)
                     oneSucceeded = true
                 }
                 if !oneSucceeded {

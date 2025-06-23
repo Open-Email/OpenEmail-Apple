@@ -10,7 +10,7 @@ import Logging
 class ProfileViewModel {
     var profile: Profile
     
-    var isInContacts: Bool = false
+    var isInContacts: Bool = true
     var isInOtherContacts: Bool?
     var isSelf: Bool = false
     

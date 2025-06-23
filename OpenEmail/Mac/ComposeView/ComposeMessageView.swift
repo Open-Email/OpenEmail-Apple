@@ -14,7 +14,7 @@ struct ComposeMessageView: View {
     @AppStorage(UserDefaultsKeys.profileName) private var profileName: String?
     @Injected(\.syncService) private var syncService
     
-    @Bindable var viewModel: ComposeMessageViewModel
+    @State private var viewModel: ComposeMessageViewModel
     @FocusState private var isReadersFocused: Bool
     
     @Environment(\.dismiss) private var dismiss
@@ -31,8 +31,8 @@ struct ComposeMessageView: View {
     
     @State private var shownProfileAddress: EmailAddress?
     @State private var bodyText: String = ""
-    init(viewModel: ComposeMessageViewModel) {
-        self.viewModel = viewModel
+    init(action: ComposeAction) {
+        self.viewModel = ComposeMessageViewModel(action: action)
     }
     
     var body: some View {
@@ -287,20 +287,6 @@ struct ComposeMessageView: View {
     }
 }
 
-#Preview {
-    let viewModel = ComposeMessageViewModel(action: .newMessage(id: UUID(), authorAddress: "mickey@mouse.com", readerAddress: nil))
-    viewModel.appendAttachedFiles(
-        urls: [
-            URL(fileURLWithPath: "/path/to/file.jpg"),
-            URL(fileURLWithPath: "/path/to/file2.jpg"),
-            URL(fileURLWithPath: "/path/to/file3.jpg"),
-            URL(fileURLWithPath: "/path/to/file4.jpg"),
-            URL(fileURLWithPath: "/path/to/file5.jpg"),
-        ]
-    )
-    return ComposeMessageView(viewModel: viewModel)
-}
-
 #Preview("sending") {
-    ComposeMessageView(viewModel: ComposeMessageViewModel(action: .newMessage(id: UUID(),  authorAddress: "mickey@mouse.com", readerAddress: nil)))
+    ComposeMessageView(action: .newMessage(id: UUID(),  authorAddress: "mickey@mouse.com", readerAddress: nil))
 }
