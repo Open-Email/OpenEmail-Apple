@@ -139,7 +139,7 @@ class ScopesSidebarViewModel {
                     await MainActor.run {
                         self.allCounts[.outbox] = newMessages
                             .filter { message in
-                                message.author == registeredEmailAddress && !message.isDraft
+                                message.author == registeredEmailAddress && !message.isDraft && !message.isDeleted
                             }.count
                     }
                 }
