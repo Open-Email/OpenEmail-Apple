@@ -1865,20 +1865,19 @@ public class DefaultClient: Client {
         
         let id = localUser.connectionLinkFor(remoteAddress: address.address)
         
-        let contact: Contact
         if let existingContact = try? await contactsStore.contact(address: address.address) {
-            contact = existingContact
+            try await contactsStore.storeContact(existingContact)
         } else {
-            let profile = try await fetchProfile(address: address)
-            contact = Contact(
-                id: id,
-                addedOn: Date(),
-                address: address.address,
-                receiveBroadcasts: true,
-                cachedName: profile?.name
-            )
+            if let profile = try? await fetchProfile(address: address) {
+                try await contactsStore.storeContact(Contact(
+                    id: id,
+                    addedOn: Date(),
+                    address: address.address,
+                    receiveBroadcasts: true,
+                    cachedName: profile.name
+                ))
+            }
         }
-        try await contactsStore.storeContact(contact)
     }
     
     public func fetchProfileImage(address: EmailAddress, force: Bool) async throws -> Data? {

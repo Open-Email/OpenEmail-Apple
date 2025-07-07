@@ -26,7 +26,7 @@ class ContactRequestsController {
 
             let contactRequestNotifications = notifications.filter {
                 contactRequestIDs.contains($0.link)
-            }
+            }.distinctBy { $0.address }
 
             return contactRequestNotifications.compactMap {
                 guard let address = $0.address else { return nil }
