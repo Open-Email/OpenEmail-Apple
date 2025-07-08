@@ -98,16 +98,20 @@ struct MessagesListView: View {
     @ViewBuilder
     private func deleteButton(message: Message) -> some View {
         AsyncButton(role: .destructive) {
-            if navigationState.selectedScope == .trash {
-                messageToDelete = message
-                showsDeleteConfirmationAlert = true
-            } else {
-                await viewModel
-                    .markAsDeleted(
-                        messageIDs: [message.id],
-                        isDeleted: true
-                    )
+            switch(navigationState.selectedScope) {
+                    case .trash:
+                    messageToDelete = message
+                    showsDeleteConfirmationAlert = true
+                case .drafts:
+                    await viewModel.deletePermanently(messageIDs: [message.id])
+                default:
+                    await viewModel
+                        .markAsDeleted(
+                            messageIDs: [message.id],
+                            isDeleted: true
+                        )
             }
+            
         } label: {
             Label("Delete", systemImage: "trash")
         }
