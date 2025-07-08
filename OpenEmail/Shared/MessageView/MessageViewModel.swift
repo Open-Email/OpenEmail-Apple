@@ -116,16 +116,21 @@ class MessageViewModel {
     }
 
     func permanentlyDeleteMessage() async throws {
-        try? await client.recallAuthoredMessage(localUser: .current!, messageId: message!.id)
         try await messagesStore.deleteMessage(id: message!.id)
     }
 
     func markAsDeleted(_ deleted: Bool) async throws {
         guard let message else { return }
-        try await messagesStore.markAsDeleted(message: message, deleted: deleted)
+        if message.isOutbox() {
+            try? await recallMessage()
+            let _ = try await convertToDraft()
+            try await messagesStore.deleteMessage(id: message.id)
+        } else {
+            try await messagesStore.markAsDeleted(message: message, deleted: deleted)
+        }
     }
 
-    func recallMessage() async throws {
+    private func recallMessage() async throws {
         guard let localUser = LocalUser.current, let message else {
             return
         }
@@ -139,8 +144,6 @@ class MessageViewModel {
             for id in ids {
                 try await client.recallAuthoredMessage(localUser: localUser, messageId: id)
             }
-
-            try await markAsDeleted(true)
             isRecalling = false
         } catch {
             isRecalling = false
@@ -148,14 +151,15 @@ class MessageViewModel {
         }
     }
 
-    func convertToDraft() async throws -> Message? {
+    private func convertToDraft() async throws -> Message? {
         guard let message else { return nil }
         guard var draftMessage = Message.draft(from: message) else {
             // TODO: throw error?
             return nil
         }
 
-        draftMessage.draftAttachmentUrls = try copyAttachmentsToTempFolder(message: message)
+        draftMessage.draftAttachmentUrls = try message
+            .copyAttachmentsToTempFolder(attachmentsManager: attachmentsManager)
 
         do {
             try await messagesStore.storeMessage(draftMessage)
@@ -166,33 +170,5 @@ class MessageViewModel {
         return draftMessage
     }
 
-    private func copyAttachmentsToTempFolder(message: Message) throws -> [URL] {
-        let attachmentUrls = message.attachments.compactMap {
-            attachmentsManager.fileUrl(for: $0)
-        }
-
-        guard !attachmentUrls.isEmpty else {
-            return []
-        }
-
-        let fm = FileManager.default
-
-        // create temp folder
-        let tempAttachmentsLocation = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
-            .appending(path: message.id, directoryHint: .isDirectory)
-
-        Log.debug("copying attachments to \(tempAttachmentsLocation)")
-
-        try fm.createDirectory(at: tempAttachmentsLocation, withIntermediateDirectories: true)
-
-        // copy attachments
-        var urls = [URL]()
-        for url in attachmentUrls {
-            let detsination = tempAttachmentsLocation.appending(component: url.lastPathComponent)
-            try fm.copyItem(at: url, to: detsination)
-            urls.append(detsination)
-        }
-
-        return urls
-    }
+    
 }

@@ -18,7 +18,6 @@ struct MessageView: View {
     @State private var attachmentsListViewModel: AttachmentsListViewModel?
 
     @State private var showDeleteConfirmationAlert = false
-    @State private var showRecallConfirmationAlert = false
     @State private var showFilesPopover = false
     @State private var toolbarBarVisibility: Visibility = .hidden
     @State private var composeAction: ComposeAction?
@@ -96,16 +95,12 @@ struct MessageView: View {
             }
         } else {
             ToolbarItemGroup(placement: .bottomBar) {
-                if selectedScope == .outbox {
-                    recallButton(message: message)
+                if selectedScope == .trash && message.author != registeredEmailAddress {
+                    undeleteButton
+                    Spacer()
+                    deleteButton(message: message)
                 } else {
-                    if selectedScope == .trash && message.author != registeredEmailAddress {
-                        undeleteButton
-                        Spacer()
-                        deleteButton(message: message)
-                    } else {
-                        deleteButton(message: message)
-                    }
+                    deleteButton(message: message)
                 }
 
                 Spacer()
@@ -143,38 +138,6 @@ struct MessageView: View {
                 }
             }
         }
-    }
-
-    @ViewBuilder
-    private func recallButton(message: Message) -> some View {
-        Button("Delete", image: .trash) {
-            showRecallConfirmationAlert = true
-        }
-        .alert(
-            "Do you want to edit or discard this message?",
-            isPresented: $showRecallConfirmationAlert,
-            actions: {
-                AsyncButton("Edit") {
-                    do {
-                        if let draftMessage = try await viewModel.convertToDraft() {
-                            try await viewModel.recallMessage()
-                            composeAction = .editDraft(messageId: draftMessage.id)
-                        }
-                    } catch {
-                        // TODO: show error message
-                        Log.error("Could not convert to draft: \(error)")
-                    }
-                }
-
-                AsyncButton("Discard", role: .destructive) {
-                    await recallMessage()
-                    selectedMessageID = nil
-                }
-            },
-            message: {
-                Text(viewModel.recallInfoMessage)
-            }
-        )
     }
 
     @ViewBuilder
@@ -345,15 +308,6 @@ struct MessageView: View {
             selectedMessageID = nil
         } catch {
             Log.error("Could not delete message: \(error)")
-        }
-    }
-
-    private func recallMessage() async {
-        do {
-            try await viewModel.recallMessage()
-            selectedMessageID = nil
-        } catch {
-            Log.error("Could not recall message: \(error)")
         }
     }
 }

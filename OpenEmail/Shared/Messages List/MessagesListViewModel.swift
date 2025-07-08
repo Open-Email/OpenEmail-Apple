@@ -12,6 +12,8 @@ class MessagesListViewModel {
     @Injected(\.messagesStore) private var messagesStore
     @ObservationIgnored
     @Injected(\.client) private var client
+    @ObservationIgnored
+    @Injected(\.attachmentsManager) private var attachmentsManager
     
     private var allMessages: [Message] = []
     private var subscriptions = Set<AnyCancellable>()
@@ -99,7 +101,6 @@ class MessagesListViewModel {
         guard let currentUser = LocalUser.current else {
             return
         }
-        var updatedMessages = [Message]()
         let messages = allMessages.filter { messageIDs.contains($0.id) }
         await withTaskGroup { group in
             for message in messages {
@@ -107,32 +108,29 @@ class MessagesListViewModel {
                 group.addTask {
                     do {
                         if isDeleted {
-                            if self.selectedScope == .outbox {
+                            if localMessage.isOutbox() {
+                                
                                 try? await self.client
                                     .recallAuthoredMessage(
                                         localUser: currentUser,
                                         messageId: message.id
                                     )
-                            }
-                            localMessage.deletedAt = Date()
-                            updatedMessages.append(localMessage)
-                        } else {
-                            if localMessage.author == currentUser.address.address {
-                                let _ = try await self.client
-                                    .uploadPrivateMessage(localUser: currentUser,
-                                                          subject: message.subject,
-                                                          readersAddresses: message.readers.map { EmailAddress($0)! },
-                                                          body: Data((message.body ?? "").bytes),
-                                                          urls: message.draftAttachmentUrls, progressHandler: { _ in })
                                 
-                                //since reuploading message will generate new message id and store it on upload - removing the old one
-                                try await self.messagesStore.deleteMessage(id: localMessage.id)
+                                if var draftMessage = Message.draft(from: localMessage) {
+                                    draftMessage.draftAttachmentUrls = try localMessage
+                                        .copyAttachmentsToTempFolder(
+                                            attachmentsManager: self.attachmentsManager
+                                        )
+                                    try? await self.messagesStore.deleteMessage(id: localMessage.id)
+                                    localMessage = draftMessage
+                                }
                             } else {
-                                localMessage.deletedAt = nil
-                                updatedMessages.append(localMessage)
+                                localMessage.deletedAt = Date()
                             }
+                        } else {
+                            localMessage.deletedAt = nil
                         }
-                        
+                        try await self.messagesStore.storeMessage(localMessage)
                         
                     } catch {
                         Log.error("Could not mark message as deleted == \(isDeleted): \(error)")
@@ -141,13 +139,8 @@ class MessagesListViewModel {
             }
             await group.waitForAll()
         }
-        
-        do {
-            try await messagesStore.storeMessages(updatedMessages)
-        } catch {
-            Log.error("Could not store updated messages: \(error)")
-        }
     }
+ 
 
     private func setReadState(messageIDs: Set<String>, isRead: Bool) {
         Task {

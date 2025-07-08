@@ -119,7 +119,6 @@ class ScopesSidebarViewModel {
         guard let localUser = LocalUser.current else {
             return
         }
-        let registeredEmailAddress: String = UserDefaults.standard.registeredEmailAddress ?? ""
         if let newMessages = try? await messagesStore.allMessages(searchText: "") {
             await withTaskGroup { group in
                 group.addTask {
@@ -129,18 +128,20 @@ class ScopesSidebarViewModel {
                     await MainActor.run {
                         self.unreadCounts[.broadcasts] = unreads
                         self.allCounts[.broadcasts] = newMessages
-                            .filter {
-                                message in message.isBroadcast && message.author != registeredEmailAddress && !message.isDeleted
-                            }.count
+                            .filteredBy(
+                                scope: .broadcasts,
+                                localUser: localUser
+                            ).count
                     }
                 }
                 
                 group.addTask {
                     await MainActor.run {
                         self.allCounts[.outbox] = newMessages
-                            .filter { message in
-                                message.author == registeredEmailAddress && !message.isDraft && !message.isDeleted
-                            }.count
+                            .filteredBy(
+                                scope: .outbox,
+                                localUser: localUser
+                            ).count
                     }
                 }
                 
@@ -150,27 +151,28 @@ class ScopesSidebarViewModel {
                     await MainActor.run {
                         self.unreadCounts[.inbox] = unreads
                         self.allCounts[.inbox] = newMessages
-                            .filter {
-                                message in !message.isBroadcast && message.author != registeredEmailAddress && !message.isDeleted
-                            }.count
+                            .filteredBy(
+                                scope: .inbox,
+                                localUser: localUser
+                            ).count
                     }
                 }
                 
                 group.addTask {
                     await MainActor.run {
-                        self.allCounts[.drafts] = newMessages
-                            .filter {
-                                message in message.isDraft && !message.isDeleted
-                            }.count
+                        self.allCounts[.drafts] = newMessages.filteredBy(
+                            scope: .drafts,
+                            localUser: localUser
+                        ).count
                     }
                 }
                 
                 group.addTask {
                     await MainActor.run {
-                        self.allCounts[.trash] = newMessages
-                            .filter {
-                                message in message.isDeleted
-                            }.count
+                        self.allCounts[.trash] = newMessages.filteredBy(
+                            scope: .trash,
+                            localUser: localUser
+                        ).count
                     }
                 }
             }

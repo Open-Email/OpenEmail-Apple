@@ -1,5 +1,6 @@
 import Foundation
 import OpenEmailModel
+import Logging
 
 public extension Message {
     static func draft() -> Message? {
@@ -54,5 +55,35 @@ public extension Message {
             deletedAt: nil,
             attachments: []
         )
+    }
+    
+    func copyAttachmentsToTempFolder(attachmentsManager: AttachmentsManager) throws -> [URL] {
+        let attachmentUrls = attachments.compactMap {
+            attachmentsManager.fileUrl(for: $0)
+        }
+        
+        guard !attachmentUrls.isEmpty else {
+            return []
+        }
+        
+        let fm = FileManager.default
+        
+        // create temp folder
+        let tempAttachmentsLocation = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+            .appending(path: id, directoryHint: .isDirectory)
+        
+        Log.debug("copying attachments to \(tempAttachmentsLocation)")
+        
+        try fm.createDirectory(at: tempAttachmentsLocation, withIntermediateDirectories: true)
+        
+        // copy attachments
+        var urls = [URL]()
+        for url in attachmentUrls {
+            let detsination = tempAttachmentsLocation.appending(component: url.lastPathComponent)
+            try fm.copyItem(at: url, to: detsination)
+            urls.append(detsination)
+        }
+        
+        return urls
     }
 }

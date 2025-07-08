@@ -153,40 +153,6 @@ struct MessageView: View {
         }
     }
 
-    
-    @ViewBuilder
-    private func recallButton(message: Message) -> some View {
-        Button {
-            showRecallConfirmationAlert = true
-        } label: {
-            Image(.scopeTrash)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 18, height: 18)
-        }
-        .buttonStyle(ActionButtonStyle(isImageOnly: true))
-        .help("Delete")
-        .alert(
-            "Do you want to edit or discard this message?",
-            isPresented: $showRecallConfirmationAlert,
-            actions: {
-                
-                AsyncButton("Discard", role: .destructive) {
-                    do {
-                        try await viewModel.recallMessage()
-                        navigationState.clearSelection()
-                    } catch {
-                        // TODO: show error message
-                        Log.error("Could not recall message: \(error)")
-                    }
-                }
-            },
-            message: {
-                Text(viewModel.recallInfoMessage)
-            }
-        )
-        .dialogSeverity(viewModel.allAttachmentsDownloaded ? .standard : .critical)
-    }
 
     @ViewBuilder
     private func messageBody(message: Message) -> some View {

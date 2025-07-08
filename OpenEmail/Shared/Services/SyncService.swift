@@ -183,11 +183,8 @@ class SyncService: MessageSyncing {
                 // Sync own outgoing messages
                 guard self.hasUserAccount() else { return }
                 
-                do {
-                    let remoteOutgoingMessageIds = try await self.client.fetchLocalMessages(localUser: localUser, localProfile: localProfile)
+                if let remoteOutgoingMessageIds = try? await self.client.fetchLocalMessages(localUser: localUser, localProfile: localProfile) {
                     await self.cleanUpOutboxMessages(remoteOutboxIds: remoteOutgoingMessageIds)
-                } catch {
-                    Log.error("Error fetching local messages: \(error)")
                 }
             }
             
