@@ -3,6 +3,7 @@ import Flow
 import OpenEmailCore
 import OpenEmailPersistence
 import OpenEmailModel
+import Logging
 
 struct ReadersView: View {
     @AppStorage(UserDefaultsKeys.profileName) private var profileName: String?
@@ -18,6 +19,7 @@ struct ReadersView: View {
     @State private var inputEditingPosition: Int = 0
     @State private var showAlreadyAddedAlert = false
     @State private var noProfileFoundAlertShown: Bool = false
+    @State private var addingContactProgress: Bool = false
 
     @State private var showSuggestions = false
     @State private var allContacts: [Contact] = []
@@ -79,6 +81,14 @@ struct ReadersView: View {
                         .textFieldStyle(.plain)
                         .frame(minWidth: 20, maxWidth: .infinity)
                         .onChange(of: inputText) {
+                            if let last = inputText.last,
+                                last == " " || last == "," {
+                                inputText = inputText
+                                    .trimmingCharacters(
+                                        in: CharacterSet(charactersIn: " ,")
+                                    )
+                                addCurrentInput()
+                            }
                             if !readers.isEmpty && inputText.isEmpty {
                                 let last = readers.removeLast()
                                 inputText = ReadersView.zeroWidthSpace + last.address.address
@@ -110,11 +120,6 @@ struct ReadersView: View {
                 
             }
         }
-        .onKeyPress(keys: [.space, ","]) { _ in
-            guard isEditable else { return .ignored }
-            addCurrentInput()
-            return .handled
-        }
         .sheet(isPresented: Binding(
             get: {
                 Binding($newContact) != nil
@@ -122,14 +127,50 @@ struct ReadersView: View {
             set: { newValue in
                 if !newValue {
                     newContact = nil
+                    addingContactProgress = false
                 }
             })
         ) {
             VStack(alignment: .leading) {
-                Text("This person should be added to your contact list first")
-                    .font(.title2)
-                    .padding(.top, .Spacing.default)
-                    .padding(.horizontal, .Spacing.default)
+                HStack {
+                    Text("This person should be added to your contact list first")
+                        .font(.footnote)
+                    Spacer()
+                    if addingContactProgress {
+                        ProgressView()
+                    } else {
+                        AsyncButton("Add to contacts") {
+                            if let localUser = LocalUser.current, let profile = newContact {
+                                addingContactProgress = true
+                                do {
+                                    try await client
+                                        .storeContact(
+                                            localUser: localUser,
+                                            address: profile.address
+                                        )
+                                    let contact = Contact(
+                                        id: localUser.connectionLinkFor(remoteAddress: profile.address.address),
+                                        addedOn: Date(),
+                                        address: profile.address.address,
+                                        receiveBroadcasts: true,
+                                        cachedName: profile[.name],
+                                        cachedProfileImageURL: nil
+                                    )
+                                    try await contactsStore.storeContact(contact)
+                                } catch {
+                                    Log.error("could not add contact: \(error)")
+                                }
+                                inputText = ReadersView.zeroWidthSpace
+                                readers.append(profile)
+                                newContact = nil
+                                addingContactProgress = false
+                            }
+                        }
+                    }
+                }
+                .padding(.top, .Spacing.default)
+                .padding(.horizontal, .Spacing.default)
+                
                 
                 ProfileView(profile: newContact!)
                 HStack {
@@ -137,36 +178,7 @@ struct ReadersView: View {
                     Button("Cancel") {
                         newContact = nil
                     }
-//                    AsyncButton("Add to contacts") {
-//                        if let localUser = LocalUser.current, let profile = newContact {
-//                            newContact = nil
-//                            //addingContactProgress = true
-//                            do {
-//                                try await client
-//                                    .storeContact(
-//                                        localUser: localUser,
-//                                        address: profile.address
-//                                    )
-//                                let contact = Contact(
-//                                    id: localUser.connectionLinkFor(remoteAddress: profile.address.address),
-//                                    addedOn: Date(),
-//                                    address: profile.address.address,
-//                                    receiveBroadcasts: true,
-//                                    cachedName: profile[.name],
-//                                    cachedProfileImageURL: nil
-//                                )
-//                                try await contactsStore.storeContact(contact)
-//                            } catch {
-//                                Log.error("could not add contact", context: error)
-//                            }
-//                            inputText = ReadersView.zeroWidthSpace
-//                            readers.append(profile)
-//                            newContact = nil
-//                            //addingContactProgress = false
-//                            
-//                        }
-//                        
-//                    }
+                    
                 }.padding(.Spacing.default)
             }
         }

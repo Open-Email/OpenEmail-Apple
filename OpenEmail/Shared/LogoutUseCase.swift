@@ -31,7 +31,12 @@ class LogoutUseCase {
         try? fm.removeItem(at: fm.attachmentsFolderURL(userAddress: registeredEmailAddress))
 
         Task {
-            try await PersistedStore.shared.deleteAllData()
+            do {
+                try await PersistedStore.shared.deleteAllData()
+            } catch {
+                Log.error("Deleting data failed: \(error)")
+            }
+            
         }
     }
 }
