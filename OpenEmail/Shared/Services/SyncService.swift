@@ -299,21 +299,20 @@ class SyncService: MessageSyncing {
             }
         }
        
-        try await withThrowingTaskGroup(of: Void.self) { group in
-            
+        await withTaskGroup { group in
             for index in 0..<maxConcurrentTasks {
                 group.addTask {
-                    try await getContactMessages(index)
+                    try? await getContactMessages(index)
                 }
             }
             var tmpIndex = maxConcurrentTasks
             
-            while try await group.next() != nil {
+            while await group.next() != nil {
                 if (tmpIndex < contacts.count) {
                     let i = tmpIndex
                     tmpIndex += 1
                     group.addTask {
-                        try await getContactMessages(i)
+                        try? await getContactMessages(i)
                     }
                 }
             }

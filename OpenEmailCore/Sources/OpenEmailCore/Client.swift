@@ -2123,21 +2123,36 @@ public class DefaultClient: Client {
     }
     
     public func syncContacts(localUser: LocalUser) async throws {
-        // Fetch remote to local
         let allContacts = try await fetchContacts(localUser: localUser)
-        for contact in allContacts {
-            if let emailAddress = EmailAddress(contact.address) {
-                try await upsertLocalContact(localUser: localUser, address: emailAddress)
-            }
-        }
-        // Now store local to remote
         let allLocalContacts = try await contactsStore.allContacts()
+        
+        let existingRemoteContacts = try await withThrowingTaskGroup(of: Void.self, returning: [EmailAddress].self) { group in
+            var rv: [EmailAddress] = []
+            for contact in allContacts {
+                group.addTask {
+                    let email = EmailAddress(contact.address)!
+                    do {
+                        _ = try await self.fetchProfile(address: email, force: true)
+                    } catch UserError.profileNotFound {
+                        try await self.deleteContact(localUser: localUser, address: email)
+                        try await self.contactsStore.deleteContact(id: contact.id)
+                        return
+                    }
+                    try await self.upsertLocalContact(localUser: localUser, address: email)
+                    rv.append(contact)
+                }
+                try await group.waitForAll()
+            }
+            return rv
+        }
+        
         for contact in allLocalContacts {
-            if let emailAddress = EmailAddress(contact.address) {
-                try await storeContact(localUser: localUser, address: emailAddress)
+            if !existingRemoteContacts.contains(where: { $0.address == contact.address }) {
+                try await contactsStore.deleteContact(id: contact.id)
             }
         }
     }
+
     
     public func deleteContact(localUser: LocalUser, address: EmailAddress) async throws {
         let linkAddr = localUser.connectionLinkFor(remoteAddress: address.address)
