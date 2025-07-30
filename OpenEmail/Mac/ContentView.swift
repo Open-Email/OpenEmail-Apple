@@ -31,36 +31,8 @@ struct ContentView: View {
         NotificationCenter.default.publisher(for: .didUpdateNotifications)
     ).eraseToAnyPublisher()
     
-    var amountLabel: String? {
-        switch navigationState.selectedScope {
-        case .broadcasts:
-            let broadcastsCount = sidebarViewModel.allCounts[.broadcasts] ?? 0
-            let unreadProadcastsCount = sidebarViewModel.unreadCounts[.broadcasts] ?? 0
-            return "\(broadcastsCount) broadcasts" + (unreadProadcastsCount > 0 ? " \(unreadProadcastsCount) unread" : "")
-        case .inbox:
-            let inboxCount = sidebarViewModel.allCounts[.inbox] ?? 0
-            let unreadInboxCount = sidebarViewModel.unreadCounts[.inbox] ?? 0
-            return "\(inboxCount) messages" + (unreadInboxCount > 0 ? " \(unreadInboxCount) unread" : "")
-        case .outbox:
-            let sentCount = sidebarViewModel.allCounts[.outbox] ?? 0
-            return "\(sentCount) messages"
-        case .drafts:
-            let draftsCount = sidebarViewModel.allCounts[.drafts] ?? 0
-            return "\(draftsCount) drafts"
-        case .trash:
-            let deletedCount = sidebarViewModel.allCounts[.trash] ?? 0
-            return "\(deletedCount) deleted messages"
-        case .contacts:
-            let contactsCount = sidebarViewModel.allCounts[.contacts] ?? 0
-            let requestsCount = sidebarViewModel.unreadCounts[.contacts] ?? 0
-            return "\(contactsCount) contacts" + (requestsCount > 0 ? " \(requestsCount) requests" : "")
-        }
-    }
-    
     var body: some View {
         NavigationSplitView {
-            SidebarView(scopesSidebarViewModel: $sidebarViewModel)
-        } content: {
             Group {
                 if navigationState.selectedScope == .contacts {
                     ContactsListView(contactsListViewModel: $contactsListViewModel)
@@ -76,27 +48,9 @@ struct ContentView: View {
                     }
                     .disabled(syncService.isSyncing)
                 }
-                ToolbarItem {
-                    VStack(alignment: .leading) {
-                        Text(navigationState.selectedScope.displayName)
-                            .font(.title3)
-                            .fontWeight(.semibold)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                        
-                        if let amountLabel = amountLabel {
-                            Text(amountLabel)
-                                .font(.subheadline)
-                                .lineLimit(1)
-                                .foregroundStyle(.secondary)
-                                .truncationMode(.tail)
-                        }
-                    }
-                    
-                }
                 
             }
-        } detail: {
+        }  detail: {
             VStack {
                 if navigationState.selectedContact == nil && navigationState.selectedMessageIDs.isEmpty {
                     Image(.logo)
@@ -117,32 +71,33 @@ struct ContentView: View {
             }
             .frame(minWidth: 300, idealWidth: 650)
             .toolbar {
-                ToolbarItemGroup(placement: .primaryAction) {
-                    HStack {
-                        Button {
-                            guard let registeredEmailAddress else { return }
-                           
-                            if messageViewModel.message?.isDraft == true {
-                                openWindow(
-                                    id: WindowIDs.compose,
-                                    value: ComposeAction.editDraft(messageId: messageViewModel.messageID!)
-                                )
-                            } else {
-                                openWindow(id: WindowIDs.compose, value: ComposeAction.newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: nil))
-                            }
-                            
-                        } label: {
-                            Image(systemName: "square.and.pencil")
+                ToolbarItem(placement: ToolbarItemPlacement.primaryAction) {
+                    Button {
+                        guard let registeredEmailAddress else { return }
+                        
+                        if messageViewModel.message?.isDraft == true {
+                            openWindow(
+                                id: WindowIDs.compose,
+                                value: ComposeAction.editDraft(messageId: messageViewModel.messageID!)
+                            )
+                        } else {
+                            openWindow(id: WindowIDs.compose, value: ComposeAction.newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: nil))
                         }
                         
-                        Button {
-                            showAddContactView = true
-                        } label: {
-                            Image(systemName: "person.badge.plus")
-                        }
-                        Divider()
-                        AsyncButton {
-                            switch navigationState.selectedScope {
+                    } label: {
+                        Image(systemName: "square.and.pencil")
+                    }
+                }
+                ToolbarItem {
+                    Button {
+                        showAddContactView = true
+                    } label: {
+                        Image(systemName: "person.badge.plus")
+                    }
+                }
+                ToolbarItem {
+                    AsyncButton {
+                        switch navigationState.selectedScope {
                             case .trash:
                                 showDeleteMessageConfirmationAlert = true
                                 
@@ -157,78 +112,80 @@ struct ContentView: View {
                                 } catch {
                                     Log.error("Could not mark message as deleted: \(error)")
                                 }
-                            }
-                        } label: {
-                            Image(systemName: "trash")
-                        }.disabled(
-                            navigationState.selectedMessageIDs.isEmpty &&
-                            navigationState.selectedContact == nil
-                        )
-                        //TODO adjust help according to selected element. Could be contact as well
-                        .help((messageViewModel.message?.isDraft ?? false) ? "Delete draft" : "Delete message")
-                        Divider()
-                        
-                        Button {
-                            guard let registeredEmailAddress else { return }
-                            if let message = messageViewModel.message {
-                                openWindow(
-                                    id: WindowIDs.compose,
-                                    value: ComposeAction.reply(
-                                        id: UUID(),
-                                        authorAddress: registeredEmailAddress,
-                                        messageId: message.id,
-                                        quotedText: message.body
-                                    )
-                                )
-                            }
-                        } label: {
-                            Image(systemName: "arrowshape.turn.up.left")
-                        }.disabled(
-                            messageViewModel.message == nil || messageViewModel.message!.isDraft
-                        )
-                        
-                        Button {
-                            guard let registeredEmailAddress else { return }
-                            if let message = messageViewModel.message {
-                                openWindow(
-                                    id: WindowIDs.compose,
-                                    value: ComposeAction.replyAll(
-                                        id: UUID(),
-                                        authorAddress: registeredEmailAddress,
-                                        messageId: message.id,
-                                        quotedText: message.body
-                                    )
-                                )
-                            }
-                            
-                        } label: {
-                            Image(systemName: "arrowshape.turn.up.left.2")
-                        }.disabled(
-                            messageViewModel.message == nil || messageViewModel.message!.isDraft
-                        )
-                        
-                        Button {
-                            guard let registeredEmailAddress else { return }
-                            if let message = messageViewModel.message {
-                                openWindow(
-                                    id: WindowIDs.compose,
-                                    value: ComposeAction.forward(
-                                        id: UUID(),
-                                        authorAddress: registeredEmailAddress,
-                                        messageId: message.id
-                                    )
-                                )
-                            }
-                        } label: {
-                            Image(systemName: "arrowshape.turn.up.right")
-                        }.disabled(
-                            messageViewModel.message == nil || messageViewModel.message!.isDraft
-                        )
-                    }
+                        }
+                    } label: {
+                        Image(systemName: "trash")
+                    }.disabled(
+                        navigationState.selectedMessageIDs.isEmpty &&
+                        navigationState.selectedContact == nil
+                    ).help((messageViewModel.message?.isDraft ?? false) ? "Delete draft" : "Delete message")
                 }
+                ToolbarItem {
+                    Button {
+                        guard let registeredEmailAddress else { return }
+                        if let message = messageViewModel.message {
+                            openWindow(
+                                id: WindowIDs.compose,
+                                value: ComposeAction.reply(
+                                    id: UUID(),
+                                    authorAddress: registeredEmailAddress,
+                                    messageId: message.id,
+                                    quotedText: message.body
+                                )
+                            )
+                        }
+                    } label: {
+                        Image(systemName: "arrowshape.turn.up.left")
+                    }.disabled(
+                        messageViewModel.message == nil || messageViewModel.message!.isDraft
+                    )
+                }
+                ToolbarItem {
+                    Button {
+                        guard let registeredEmailAddress else { return }
+                        if let message = messageViewModel.message {
+                            openWindow(
+                                id: WindowIDs.compose,
+                                value: ComposeAction.replyAll(
+                                    id: UUID(),
+                                    authorAddress: registeredEmailAddress,
+                                    messageId: message.id,
+                                    quotedText: message.body
+                                )
+                            )
+                        }
+                        
+                    } label: {
+                        Image(systemName: "arrowshape.turn.up.left.2")
+                    }.disabled(
+                        messageViewModel.message == nil || messageViewModel.message!.isDraft
+                    )
+                }
+                ToolbarItem {
+                    Button {
+                        guard let registeredEmailAddress else { return }
+                        if let message = messageViewModel.message {
+                            openWindow(
+                                id: WindowIDs.compose,
+                                value: ComposeAction.forward(
+                                    id: UUID(),
+                                    authorAddress: registeredEmailAddress,
+                                    messageId: message.id
+                                )
+                            )
+                        }
+                    } label: {
+                        Image(systemName: "arrowshape.turn.up.right")
+                    }.disabled(
+                        messageViewModel.message == nil || messageViewModel.message!.isDraft
+                    )
+                }
+                //Spacer()
             }
         }
-        .searchable(text: $searchText)
+        .searchable(
+            text: $searchText,
+        )
         .alert(
             navigationState.selectedContact?.isContactRequest == true ?
             "Are you sure you want to dismiss this contact request?" :
