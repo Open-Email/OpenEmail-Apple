@@ -116,13 +116,18 @@ class MessagesListViewModel {
                                         messageId: message.id
                                     )
                                 
-                                if var draftMessage = Message.draft(from: localMessage) {
-                                    draftMessage.draftAttachmentUrls = try localMessage
-                                        .copyAttachmentsToTempFolder(
-                                            attachmentsManager: self.attachmentsManager
-                                        )
-                                    try? await self.messagesStore.deleteMessage(id: localMessage.id)
-                                    localMessage = draftMessage
+                                if localMessage.isDraft {
+                                    try await self.messagesStore.deleteMessage(id: localMessage.id)
+                                    return
+                                } else {
+                                    if var draftMessage = Message.draft(from: localMessage) {
+                                        draftMessage.draftAttachmentUrls = try localMessage
+                                            .copyAttachmentsToTempFolder(
+                                                attachmentsManager: self.attachmentsManager
+                                            )
+                                        try await self.messagesStore.deleteMessage(id: localMessage.id)
+                                        localMessage = draftMessage
+                                    }
                                 }
                             } else {
                                 localMessage.deletedAt = Date()
