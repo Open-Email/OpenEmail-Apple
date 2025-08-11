@@ -247,6 +247,7 @@ class SyncService: MessageSyncing {
                             let _ = try await self.client.uploadBroadcastMessage(
                                 localUser: localUser,
                                 subject: pendingMessage.subject,
+                                subjectId: pendingMessage.subjectId,
                                 body: Data((pendingMessage.body ?? "").bytes),
                                 urls: pendingMessage.draftAttachmentUrls,
                                 progressHandler: nil
@@ -260,6 +261,7 @@ class SyncService: MessageSyncing {
                             let _ = try await self.client.uploadPrivateMessage(
                                 localUser: localUser,
                                 subject: pendingMessage.subject,
+                                subjectId: pendingMessage.subjectId,
                                 readersAddresses: pendingMessage.readers
                                     .map { address in EmailAddress(address)! },
                                 body: Data((pendingMessage.body ?? "").bytes),

@@ -203,6 +203,7 @@ class ComposeMessageViewModel {
                             .map { reader in reader.address.address },
                         draftAttachmentUrls: attachedFileItems.map { $0.url },
                         subject: subject,
+                        subjectId: subjectId,
                         body: fullText,
                         isBroadcast: isBroadcast
                     )

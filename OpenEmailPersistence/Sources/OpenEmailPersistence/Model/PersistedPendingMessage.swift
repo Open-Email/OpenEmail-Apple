@@ -14,6 +14,7 @@ class PersistedPendingMessage {
     var readers: String // [String] jined with ","
     var deliveries: String // [String] jined with ","
     var subject: String
+    var subjectId: String?
     var body: String?
     var isBroadcast: Bool
     var draftAttachmentUrls: String // [URL] jined with ","
@@ -27,6 +28,7 @@ class PersistedPendingMessage {
         readers: [String] = [],
         deliveries: [String] = [],
         subject: String,
+        subjectId: String?,
         body: String? = nil,
         isBroadcast: Bool,
         draftAttachmentUrls: [URL]
@@ -36,6 +38,7 @@ class PersistedPendingMessage {
         self.readers = readers.joined(separator: ",")
         self.deliveries = deliveries.joined(separator: ",")
         self.subject = subject
+        self.subjectId = subjectId
         self.body = body
         self.draftAttachmentUrls = draftAttachmentUrls
             .map { url in url.absoluteString }.joined(separator: ",")

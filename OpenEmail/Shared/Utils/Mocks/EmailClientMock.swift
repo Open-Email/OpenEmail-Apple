@@ -4,11 +4,11 @@ import Utils
 
 #if DEBUG
 class EmailClientMock: Client {
-    func uploadPrivateMessage(localUser: OpenEmailCore.LocalUser, subject: String, readersAddresses: [OpenEmailCore.EmailAddress], body: Data, urls: [URL], progressHandler: ((Double) -> Void)?) async throws -> String? {
+    func uploadPrivateMessage(localUser: OpenEmailCore.LocalUser, subject: String, subjectId: String?, readersAddresses: [OpenEmailCore.EmailAddress], body: Data, urls: [URL], progressHandler: ((Double) -> Void)?) async throws -> String? {
         nil
     }
 
-    func uploadBroadcastMessage(localUser: OpenEmailCore.LocalUser, subject: String, body: Data, urls: [URL], progressHandler: ((Double) -> Void)?) async throws -> String? {
+    func uploadBroadcastMessage(localUser: OpenEmailCore.LocalUser, subject: String, subjectId: String?, body: Data, urls: [URL], progressHandler: ((Double) -> Void)?) async throws -> String? {
         nil
     }
 
