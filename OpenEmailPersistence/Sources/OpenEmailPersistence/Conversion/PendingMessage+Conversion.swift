@@ -16,6 +16,7 @@ extension PendingMessage {
             authoredOn: authoredOn,
             readers: readers,
             subject: subject,
+            subjectId: subjectId,
             body: body,
             isBroadcast: isBroadcast,
             draftAttachmentUrls: draftAttachmentUrls
@@ -31,6 +32,7 @@ extension PersistedPendingMessage {
             readers: readers.split(separator: ",").map { subStr in String(subStr) },
             draftAttachmentUrls: draftAttachmentUrls.split(separator: ",").map { subStr in URL(string : String(subStr))! },
             subject: subject,
+            subjectId: subjectId,
             body: body ?? "",
             isBroadcast: isBroadcast
         )

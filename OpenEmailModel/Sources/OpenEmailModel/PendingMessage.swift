@@ -12,6 +12,7 @@ public struct PendingMessage {
     public let authoredOn: Date
     public let readers: [String]
     public let subject: String
+    public let subjectId: String?
     public let isBroadcast: Bool
     public let body: String?
     public let draftAttachmentUrls: [URL]
@@ -26,6 +27,7 @@ public struct PendingMessage {
         readers: [String],
         draftAttachmentUrls: [URL],
         subject: String,
+        subjectId: String?,
         body: String,
         isBroadcast: Bool,
     ) {
@@ -33,6 +35,7 @@ public struct PendingMessage {
         self.authoredOn = authoredOn
         self.readers = readers
         self.subject = subject
+        self.subjectId = subjectId
         self.body = body
         self.draftAttachmentUrls = draftAttachmentUrls
         self.isBroadcast = isBroadcast

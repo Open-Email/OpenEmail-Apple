@@ -68,8 +68,8 @@ public protocol Client {
     func fetchRemoteMessages(localUser: LocalUser, authorProfile: Profile) async throws
     func fetchRemoteBroadcastMessages(localUser: LocalUser, authorProfile: Profile) async throws
     func fetchLocalMessages(localUser: LocalUser, localProfile: Profile) async throws -> [String]
-    func uploadPrivateMessage(localUser: LocalUser, subject: String, readersAddresses: [EmailAddress], body: Data, urls: [URL], progressHandler: ((Double) -> Void)?) async throws -> String?
-    func uploadBroadcastMessage(localUser: LocalUser, subject: String, body: Data, urls: [URL], progressHandler: ((Double) -> Void)?) async throws -> String?
+    func uploadPrivateMessage(localUser: LocalUser, subject: String, subjectId: String?, readersAddresses: [EmailAddress], body: Data, urls: [URL], progressHandler: ((Double) -> Void)?) async throws -> String?
+    func uploadBroadcastMessage(localUser: LocalUser, subject: String, subjectId: String?, body: Data, urls: [URL], progressHandler: ((Double) -> Void)?) async throws -> String?
     func recallAuthoredMessage(localUser: LocalUser, messageId: String) async throws
     func fetchMessageDeliveryInformation(localUser: LocalUser, messageId: String) async throws -> [(String, Date)]?
     func downloadFileAttachment(messageIds: [String], parentId: String, localUser: LocalUser, filename: String) async throws
@@ -1144,6 +1144,7 @@ public class DefaultClient: Client {
     public func uploadPrivateMessage(
         localUser: LocalUser,
         subject: String,
+        subjectId: String?,
         readersAddresses: [EmailAddress],
         body: Data,
         urls: [URL],
@@ -1245,7 +1246,7 @@ public class DefaultClient: Client {
                         messageID: fpart.messageId,
                         date: sendingDate,
                         subject: subject,
-                        subjectID: messageID,
+                        subjectID: subjectId ?? messageID,
                         parentID: messageID,
                         checksum: fpart.checksum!,
                         category: .personal,
@@ -1269,7 +1270,7 @@ public class DefaultClient: Client {
             messageID: messageID,
             date: sendingDate,
             subject: subject,
-            subjectID: messageID,
+            subjectID: subjectId ?? messageID,
             parentID: nil,
             fileParts: allFileParts,
             checksum: bodyChecksum,
@@ -1290,6 +1291,7 @@ public class DefaultClient: Client {
     public func uploadBroadcastMessage(
         localUser: LocalUser,
         subject: String,
+        subjectId: String?,
         body: Data,
         urls: [URL],
         progressHandler: ((Double) -> Void)?
@@ -1368,7 +1370,7 @@ public class DefaultClient: Client {
                         messageID: fpart.messageId,
                         date: sendingDate,
                         subject: subject,
-                        subjectID: messageID,
+                        subjectID: subjectId ?? messageID,
                         parentID: messageID,
                         checksum: fpart.checksum!,
                         category: .personal,
@@ -1391,7 +1393,7 @@ public class DefaultClient: Client {
             messageID: messageID,
             date: sendingDate,
             subject: subject,
-            subjectID: messageID,
+            subjectID: subjectId ?? messageID,
             parentID: nil,
             fileParts: allFileParts,
             checksum: bodyChecksum,
