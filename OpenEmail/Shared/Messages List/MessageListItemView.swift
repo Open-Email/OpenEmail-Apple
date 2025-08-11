@@ -5,7 +5,7 @@ import Utils
 import Logging
 
 struct MessageListItemView: View {
-    private let message: Message
+    private let messageThread: MessageThread
     private let scope: SidebarScope
 
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
@@ -14,8 +14,8 @@ struct MessageListItemView: View {
 
     @State private var profileNames: [String: String] = [:]
 
-    init(message: Message, scope: SidebarScope) {
-        self.message = message
+    init(messageThread: MessageThread, scope: SidebarScope) {
+        self.messageThread = messageThread
         self.scope = scope
     }
 
@@ -24,7 +24,7 @@ struct MessageListItemView: View {
     }
 
     private var formattedReadersLine: String {
-        let readers = message.readers
+        let readers = messageThread.readers
 
         switch readers.count {
         case 0:
@@ -41,7 +41,7 @@ struct MessageListItemView: View {
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
             Circle()
-                .fill(message.isRead ? Color.clear :  Color.accentColor)
+                .fill(messageThread.isRead ? Color.clear :  Color.accentColor)
                 .frame(width: 8, height: 8)
                 .padding(EdgeInsets(
                     top: .Spacing.xxxSmall,
@@ -51,50 +51,15 @@ struct MessageListItemView: View {
                 ))
             
             VStack(alignment: .leading, spacing: 0) {
-                HStack(alignment: .center) {
-                    
-                    if message.isBroadcast {
-                        Group {
-                            Text(message.displayedSubject)
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                                .font(.headline)
-                        }
-                    } else {
-                        Text(scope == .outbox ? formattedReadersLine : profileNames[message.author] ?? message.author)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                            .font(.headline)
-                    }
-                   
-                    
-                    Spacer()
-                    
-                    if let boxLabel = getLabel(scope: scope) {
-                        Text(boxLabel)
-                            .lineLimit(1)
-                            .foregroundStyle(.secondary)
-                            .truncationMode(.tail)
-                            .font(.subheadline)
-                    }
-                    
-                    Text(message.formattedAuthoredOnDate)
-                        .foregroundStyle(.secondary)
-                        .font(.subheadline)
-                }
+                Text(messageThread.topic)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .font(.headline)
                 
                 HStack {
-                    if !message.isBroadcast {
-                        Text(message.displayedSubject)
-                            .lineLimit(1)
-                            .font(.subheadline)
-                            .truncationMode(.tail)
-                            .padding(.bottom, 3)
-                    }
-                   
                     
                     Spacer()
-                    if message.hasFiles || !message.draftAttachmentUrls.isEmpty {
+                    if messageThread.hasFiles {
                         Image(systemName: "paperclip")
                             .resizable()
                             .scaledToFit()
@@ -102,30 +67,13 @@ struct MessageListItemView: View {
                             .frame(width:11)
                     }
                 }.padding(.top, .Spacing.xSmall)
-
-                
-                Text(message.body?.cleaned ?? "")
-                    .foregroundStyle(.secondary)
-                    .font(.subheadline)
-                    .lineLimit(3)
-                    .padding(.top, .Spacing.xxxSmall)
-                    .truncationMode(.tail)
-                
-                
             }
             .task {
                 // fetch cached profile names
                 do {
-                    if scope == .outbox {
-                        // readers
-                        for reader in message.readers {
-                            let cachedReader = (try await contactsStore.contact(address: reader))
-                            profileNames[reader] = cachedReader?.cachedName
-                        }
-                    } else {
-                        // author
-                        let cachedAuthor = (try await contactsStore.contact(address: message.author))
-                        profileNames[message.author] = cachedAuthor?.cachedName
+                    for reader in messageThread.readers {
+                        let cachedReader = (try await contactsStore.contact(address: reader))
+                        profileNames[reader] = cachedReader?.cachedName
                     }
                 } catch {
                     Log.error("Couldn't fetch contacts: \(error)")
@@ -138,10 +86,8 @@ struct MessageListItemView: View {
 func getLabel(scope: SidebarScope) -> String? {
     var boxLabel: String? {
         switch scope {
-        case .inbox: "Inbox"
+        case .messages: "Messages"
         case .drafts: "Draft"
-        case .outbox: "Sent"
-        case .broadcasts: "Broadcast"
         case .trash: "Trash"
         case .contacts: nil
         }
@@ -153,13 +99,13 @@ func getLabel(scope: SidebarScope) -> String? {
     @Previewable @State var selection: Set<String> = []
     NavigationStack {
         List(selection: $selection) {
-            MessageListItemView(message: .makeRandom(isRead: true), scope: .inbox).tag("1")
+            MessageListItemView(messageThread: .makeRandom(isRead: true), scope: .messages).tag("1")
             MessageListItemView(
-                message: .makeRandomBroadcast(),
-                scope: .broadcasts
+                messageThread: .makeRandomBroadcast(),
+                scope: .messages
             )
                 .tag("2")
-            MessageListItemView(message: .makeRandom(), scope: .inbox).tag("3")
+            MessageListItemView(messageThread: .makeRandom(), scope: .messages).tag("3")
         }
         .listStyle(.plain)
         .navigationTitle("Inbox")

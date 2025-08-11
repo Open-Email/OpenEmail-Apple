@@ -19,14 +19,8 @@ class MessagesListViewModel {
     private var subscriptions = Set<AnyCancellable>()
     
 
-    var messages: [Message] = []
-    var selectedScope: SidebarScope = .inbox {
-        didSet {
-            Task {
-                await reloadMessagesFromStore()
-            }
-        }
-    }
+    var threads: [MessageThread] = []
+    
     var searchText: String = "" {
         didSet {
             Task {
@@ -62,11 +56,21 @@ class MessagesListViewModel {
                 do {
                     allMessages = try await messagesStore
                         .allMessages(searchText: searchText)
-                    messages = allMessages
                         .filteredBy(
-                            scope: selectedScope,
+                            scope: .messages,
                             localUser: localUser
                         )
+                    threads.removeAll()
+                    
+                    for message in allMessages {
+                        if var existingThread = threads.first(where: { $0.subjectId == message.subjectId }) {
+                            existingThread.messages.append(message)
+                        } else {
+                            threads.append(MessageThread(subjectId: message.subjectId, messages: [message]))
+                        }
+                    }
+                        //.map(MessageThread.init).sorted(by: { $0.lastMessageDate > $1.lastMessageDate }).forEach(\.id)
+                    print(allMessages)
                 } catch {
                     Log.error("Could not get messages from store:", context: error)
                 }
@@ -74,27 +78,27 @@ class MessagesListViewModel {
         }
     }
 
-    func markAsRead(messageIDs: Set<String>) {
-        setReadState(messageIDs: messageIDs, isRead: true)
+    func markAsRead(threads: Set<MessageThread>) {
+        //setReadState(messageIDs: messageIDs, isRead: true)
     }
 
-    func markAsUnread(messageIDs: Set<String>) {
-        setReadState(messageIDs: messageIDs, isRead: false)
+    func markAsUnread(threads: Set<MessageThread>) {
+       // setReadState(messageIDs: messageIDs, isRead: false)
     }
     
-    func deletePermanently(messageIDs: Set<String>) async {
-        await withTaskGroup { group in
-            for messageId in messageIDs {
-                group.addTask {
-                    do {
-                        try await self.messagesStore.deleteMessage(id: messageId)
-                    } catch {
-                        Log.error("Could not delete messages: \(error)")
-                    }
-                }
-            }
-            await group.waitForAll()
-        }
+    func deletePermanently(threads: Set<MessageThread>) async {
+//        await withTaskGroup { group in
+//            for messageId in messageIDs {
+//                group.addTask {
+//                    do {
+//                        try await self.messagesStore.deleteMessage(id: messageId)
+//                    } catch {
+//                        Log.error("Could not delete messages: \(error)")
+//                    }
+//                }
+//            }
+//            await group.waitForAll()
+//        }
     }
     
     func markAsDeleted(messageIDs: Set<String>, isDeleted: Bool) async {
@@ -147,31 +151,31 @@ class MessagesListViewModel {
     }
  
 
-    private func setReadState(messageIDs: Set<String>, isRead: Bool) {
-        Task {
-            do {
-                guard let localUser = LocalUser.current else { return }
-
-                var updatedMessages = [Message]()
-
-                for messageID in messageIDs {
-                    if let index = allMessages.firstIndex(where: { $0.id == messageID && $0.isRead != isRead }) {
-                        var message = allMessages[index]
-                        
-                        // setting read state on messages the user sent doesn't make sense
-                        guard message.author != localUser.address.address else { continue }
-
-                        message.isRead = isRead
-                        updatedMessages.append(message)
-
-                        allMessages[index] = message
-                    }
-                }
-
-                try await messagesStore.storeMessages(updatedMessages)
-            } catch {
-                Log.error("Could not mark message as read: \(error)")
-            }
-        }
+    private func setReadState(threads: Set<MessageThread>, isRead: Bool) {
+//        Task {
+//            do {
+//                guard let localUser = LocalUser.current else { return }
+//
+//                var updatedMessages = [Message]()
+//
+//                for messageID in messageIDs {
+//                    if let index = allMessages.firstIndex(where: { $0.id == messageID && $0.isRead != isRead }) {
+//                        var message = allMessages[index]
+//                        
+//                        // setting read state on messages the user sent doesn't make sense
+//                        guard message.author != localUser.address.address else { continue }
+//
+//                        message.isRead = isRead
+//                        updatedMessages.append(message)
+//
+//                        allMessages[index] = message
+//                    }
+//                }
+//
+//                try await messagesStore.storeMessages(updatedMessages)
+//            } catch {
+//                Log.error("Could not mark message as read: \(error)")
+//            }
+//        }
     }
 }

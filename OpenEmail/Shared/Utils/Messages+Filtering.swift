@@ -3,11 +3,9 @@ import OpenEmailModel
 import OpenEmailCore
 
 enum SidebarScope: String, CaseIterable, Identifiable {
-    case inbox
-    case outbox
+    case messages
     case drafts
     case trash
-    case broadcasts
     case contacts
 
     var id: String { rawValue }
@@ -20,17 +18,9 @@ extension [Message] {
 
     func filteredBy(scope: SidebarScope, localUser: LocalUser) -> [Message] {
         switch scope {
-        case .broadcasts:
+        case .messages:
             filter {
-                $0.isBroadcast && EmailAddress($0.author) != localUser.address && $0.deletedAt == nil && !$0.isDraft
-            }
-        case .inbox:
-            filter {
-                $0.readers.contains(localUser.address.address) && $0.deletedAt == nil && !$0.isDraft
-            }
-        case .outbox:
-            filter {
-                EmailAddress($0.author) == localUser.address && $0.deletedAt == nil && !$0.isDraft
+                $0.deletedAt == nil && !$0.isDraft
             }
         case .drafts:
             filter {

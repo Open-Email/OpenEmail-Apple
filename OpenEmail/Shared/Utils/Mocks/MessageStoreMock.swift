@@ -8,10 +8,10 @@ class MessageStoreMock: MessageStoring {
         
     }
 
-    var stubMessages: [Message] = [
-        Message.makeRandom(id: "1"),
-        Message.makeRandom(id: "2"),
-        Message.makeRandom(id: "3")
+    var stubMessages: [MessageThread] = [
+        MessageThread.makeRandom(id: "1"),
+        MessageThread.makeRandom(id: "2"),
+        MessageThread.makeRandom(id: "3")
     ]
 
     func messageExists(id: String) async throws -> Bool {
@@ -19,8 +19,8 @@ class MessageStoreMock: MessageStoring {
     }
 
     func message(id: String) throws -> OpenEmailModel.Message? {
-        let message = stubMessages.first { $0.id == id }
-        return message ?? stubMessages.first
+        let message = stubMessages.first { $0.id == id }?.messages.first
+        return message ?? stubMessages.first?.messages.first
     }
 
     func storeMessage(_ message: Message) {
@@ -30,11 +30,11 @@ class MessageStoreMock: MessageStoring {
     }
     
     func allMessages(searchText: String) async throws -> [Message] {
-        stubMessages
+        stubMessages.first?.messages ?? []
     }
 
     func allUnreadMessages() async throws -> [Message] {
-        stubMessages.filter { !$0.isRead }
+        stubMessages.first?.messages.filter { !$0.isRead } ?? []
     }
 
     func allDeletedMessages() async throws -> [Message] {

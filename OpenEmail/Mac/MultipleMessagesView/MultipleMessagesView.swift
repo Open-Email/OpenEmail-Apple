@@ -67,7 +67,7 @@ struct MultipleMessagesView: View {
                                 
                                 group.addTask {
                                     do {
-                                        if await navigationState.selectedScope == .outbox {
+                                        if await navigationState.selectedScope == .messages {
                                             try? await self.client
                                                 .recallAuthoredMessage(
                                                     localUser: currentUser,

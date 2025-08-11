@@ -3,7 +3,7 @@ import Observation
 
 @Observable class NavigationState {
     var selectedMessageIDs: Set<String> = []
-    var selectedScope: SidebarScope = .inbox {
+    var selectedScope: SidebarScope = .messages {
         didSet {
             clearSelection()
         }
