@@ -23,23 +23,8 @@ struct MessageListItemView: View {
         profileNames[emailAddress] ?? emailAddress
     }
 
-    private var formattedReadersLine: String {
-        let readers = messageThread.readers
-
-        switch readers.count {
-        case 0:
-            return "–"
-        case 1:
-            return readerName(emailAddress: readers[0])
-        case 2:
-            return "\(readerName(emailAddress: readers[0])) & \(readerName(emailAddress: readers[1]))"
-        default:
-            return "\(readerName(emailAddress: readers[0])) and \(readers.count - 1) others"
-        }
-    }
-    
     var body: some View {
-        HStack(alignment: .top, spacing: 0) {
+        HStack(alignment: .center, spacing: 0) {
             Circle()
                 .fill(messageThread.isRead ? Color.clear :  Color.accentColor)
                 .frame(width: 8, height: 8)
@@ -50,23 +35,29 @@ struct MessageListItemView: View {
                     trailing: .Spacing.xSmall,
                 ))
             
-            VStack(alignment: .leading, spacing: 0) {
-                Text(messageThread.topic)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                    .font(.headline)
-                
+            VStack(alignment: .leading) {
                 HStack {
-                    
-                    Spacer()
+                    Text(messageThread.topic)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .font(.title3)
                     if messageThread.hasFiles {
+                        Spacer()
                         Image(systemName: "paperclip")
                             .resizable()
                             .scaledToFit()
                             .foregroundStyle(.secondary)
                             .frame(width:11)
                     }
-                }.padding(.top, .Spacing.xSmall)
+                }
+                
+                Text(messageThread.messages.last?.body ?? "")
+                    .lineLimit(2)
+                    .truncationMode(.tail)
+                    .font(.callout)
+                
+                MultiReadersView(readers: messageThread.readers)
+                
             }
             .task {
                 // fetch cached profile names

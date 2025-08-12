@@ -25,10 +25,7 @@ struct ContentView: View {
     
     var body: some View {
         NavigationSplitView {
-            MessagesListView(searchText: $searchText).searchable(
-                text: $searchText,
-                placement: SearchFieldPlacement.sidebar
-            )
+            MessagesListView(searchText: $searchText)
         }  detail: {
             VStack {
                 if navigationState.selectedMessageThreads.isEmpty {
@@ -44,6 +41,10 @@ struct ContentView: View {
             
             .frame(minWidth: 300, idealWidth: 650)
         }
+        .searchable(
+            text: $searchText,
+            placement: SearchFieldPlacement.sidebar
+        )
         .onChange(of: navigationState.selectedMessageThreads) {
             if navigationState.selectedMessageThreads.count == 1 {
                 messageThreadViewModel.messageThread = navigationState.selectedMessageThreads.first

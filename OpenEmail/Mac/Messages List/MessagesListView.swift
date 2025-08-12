@@ -18,32 +18,17 @@ struct MessagesListView: View {
     
     var body: some View {
         @Bindable var navigationState = navigationState
-        Group {
-            if viewModel.threads.isEmpty && searchText.isEmpty {
-                EmptyListView(
-                    icon: SidebarScope.messages.imageResource,
-                    text: "Your message list is empty."
+        List(selection: $navigationState.selectedMessageThreads) {
+            Color.clear.frame(height: .Spacing.xxxSmall)
+            ForEach(viewModel.threads) { messageThread in
+                MessageListItemView(
+                    messageThread: messageThread,
+                    scope: navigationState.selectedScope
                 )
-            } else {
-                List(
-                    viewModel.threads,
-                    id: \.self.id,
-                    selection: $navigationState.selectedMessageThreads
-                ) { messageThread in
-                    MessageListItemView(
-                        messageThread: messageThread,
-                        scope: navigationState.selectedScope
-                    )
-                    .tag(messageThread)
-                    .padding(EdgeInsets(
-                        top: .Spacing.xxSmall,
-                        leading: .zero,
-                        bottom: .Spacing.xxSmall,
-                        trailing: .Spacing.xxSmall,
-                        
-                    ))
-                }
+                .tag(messageThread)
+                .padding(.all, .Spacing.xxxSmall)
             }
+           
         }
         .frame(idealWidth: 200)
         .listStyle(.automatic)
@@ -69,13 +54,9 @@ struct MessagesListView: View {
 //                }
 //            })
         .animation(.easeInOut(duration: viewModel.threads.isEmpty ? 0 : 0.2), value: viewModel.threads)
-        .onChange(of: navigationState.selectedMessageThreads) {
-            Log.debug("TODO selected message threads: \(navigationState.selectedMessageThreads)")
-           
-        }
         .onChange(of: searchText) {
             viewModel.searchText = searchText
-        }.background(Color(nsColor: .controlBackgroundColor))
+        }
     }
 }
 
