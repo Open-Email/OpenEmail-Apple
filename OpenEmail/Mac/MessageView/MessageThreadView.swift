@@ -24,68 +24,95 @@ struct MessageThreadView: View {
         Group {
             if let thread = viewModel.messageThread {
                 List(thread.messages, id: \.self) { message in
-                    VStack(alignment: .leading, spacing: .Spacing.large) {
-                        MessageHeader(message: message)
-                        messageBody(message: message)
-                    }
-                    .padding(.Spacing.default)
+                    MessageViewHolder(viewModel: viewModel, message: message).listRowSeparator(.hidden)
                 }
             }
         }
         .background(.themeViewBackground)
     }
+}
 
-   
-
-
-    @ViewBuilder
-    private func messageBody(message: Message) -> some View {
-        if let text = message.body {
-            Markdown(text).markdownTheme(.basic.blockquote { configuration in
-                let rawMarkdown = configuration.content.renderMarkdown()
+struct MessageViewHolder: View {
+    let viewModel: MessageThreadViewModel
+    let message: Message
+    var body: some View {
+        VStack(alignment: .leading, spacing: .Spacing.large) {
+            MessageHeader(message: message)
+            HStack {
+                RoundedRectangle(cornerRadius: .CornerRadii.default)
+                    .frame(height: 1)
+                    .foregroundColor(.actionButtonOutline)
+                    .frame(maxWidth: .infinity)
                 
-                let maxDepth = rawMarkdown
-                    .components(separatedBy: "\n")
-                    .map { line -> Int in
-                        var level = 0
-                        for char in line {
-                            if char == " " {
-                                continue
-                            }
-                            if (char != ">") {
-                                break
-                            } else {
-                                level += 1
-                            }
-                        }
-                        return level
-                    }.max() ?? 0
+                AsyncButton {
+                    //TODO confirmation dialog
+                    try? await viewModel.markAsDeleted(message: message, deleted: true)
+                } label: {
+                    Image(systemName: "trash")
+                }.help("Delete message")
                 
-                let depth = max(maxDepth, 1)
+                RoundedRectangle(cornerRadius: .CornerRadii.default)
+                    .frame(height: 1)
+                    .foregroundColor(.actionButtonOutline)
+                    .frame(maxWidth: .infinity)
                 
-                let barColor: Color = if depth % 3 == 0 {
-                    .red
-                } else if depth % 2 == 0 {
-                    .green
-                } else {
-                    .accent
-                }
-                
-                HStack(spacing: 0) {
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(barColor)
-                        .relativeFrame(width: .em(0.2))
-                    configuration.label
-                        //.markdownTextStyle { ForegroundColor(.secondaryText) }
-                        .relativePadding(.horizontal, length: .em(1))
-                }
-                .fixedSize(horizontal: false, vertical: true)
-            })
-                
-            
-        } else {
-            Text("Loading…").italic().disabled(true)
+            }
+            MessageBody(message: message)
         }
+        .padding(.all, .Spacing.default)
+        .clipShape(RoundedRectangle(cornerRadius: .CornerRadii.default))
+            .overlay(
+                RoundedRectangle(cornerRadius: .CornerRadii.default)
+                    .stroke(.actionButtonOutline, lineWidth: 1)
+            )
+    }
+}
+
+struct MessageBody: View {
+    let message: Message
+    
+    var body: some View {
+        Markdown(message.body ?? "")
+            .markdownTheme(.basic.blockquote { configuration in
+            let rawMarkdown = configuration.content.renderMarkdown()
+            
+            let maxDepth = rawMarkdown
+                .components(separatedBy: "\n")
+                .map { line -> Int in
+                    var level = 0
+                    for char in line {
+                        if char == " " {
+                            continue
+                        }
+                        if (char != ">") {
+                            break
+                        } else {
+                            level += 1
+                        }
+                    }
+                    return level
+                }.max() ?? 0
+            
+            let depth = max(maxDepth, 1)
+            
+            let barColor: Color = if depth % 3 == 0 {
+                .red
+            } else if depth % 2 == 0 {
+                .green
+            } else {
+                .accent
+            }
+            
+            HStack(spacing: 0) {
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(barColor)
+                    .relativeFrame(width: .em(0.2))
+                configuration.label
+                //.markdownTextStyle { ForegroundColor(.secondaryText) }
+                    .relativePadding(.horizontal, length: .em(1))
+            }
+            .fixedSize(horizontal: false, vertical: true)
+        })
     }
 }
 
@@ -95,12 +122,10 @@ struct MessageHeader: View {
     @State var author: Profile?
     @State var readers: [Profile] = []
     
-    private let message: Message
-    init(message: Message) {
-        self.message = message
-    }
+    let message: Message
+    
     var body: some View {
-        VStack(alignment: .leading, spacing: .Spacing.default) {
+        VStack(alignment: .leading) {
             HStack(spacing: .Spacing.xSmall) {
                 Text(message.displayedSubject)
                     .font(.title3)
@@ -109,21 +134,11 @@ struct MessageHeader: View {
                 
                 Spacer()
                 
-                HStack {
-                    if let label = getLabel(scope: navigationState.selectedScope) {
-                        Text(
-                            label
-                        )
-                        .foregroundStyle(.secondary)
-                        .font(.subheadline)
-                    }
-                    
-                    Text(
-                        message.formattedAuthoredOnDate
-                    )
-                    .foregroundStyle(.secondary)
-                    .font(.subheadline)
-                }
+                Text(
+                    message.formattedAuthoredOnDate
+                )
+                .foregroundStyle(.secondary)
+                .font(.subheadline)
             }
             
             HStack(spacing: .Spacing.xxSmall) {
