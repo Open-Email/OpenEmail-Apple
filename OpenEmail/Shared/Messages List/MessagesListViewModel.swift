@@ -63,8 +63,8 @@ class MessagesListViewModel {
                     threads.removeAll()
                     
                     for message in allMessages {
-                        if var existingThread = threads.first(where: { $0.subjectId == message.subjectId }) {
-                            existingThread.messages.append(message)
+                        if let existingThreadIndex = threads.firstIndex(where: { $0.subjectId == message.subjectId }) {
+                            threads[existingThreadIndex].messages.append(message)
                         } else {
                             threads.append(MessageThread(subjectId: message.subjectId, messages: [message]))
                         }

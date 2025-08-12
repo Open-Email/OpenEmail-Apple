@@ -7,14 +7,14 @@ import Inspect
 import MarkdownUI
 
 @MainActor
-struct MessageView: View {
+struct MessageThreadView: View {
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
     @Injected(\.client) private var client
     
     @Binding var selectedMessageID: String?
     let selectedScope: SidebarScope
 
-    @State private var viewModel: MessageViewModel
+    @State private var viewModel: MessageThreadViewModel
     @State private var attachmentsListViewModel: AttachmentsListViewModel?
 
     @State private var showDeleteConfirmationAlert = false
@@ -23,7 +23,7 @@ struct MessageView: View {
     @State private var composeAction: ComposeAction?
 
     init(messageID: String, selectedScope: SidebarScope, selectedMessageID: Binding<String?>) {
-        viewModel = MessageViewModel(messageID: messageID)
+        viewModel = MessageThreadViewModel(messageID: messageID)
         self.selectedScope = selectedScope
         _selectedMessageID = selectedMessageID
     }
@@ -43,14 +43,6 @@ struct MessageView: View {
                         }
                         .navigationBarTitleDisplayMode(.inline)
                 }
-            }
-        }
-        .blur(radius: viewModel.showProgress ? 4 : 0)
-        .overlay {
-            if viewModel.showProgress {
-                ProgressView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(.background.opacity(0.75))
             }
         }
         .onChange(of: viewModel.message) {
@@ -316,7 +308,7 @@ struct MessageHeaderView: View {
     
     let message: Message
     let selectedScope: SidebarScope
-    let viewModel: MessageViewModel
+    let viewModel: MessageThreadViewModel
     
     @Injected(\.client) private var client
     @State private var profile: Profile? = nil
@@ -400,7 +392,7 @@ struct ViewHeightKey: PreferenceKey {
     InjectedValues[\.messagesStore] = messageStore
 
     return NavigationStack {
-        MessageView(messageID: "1", selectedScope: .inbox, selectedMessageID: .constant("1"))
+        MessageThreadView(messageID: "1", selectedScope: .inbox, selectedMessageID: .constant("1"))
     }
 }
 
@@ -412,7 +404,7 @@ struct ViewHeightKey: PreferenceKey {
     InjectedValues[\.messagesStore] = messageStore
 
     return NavigationStack {
-        MessageView(messageID: "1", selectedScope: .inbox, selectedMessageID: .constant("1"))
+        MessageThreadView(messageID: "1", selectedScope: .inbox, selectedMessageID: .constant("1"))
     }
 }
 
@@ -424,7 +416,7 @@ struct ViewHeightKey: PreferenceKey {
     InjectedValues[\.messagesStore] = messageStore
 
     return NavigationStack {
-        MessageView(messageID: "1", selectedScope: .inbox, selectedMessageID: .constant("1"))
+        MessageThreadView(messageID: "1", selectedScope: .inbox, selectedMessageID: .constant("1"))
     }
 }
 
@@ -436,7 +428,7 @@ struct ViewHeightKey: PreferenceKey {
     InjectedValues[\.messagesStore] = messageStore
 
     return NavigationStack {
-        MessageView(messageID: "1", selectedScope: .inbox, selectedMessageID: .constant("1"))
+        MessageThreadView(messageID: "1", selectedScope: .inbox, selectedMessageID: .constant("1"))
     }
 }
 #endif

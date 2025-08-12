@@ -13,18 +13,10 @@ struct ContentView: View {
     
     private let contactRequestsController = ContactRequestsController()
     
-    @State private var showDeleteMessageConfirmationAlert = false
-    @State private var showDeleteContactConfirmationAlert = false
     @State private var fetchButtonRotation = 0.0
     @State private var searchText: String = ""
-    @State private var showAddContactView = false
-    @State private var showsAddContactError = false
-    @State private var addContactError: Error?
     @State private var contactsListViewModel: ContactsListViewModel = ContactsListViewModel()
-    @State private var sidebarViewModel: ScopesSidebarViewModel = ScopesSidebarViewModel()
-    @State private var messageViewModel: MessageViewModel = MessageViewModel(
-        messageID: nil
-    )
+    @State private var messageThreadViewModel: MessageThreadViewModel = MessageThreadViewModel(messageThread: nil)
     
     private let contactsOrNotificationsUpdatedPublisher = Publishers.Merge(
         NotificationCenter.default.publisher(for: .didUpdateContacts),
@@ -39,9 +31,8 @@ struct ContentView: View {
             )
         }  detail: {
             VStack {
-                if navigationState.selectedMessageIDs.isEmpty {
+                if navigationState.selectedMessageThreads.isEmpty {
                     Image(.logo)
-                    //.aspectRatio(contentMode: .fit)
                         .saturation(0.0)
                         .opacity(0.25)
                         .frame(height: 32, alignment: .leading)
@@ -53,231 +44,27 @@ struct ContentView: View {
             
             .frame(minWidth: 300, idealWidth: 650)
         }
-        .toolbar {
-            ToolbarItem {
-                AsyncButton {
-                    await triggerSync()
-                } label: {
-                    SyncProgressView()
-                }
-                .disabled(syncService.isSyncing)
-            }
-            ToolbarItem(placement: ToolbarItemPlacement.primaryAction) {
-                Button {
-                    guard let registeredEmailAddress else { return }
-                    
-                    if messageViewModel.message?.isDraft == true {
-                        openWindow(
-                            id: WindowIDs.compose,
-                            value: ComposeAction.editDraft(messageId: messageViewModel.messageID!)
-                        )
-                    } else {
-                        openWindow(id: WindowIDs.compose, value: ComposeAction.newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: nil))
-                    }
-                    
-                } label: {
-                    Image(systemName: "square.and.pencil")
-                }
-            }
-            ToolbarItem {
-                Button {
-                    showAddContactView = true
-                } label: {
-                    Image(systemName: "person.badge.plus")
-                }
-            }
-            ToolbarItem {
-                AsyncButton {
-                    switch navigationState.selectedScope {
-                        case .trash:
-                            showDeleteMessageConfirmationAlert = true
-                            
-                        case .contacts:
-                            if let _ = navigationState.selectedContact {
-                                showDeleteContactConfirmationAlert = true
-                            }
-                        default:
-                            do {
-                                try await messageViewModel.markAsDeleted(true)
-                                navigationState.clearSelection()
-                            } catch {
-                                Log.error("Could not mark message as deleted: \(error)")
-                            }
-                    }
-                } label: {
-                    Image(systemName: "trash")
-                }.disabled(
-                    navigationState.selectedMessageIDs.isEmpty &&
-                    navigationState.selectedContact == nil
-                ).help((messageViewModel.message?.isDraft ?? false) ? "Delete draft" : "Delete message")
-            }
-            ToolbarItem {
-                Button {
-                    guard let registeredEmailAddress else { return }
-                    if let message = messageViewModel.message {
-                        openWindow(
-                            id: WindowIDs.compose,
-                            value: ComposeAction.reply(
-                                id: UUID(),
-                                authorAddress: registeredEmailAddress,
-                                messageId: message.id,
-                                quotedText: message.body
-                            )
-                        )
-                    }
-                } label: {
-                    Image(systemName: "arrowshape.turn.up.left")
-                }.disabled(
-                    messageViewModel.message == nil || messageViewModel.message!.isDraft
-                )
-            }
-            ToolbarItem {
-                Button {
-                    guard let registeredEmailAddress else { return }
-                    if let message = messageViewModel.message {
-                        openWindow(
-                            id: WindowIDs.compose,
-                            value: ComposeAction.replyAll(
-                                id: UUID(),
-                                authorAddress: registeredEmailAddress,
-                                messageId: message.id,
-                                quotedText: message.body
-                            )
-                        )
-                    }
-                    
-                } label: {
-                    Image(systemName: "arrowshape.turn.up.left.2")
-                }.disabled(
-                    messageViewModel.message == nil || messageViewModel.message!.isDraft
-                )
-            }
-            ToolbarItem {
-                Button {
-                    guard let registeredEmailAddress else { return }
-                    if let message = messageViewModel.message {
-                        openWindow(
-                            id: WindowIDs.compose,
-                            value: ComposeAction.forward(
-                                id: UUID(),
-                                authorAddress: registeredEmailAddress,
-                                messageId: message.id
-                            )
-                        )
-                    }
-                } label: {
-                    Image(systemName: "arrowshape.turn.up.right")
-                }.disabled(
-                    messageViewModel.message == nil || messageViewModel.message!.isDraft
-                )
-            }
-            //Spacer()
-        }
-
-        .alert(
-            navigationState.selectedContact?.isContactRequest == true ?
-            "Are you sure you want to dismiss this contact request?" :
-                "Are you sure you want to delete this contact?",
-            isPresented: $showDeleteContactConfirmationAlert
-        ) {
-            Button("Cancel", role: .cancel) {}
-            AsyncButton(navigationState.selectedContact?.isContactRequest == true ? "Dismiss" : "Delete", role: .destructive) {
-                if let contact = navigationState.selectedContact {
-                    if let email = EmailAddress(
-                        contact.email
-                    ) {
-                        do {
-                            try await DeleteContactUseCase().deleteContact(emailAddress: email)
-                            navigationState.clearSelection()
-                        } catch {
-                            Log.error("Could not delete contact \(email): \(error)")
-                        }
-                    }
-                }
-            }
-        }
-        .alert("Are you sure you want to delete this message?", isPresented: $showDeleteMessageConfirmationAlert) {
-            Button("Cancel", role: .cancel) {}
-            AsyncButton("Delete", role: .destructive) {
-                await permanentlyDeleteSentMessage()
-            }
-        } message: {
-            Text("This action cannot be undone.")
-        }
-        .onChange(of: navigationState.selectedMessageIDs) {
-            if navigationState.selectedMessageIDs.count == 1 {
-                messageViewModel.messageID = navigationState.selectedMessageIDs.first
+        .onChange(of: navigationState.selectedMessageThreads) {
+            if navigationState.selectedMessageThreads.count == 1 {
+                messageThreadViewModel.messageThread = navigationState.selectedMessageThreads.first
             } else {
-                messageViewModel.messageID = nil
+                messageThreadViewModel.messageThread = nil
             }
-            
         }
         .onChange(of: searchText) {
             contactsListViewModel.searchText = searchText
         }
-        .sheet(isPresented: $showAddContactView) {
-            ContactsAddressInputView { address in
-                contactsListViewModel.onAddressSearch(address: address)
-                showAddContactView = false
-            } onCancel: {
-                contactsListViewModel.onAddressSearchDismissed()
-                showAddContactView = false
-            }
-        }.alert("Could not add contact", isPresented: $showsAddContactError, actions: {
-            Button("OK") {
-                showAddContactView = true
-            }
-        }, message: {
-            if let addContactError {
-                Text("Underlying error: \(String(describing: addContactError))")
-            }
-        })
-        .alert("Contact already exists", isPresented: $contactsListViewModel.showsContactExistsError, actions: {})
-        .sheet(isPresented: Binding<Bool>(
-            get: {
-                contactsListViewModel.contactToAdd != nil
-            },
-            set: { _ in }
-        )) {
-            ProfilePreviewSheetView(
-                profile: contactsListViewModel.contactToAdd!,
-                onCancelled: {
-                    contactsListViewModel.onAddressSearchDismissed()
-                },
-                onAddContactClicked: { address in
-                    Task {
-                        do {
-                            try await contactsListViewModel.addContact()
-                        } catch {
-                            Log.error("Error while adding contact: \(error)")
-                            addContactError = error
-                            showsAddContactError = true
-                        }
-                    }
-                }
-            )
-        }
     }
     
-    private func permanentlyDeleteSentMessage() async {
-        do {
-            try await messageViewModel.permanentlyDeleteMessage()
-            navigationState.clearSelection()
-        } catch {
-            Log.error("Could not delete message: \(error)")
-        }
-    }
     
     @ViewBuilder
     private var messagesDetailView: some View {
-        if navigationState.selectedMessageIDs.count > 1 {
+        if navigationState.selectedMessageThreads.count > 1 {
             MultipleMessagesView()
         } else {
-            if let _ = messageViewModel.message {
-                MessageView(
-                    messageViewModel: $messageViewModel,
-                ).id(navigationState.selectedMessageIDs.first)
-            }
+            MessageThreadView(
+                messageViewModel: $messageThreadViewModel,
+            ).id(navigationState.selectedMessageThreads.first)
         }
     }
     

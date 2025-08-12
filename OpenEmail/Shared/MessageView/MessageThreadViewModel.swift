@@ -1,0 +1,83 @@
+import Foundation
+import Observation
+import SwiftUI
+import OpenEmailCore
+import OpenEmailModel
+import OpenEmailPersistence
+import Utils
+import Logging
+
+@Observable
+class MessageThreadViewModel {
+    @ObservationIgnored
+    @Injected(\.client) private var client
+
+    @ObservationIgnored
+    @Injected(\.syncService) var syncService
+
+    @ObservationIgnored
+    @Injected(\.messagesStore) private var messagesStore
+
+    @ObservationIgnored
+    @Injected(\.attachmentsManager) private var attachmentsManager
+
+    var messageThread: MessageThread?
+
+    init(messageThread: MessageThread?) {
+        self.messageThread = messageThread
+    }
+
+    func permanentlyDeleteMessage(message: Message) async throws {
+        try await messagesStore.deleteMessage(id: message.id)
+    }
+
+    func markAsDeleted(message: Message, deleted: Bool) async throws {
+        if message.isOutbox() {
+            try? await recallMessage(message: message)
+            let _ = try await convertToDraft(message: message)
+            try await messagesStore.deleteMessage(id: message.id)
+        } else {
+            try await messagesStore.markAsDeleted(message: message, deleted: deleted)
+        }
+    }
+
+    private func recallMessage(message: Message) async throws {
+        guard let localUser = LocalUser.current else {
+            return
+        }
+
+        try await withThrowingTaskGroup { group in
+            group.addTask {
+                try await self.client.recallAuthoredMessage(localUser: localUser, messageId: message.id)
+            }
+            
+            message.attachments.flatMap { $0.fileMessageIds }.forEach { attachmentId in
+                group.addTask {
+                    try await self.client.recallAuthoredMessage(localUser: localUser, messageId: attachmentId)
+                }
+            }
+            try await group.waitForAll()
+        }
+        
+       
+    }
+
+    private func convertToDraft(message: Message) async throws -> Message? {
+        guard var draftMessage = Message.draft(from: message) else {
+            return nil
+        }
+
+        draftMessage.draftAttachmentUrls = try message
+            .copyAttachmentsToTempFolder(attachmentsManager: attachmentsManager)
+
+        do {
+            try await messagesStore.storeMessage(draftMessage)
+        } catch {
+            Log.error("Could not save draft: \(error)")
+        }
+
+        return draftMessage
+    }
+
+    
+}

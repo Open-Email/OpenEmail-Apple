@@ -28,12 +28,13 @@ struct MessagesListView: View {
                 List(
                     viewModel.threads,
                     id: \.self.id,
-                    selection: $navigationState.selectedMessageIDs
+                    selection: $navigationState.selectedMessageThreads
                 ) { messageThread in
                     MessageListItemView(
                         messageThread: messageThread,
                         scope: navigationState.selectedScope
                     )
+                    .tag(messageThread)
                     .padding(EdgeInsets(
                         top: .Spacing.xxSmall,
                         leading: .zero,
@@ -68,8 +69,8 @@ struct MessagesListView: View {
 //                }
 //            })
         .animation(.easeInOut(duration: viewModel.threads.isEmpty ? 0 : 0.2), value: viewModel.threads)
-        .onChange(of: navigationState.selectedMessageIDs) {
-            Log.debug("TODO selected message ids: \(navigationState.selectedMessageIDs)")
+        .onChange(of: navigationState.selectedMessageThreads) {
+            Log.debug("TODO selected message threads: \(navigationState.selectedMessageThreads)")
            
         }
         .onChange(of: searchText) {

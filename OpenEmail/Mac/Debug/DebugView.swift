@@ -146,7 +146,9 @@ struct DebugView: View {
             .tabItem { Text("Notifications") }
 
             List {
-                Text("selectedMessageIDs: \(navigationState.selectedMessageIDs)")
+                Text(
+                    "selectedMessageThreads: \(navigationState.selectedMessageThreads)"
+                )
 
                 Section("Remote Messages") {
                     AsyncButton("Fetch all messages") {
