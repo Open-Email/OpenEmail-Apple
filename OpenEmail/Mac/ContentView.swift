@@ -38,8 +38,18 @@ struct ContentView: View {
                     messagesDetailView
                 }
             }
-            
             .frame(minWidth: 300, idealWidth: 650)
+        }
+        .toolbar {
+            ToolbarItem {
+                AsyncButton {
+                    await triggerSync()
+                } label: {
+                    SyncProgressView()
+                }
+                .disabled(syncService.isSyncing)
+            }
+
         }
         .searchable(
             text: $searchText,
