@@ -182,9 +182,13 @@ class SyncService: MessageSyncing {
         
         do {
             try await self.fetchMessagesForContacts(localUser, syncedAddresses)
+            let _ = try await client
+                .fetchLocalMessages(localUser: localUser, localProfile: localProfile)
         } catch {
             Log.error("Error fetching profile messages: \(error)")
         }
+        
+        
         
         postMessagesSyncedNotification()
         Log.info("Syncing complete")
