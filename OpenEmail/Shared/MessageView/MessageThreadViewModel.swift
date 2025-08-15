@@ -22,6 +22,9 @@ class MessageThreadViewModel {
     @Injected(\.attachmentsManager) private var attachmentsManager
 
     var messageThread: MessageThread?
+    var editSubject: String = ""
+    var editBody: String = ""
+    var attachedFileItems: [AttachedFileItem] = []
 
     init(messageThread: MessageThread?) {
         self.messageThread = messageThread
@@ -38,6 +41,28 @@ class MessageThreadViewModel {
             try await messagesStore.deleteMessage(id: message.id)
         } else {
             try await messagesStore.markAsDeleted(message: message, deleted: deleted)
+        }
+    }
+    
+    func appendAttachedFiles(urls: [URL], preserveFilePath: Bool = false) {
+        Task {
+            do {
+                try await withThrowingTaskGroup(of: Void.self) { group in
+                    for url in urls {
+                        group.addTask {
+                            let sandboxUrl = preserveFilePath ? url : try await copyFileIntoSandbox(url)
+                            if !self.attachedFileItems.contains(where: { sandboxUrl == $0.url }) {
+                                let item = AttachedFileItem(url: sandboxUrl)
+                                self.attachedFileItems.append(item)
+                            }
+                        }
+                    }
+                    
+                    try await group.waitForAll()
+                }
+            } catch {
+                Log.error(error)
+            }
         }
     }
 

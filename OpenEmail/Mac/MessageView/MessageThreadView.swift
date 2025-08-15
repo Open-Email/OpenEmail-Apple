@@ -4,11 +4,11 @@ import OpenEmailCore
 import OpenEmailPersistence
 import Logging
 import MarkdownUI
-
+import AppKit
 
 struct MessageThreadView: View {
     @Binding private var viewModel: MessageThreadViewModel
-    
+    @State private var filePickerOpen: Bool = false
     
     @Environment(NavigationState.self) private var navigationState
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
@@ -19,16 +19,84 @@ struct MessageThreadView: View {
     init(messageViewModel: Binding<MessageThreadViewModel>) {
         _viewModel = messageViewModel
     }
-    
     var body: some View {
         Group {
             if let thread = viewModel.messageThread {
-                List(thread.messages, id: \.self) { message in
-                    MessageViewHolder(viewModel: viewModel, message: message).listRowSeparator(.hidden)
+                ZStack(alignment: Alignment.bottom) {
+                    List {
+                        Text(thread.topic)
+                            .font(.title)
+                            .fontWeight(.semibold)
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                        
+                        ForEach(thread.messages, id: \.self) { message in
+                            MessageViewHolder(viewModel: viewModel, message: message)
+                                .listRowSeparator(.hidden)
+                        }
+                        Color.clear.frame(height: NSFont.preferredFont(forTextStyle: .title3).pointSize + NSFont.preferredFont(forTextStyle: .body).pointSize + 4 * .Spacing.xxSmall + 4.0 + .Spacing.xSmall)
+                    }
+                    VStack(spacing: .zero) {
+//                        if viewModel.attachedFileItems.isNotEmpty {
+//                            ScrollView(.horizontal) {
+//                                HStack {
+//                                }
+//                            }
+//                        }
+                        
+                        TextField("Subject:", text: $viewModel.editSubject)
+                            .font(.title3)
+                            .textFieldStyle(.plain)
+                            .padding(.horizontal, .Spacing.xSmall)
+                            .padding(.vertical, .Spacing.xxSmall)
+                        RoundedRectangle(cornerRadius: .CornerRadii.default)
+                            .frame(height: 1)
+                            .foregroundColor(.actionButtonOutline)
+                            .frame(maxWidth: .infinity)
+                        
+                        HStack {
+                            TextField("Body:", text: $viewModel.editBody)
+                                .font(.body)
+                                .textFieldStyle(.plain)
+                            
+                            Button {
+                                filePickerOpen = true
+                            } label: {
+                                Image(systemName: "paperclip")
+                                
+                            }.buttonStyle(.borderless)
+                        }.padding(.horizontal, .Spacing.xSmall)
+                            .padding(.vertical, .Spacing.xxSmall)
+                    }
+                    .background {
+                        RoundedRectangle(cornerRadius: .CornerRadii.default)
+                            .fill(.themeViewBackground)
+                            .stroke(.actionButtonOutline, lineWidth: 1)
+                            .shadow(color: .actionButtonOutline, radius: 5)
+                    }
+                    .overlay(
+                        RoundedRectangle(cornerRadius: .CornerRadii.default)
+                            .stroke(.actionButtonOutline, lineWidth: 1)
+                    )
+                    
+                    .padding(.horizontal, .Spacing.default)
+                    .padding(.bottom, .Spacing.default)
                 }
+                .background(.themeViewBackground)
+            } else {
+                Text("No thread selected")
             }
         }
-        .background(.themeViewBackground)
+        .fileImporter(isPresented: $filePickerOpen, allowedContentTypes: [.data], allowsMultipleSelection: true) {
+            do {
+                let urls = try $0.get()
+                viewModel.appendAttachedFiles(urls: urls)
+            }
+            catch {
+                Log.error("error reading files: \(error)")
+            }
+        }
+       
     }
 }
 
@@ -44,27 +112,27 @@ struct MessageViewHolder: View {
                     .foregroundColor(.actionButtonOutline)
                     .frame(maxWidth: .infinity)
                 
-                AsyncButton {
-                    //TODO confirmation dialog
-                    try? await viewModel.markAsDeleted(message: message, deleted: true)
-                } label: {
-                    Image(systemName: "trash")
-                }.help("Delete message")
-                
-                RoundedRectangle(cornerRadius: .CornerRadii.default)
-                    .frame(height: 1)
-                    .foregroundColor(.actionButtonOutline)
-                    .frame(maxWidth: .infinity)
+//                AsyncButton {
+//                    //TODO confirmation dialog
+//                    try? await viewModel.markAsDeleted(message: message, deleted: true)
+//                } label: {
+//                    Image(systemName: "trash")
+//                }.help("Delete message")
+//                
+//                RoundedRectangle(cornerRadius: .CornerRadii.default)
+//                    .frame(height: 1)
+//                    .foregroundColor(.actionButtonOutline)
+//                    .frame(maxWidth: .infinity)
                 
             }
             MessageBody(message: message)
         }
         .padding(.all, .Spacing.default)
         .clipShape(RoundedRectangle(cornerRadius: .CornerRadii.default))
-            .overlay(
-                RoundedRectangle(cornerRadius: .CornerRadii.default)
-                    .stroke(.actionButtonOutline, lineWidth: 1)
-            )
+        .overlay(
+            RoundedRectangle(cornerRadius: .CornerRadii.default)
+                .stroke(.actionButtonOutline, lineWidth: 1)
+        )
     }
 }
 
@@ -74,45 +142,46 @@ struct MessageBody: View {
     var body: some View {
         Markdown(message.body ?? "")
             .markdownTheme(.basic.blockquote { configuration in
-            let rawMarkdown = configuration.content.renderMarkdown()
-            
-            let maxDepth = rawMarkdown
-                .components(separatedBy: "\n")
-                .map { line -> Int in
-                    var level = 0
-                    for char in line {
-                        if char == " " {
-                            continue
+                let rawMarkdown = configuration.content.renderMarkdown()
+                
+                let maxDepth = rawMarkdown
+                    .components(separatedBy: "\n")
+                    .map { line -> Int in
+                        var level = 0
+                        for char in line {
+                            if char == " " {
+                                continue
+                            }
+                            if (char != ">") {
+                                break
+                            } else {
+                                level += 1
+                            }
                         }
-                        if (char != ">") {
-                            break
-                        } else {
-                            level += 1
-                        }
-                    }
-                    return level
-                }.max() ?? 0
-            
-            let depth = max(maxDepth, 1)
-            
-            let barColor: Color = if depth % 3 == 0 {
-                .red
-            } else if depth % 2 == 0 {
-                .green
-            } else {
-                .accent
-            }
-            
-            HStack(spacing: 0) {
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(barColor)
-                    .relativeFrame(width: .em(0.2))
-                configuration.label
-                //.markdownTextStyle { ForegroundColor(.secondaryText) }
-                    .relativePadding(.horizontal, length: .em(1))
-            }
-            .fixedSize(horizontal: false, vertical: true)
-        })
+                        return level
+                    }.max() ?? 0
+                
+                let depth = max(maxDepth, 1)
+                
+                let barColor: Color = if depth % 3 == 0 {
+                    .red
+                } else if depth % 2 == 0 {
+                    .green
+                } else {
+                    .accent
+                }
+                
+                HStack(spacing: 0) {
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(barColor)
+                        .relativeFrame(width: .em(0.2))
+                    
+                    configuration.label
+                        .relativePadding(.horizontal, length: .em(1))
+                }
+                .fixedSize(horizontal: false, vertical: true)
+            })
+            .textSelection(.enabled)
     }
 }
 
