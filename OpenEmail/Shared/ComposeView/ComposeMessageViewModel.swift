@@ -48,6 +48,10 @@ struct AttachedFileItem: Identifiable, Equatable {
 
     var exists: Bool { url.fileExists }
 
+    var name: String? {
+        return url.pathComponents.last
+    }
+    
     init(url: URL) {
         self.url = url
         self.size = url.fileSize
@@ -216,7 +220,7 @@ class ComposeMessageViewModel {
         
         isSending = false
     }
-
+    
     func cancelSending() {
         sendTask?.cancel()
     }

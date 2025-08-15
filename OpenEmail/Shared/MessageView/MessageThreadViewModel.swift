@@ -30,6 +30,12 @@ class MessageThreadViewModel {
         self.messageThread = messageThread
     }
 
+    func clear() {
+        attachedFileItems.removeAll()
+        editSubject = ""
+        editBody = ""
+    }
+    
     func permanentlyDeleteMessage(message: Message) async throws {
         try await messagesStore.deleteMessage(id: message.id)
     }

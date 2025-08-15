@@ -8,7 +8,7 @@ public struct Message: Identifiable, Equatable, Hashable {
     public let author: String
     public var readers: [String]
     public var subject: String
-    public let subjectId: String
+    public var subjectId: String
     public let localUserAddress: String
     public var isBroadcast: Bool
     public let accessKey: [UInt8]?
