@@ -50,7 +50,6 @@ struct ReadersView: View {
 
     @Injected(\.contactsStore) private var contactsStore: ContactStoring
     @Injected(\.client) private var client
-    @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
 
     private let showProfileType: ShowProfileType
 
@@ -73,20 +72,18 @@ struct ReadersView: View {
     var body: some View {
         HFlow(itemSpacing: 4, rowSpacing: 2) {
             ForEach(Array(readers.enumerated()), id: \.offset) { index, reader in
-                if reader.address.address != registeredEmailAddress || readers.count == 1 || isEditable {
-                    ProfileTagView(
-                        profile: reader,
-                        isSelected: selectedReaderIndexes.contains(index),
-                        isTicked: tickedReaders.contains(reader.address.address),
-                        onRemoveReader: {
-                            readers.remove(at: index)
-                        },
-                        automaticallyShowProfileIfNotInContacts: isEditable,
-                        canRemoveReader: isEditable,
-                        showsActionButtons: !isEditable,
-                        onShowProfile: showProfileType.onShowProfile
-                    ).id(reader.address.address)
-                }
+                ProfileTagView(
+                    profile: reader,
+                    isSelected: selectedReaderIndexes.contains(index),
+                    isTicked: tickedReaders.contains(reader.address.address),
+                    onRemoveReader: {
+                        readers.remove(at: index)
+                    },
+                    automaticallyShowProfileIfNotInContacts: isEditable,
+                    canRemoveReader: isEditable,
+                    showsActionButtons: !isEditable,
+                    onShowProfile: showProfileType.onShowProfile
+                ).id(reader.address.address)
             }
             
             if addingContactProgress {

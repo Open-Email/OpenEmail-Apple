@@ -123,14 +123,13 @@ class ScopesSidebarViewModel {
             await withTaskGroup { group in
                 group.addTask {
                     let unreads: Int = (try? await self.messagesStore
-                        .allUnreadMessages())?.filteredBy(scope: .messages, localUser: localUser).count ?? 0
+                        .allUnreadMessages())?.filteredBy(scope: .messages).count ?? 0
                     
                     await MainActor.run {
                         self.unreadCounts[.messages] = unreads
                         self.allCounts[.messages] = newMessages
                             .filteredBy(
-                                scope: .messages,
-                                localUser: localUser
+                                scope: .messages
                             ).count
                     }
                 }
@@ -139,21 +138,19 @@ class ScopesSidebarViewModel {
                     await MainActor.run {
                         self.allCounts[.messages] = newMessages
                             .filteredBy(
-                                scope: .messages,
-                                localUser: localUser
+                                scope: .messages
                             ).count
                     }
                 }
                 
                 group.addTask {
                     let unreads: Int = (try? await self.messagesStore
-                        .allUnreadMessages())?.filteredBy(scope: .messages, localUser: localUser).count ?? 0
+                        .allUnreadMessages())?.filteredBy(scope: .messages).count ?? 0
                     await MainActor.run {
                         self.unreadCounts[.messages] = unreads
                         self.allCounts[.messages] = newMessages
                             .filteredBy(
-                                scope: .messages,
-                                localUser: localUser
+                                scope: .messages
                             ).count
                     }
                 }
@@ -161,8 +158,7 @@ class ScopesSidebarViewModel {
                 group.addTask {
                     await MainActor.run {
                         self.allCounts[.drafts] = newMessages.filteredBy(
-                            scope: .drafts,
-                            localUser: localUser
+                            scope: .drafts
                         ).count
                     }
                 }
@@ -170,8 +166,7 @@ class ScopesSidebarViewModel {
                 group.addTask {
                     await MainActor.run {
                         self.allCounts[.trash] = newMessages.filteredBy(
-                            scope: .trash,
-                            localUser: localUser
+                            scope: .trash
                         ).count
                     }
                 }

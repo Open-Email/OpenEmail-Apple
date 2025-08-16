@@ -57,8 +57,7 @@ class MessagesListViewModel {
                     allMessages = try await messagesStore
                         .allMessages(searchText: searchText)
                         .filteredBy(
-                            scope: .messages,
-                            localUser: localUser
+                            scope: .messages
                         )
                     threads.removeAll()
                     

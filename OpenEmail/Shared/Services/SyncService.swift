@@ -178,14 +178,27 @@ class SyncService: MessageSyncing {
         
         let syncedAddresses = await getSyncedAddresses()
         
-        guard self.hasUserAccount() else { return }
-        
-        do {
-            try await self.fetchMessagesForContacts(localUser, syncedAddresses)
-            let _ = try await client
-                .fetchLocalMessages(localUser: localUser, localProfile: localProfile)
-        } catch {
-            Log.error("Error fetching profile messages: \(error)")
+        await withTaskGroup(of: Void.self) { group in
+            group.addTask {
+                // Sync own outgoing messages
+                guard self.hasUserAccount() else { return }
+                
+                if let remoteOutgoingMessageIds = try? await self.client.fetchLocalMessages(localUser: localUser, localProfile: localProfile) {
+                    await self.cleanUpOutboxMessages(remoteOutboxIds: remoteOutgoingMessageIds)
+                }
+            }
+            
+            group.addTask {
+                // For all contacts, try fetch messages
+                guard self.hasUserAccount() else { return }
+                do {
+                    try await self.fetchMessagesForContacts(localUser, syncedAddresses)
+                } catch {
+                    Log.error("Error fetching profile messages: \(error)")
+                }
+            }
+            
+            await group.waitForAll()
         }
         
         
@@ -342,6 +355,24 @@ class SyncService: MessageSyncing {
             }
         } catch {
             Log.error("could not fetch messages from user \(profile.address.address): \(error)")
+        }
+    }
+    
+    private func cleanUpOutboxMessages(remoteOutboxIds: [String]) async {
+        guard
+            let localUser = LocalUser.current,
+            let allMessages = try? await messagesStore.allMessages(searchText: "")
+        else {
+            return
+        }
+        
+        let localOutboxMessages = allMessages.filter { $0.author == localUser.address.address }
+        
+        for localMessage in localOutboxMessages {
+            if !remoteOutboxIds.contains(localMessage.id) {
+                try? await messagesStore
+                    .markAsDeleted(message: localMessage, deleted: true)
+            }
         }
     }
 }

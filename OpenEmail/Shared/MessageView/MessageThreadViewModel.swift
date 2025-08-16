@@ -6,6 +6,7 @@ import OpenEmailModel
 import OpenEmailPersistence
 import Utils
 import Logging
+import Combine
 
 @Observable
 class MessageThreadViewModel {
@@ -25,11 +26,38 @@ class MessageThreadViewModel {
     var editSubject: String = ""
     var editBody: String = ""
     var attachedFileItems: [AttachedFileItem] = []
+    private var subscriptions = Set<AnyCancellable>()
 
     init(messageThread: MessageThread?) {
         self.messageThread = messageThread
+        
+        NotificationCenter.default.publisher(for: .didSynchronizeMessages).sink { messages in
+            Task {
+                await self.updateThread()
+            }
+        }.store(in: &subscriptions)
+        
+        NotificationCenter.default.publisher(for: .didUpdateMessages).sink { messages in
+            Task {
+                await self.updateThread()
+            }
+        }.store(in: &subscriptions)
     }
 
+    private func updateThread() async {
+        
+        let allMessages = try? await messagesStore
+            .allMessages(searchText: "")
+            .filteredBy(
+                scope: .messages
+            ).filter { message in
+                message.subjectId == self.messageThread?.subjectId
+            }
+        
+        messageThread?.messages.removeAll()
+        messageThread?.messages = allMessages ?? []
+    }
+    
     func clear() {
         attachedFileItems.removeAll()
         editSubject = ""

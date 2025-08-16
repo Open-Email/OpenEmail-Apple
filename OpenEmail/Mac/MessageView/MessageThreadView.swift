@@ -95,7 +95,8 @@ struct MessageThreadView: View {
                                             PendingMessage(
                                                 id: UUID().uuidString,
                                                 authoredOn: Date(),
-                                                readers: viewModel.messageThread?.readers ?? [],
+                                                readers: viewModel.messageThread?.readers
+                                                    .filter { $0 != registeredEmailAddress } ?? [],
                                                 draftAttachmentUrls: viewModel.attachedFileItems.map { $0.url },
                                                 subject: viewModel.editSubject.trimmingCharacters(in: .whitespacesAndNewlines),
                                                 subjectId: viewModel.messageThread?.subjectId ?? "",
@@ -116,6 +117,10 @@ struct MessageThreadView: View {
                                 Image(systemName: "paperplane.fill")
                             }.buttonStyle(.borderless)
                                 .foregroundColor(.accentColor)
+                                .disabled(
+                                    viewModel.editSubject.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+                                    viewModel.editBody.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                                )
                         }.padding(.horizontal, .Spacing.xSmall)
                             .padding(.vertical, .Spacing.xxSmall)
                         

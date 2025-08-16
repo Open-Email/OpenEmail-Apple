@@ -16,7 +16,7 @@ extension [Message] {
         filter { $0.isRead == false }.count
     }
 
-    func filteredBy(scope: SidebarScope, localUser: LocalUser) -> [Message] {
+    func filteredBy(scope: SidebarScope) -> [Message] {
         switch scope {
         case .messages:
             filter {
