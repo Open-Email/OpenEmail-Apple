@@ -25,14 +25,24 @@ class MessageThreadViewModel {
     @ObservationIgnored
     @Injected(\.attachmentsManager) private var attachmentsManager
 
-    var messageThread: MessageThread?
+    var messageThread: MessageThread? {
+        didSet {
+            if messageThread != nil {
+                Task {
+                    await updateThread()
+                }
+            }
+        }
+    }
+    
     var allMessages: [UnifiedMessage] = []
     
     var editSubject: String = ""
     var editBody: String = ""
     var attachedFileItems: [AttachedFileItem] = []
     private var subscriptions = Set<AnyCancellable>()
-
+    private var loading: Bool = false
+    
     init(messageThread: MessageThread?) {
         self.messageThread = messageThread
         
@@ -53,13 +63,13 @@ class MessageThreadViewModel {
                 await self.updateThread()
             }
         }.store(in: &subscriptions)
-        
-        Task {
-            await updateThread()
-        }
     }
 
     private func updateThread() async {
+        if loading {
+            return
+        }
+        loading = true
         let pendingMessages = try? await pendingMessageStore.allPendingMessages(searchText: "")
         
         let savedMessages = try? await messagesStore
@@ -75,6 +85,7 @@ class MessageThreadViewModel {
         
         allMessages = (messageThread?.messages.map { .normal($0) } ?? []) +
         (pendingMessages ?? []).map { .pending($0) }
+        loading = false
     }
     
     func clear() {

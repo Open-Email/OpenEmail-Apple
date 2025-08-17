@@ -35,6 +35,8 @@ struct MessageThreadView: View {
                                 .listRowSeparator(.hidden)
                                 .listRowBackground(Color.clear)
                             
+                            MultiReadersView(readers: viewModel.messageThread?.readers ?? [])
+                            
                             ForEach(
                                 Array(viewModel.allMessages.enumerated()),
                                 id: \.offset
@@ -249,6 +251,8 @@ struct MessageViewHolder: View {
     let authoredOn: String
     let authorAddress: String
     let messageBody: String
+    let attachments: [Attachment]?
+    let pedingAttachments: [URL]?
     
     var body: some View {
         VStack(alignment: .leading, spacing: .Spacing.large) {
