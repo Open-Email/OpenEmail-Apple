@@ -12,10 +12,7 @@ enum SidebarScope: String, CaseIterable, Identifiable {
 }
 
 extension [Message] {
-    var unreadCount: Int {
-        filter { $0.isRead == false }.count
-    }
-
+   
     func filteredBy(scope: SidebarScope) -> [Message] {
         switch scope {
         case .messages:

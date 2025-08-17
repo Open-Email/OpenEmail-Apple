@@ -116,7 +116,7 @@ class ScopesSidebarViewModel {
     
     @MainActor
     private func refreshMessages() async {
-        guard let localUser = LocalUser.current else {
+        guard let _ = LocalUser.current else {
             return
         }
         if let newMessages = try? await messagesStore.allMessages(searchText: "") {

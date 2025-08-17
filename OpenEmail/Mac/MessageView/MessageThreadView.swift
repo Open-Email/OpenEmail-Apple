@@ -35,10 +35,34 @@ struct MessageThreadView: View {
                                 .listRowSeparator(.hidden)
                                 .listRowBackground(Color.clear)
                             
-                            ForEach(thread.messages, id: \.id) { message in
-                                MessageViewHolder(viewModel: viewModel, message: message)
-                                    .listRowSeparator(.hidden)
-                                    .id(message.id)
+                            ForEach(
+                                Array(viewModel.allMessages.enumerated()),
+                                id: \.offset
+                            ) {
+                                index,
+                                message in
+                                switch message {
+                                    case .normal(let msg):
+                                        MessageViewHolder(
+                                            viewModel: viewModel,
+                                            subject: msg.displayedSubject,
+                                            authoredOn: msg.formattedAuthoredOnDate,
+                                            authorAddress: msg.author,
+                                            messageBody: msg.body ?? ""
+                                            
+                                        )
+                                        .listRowSeparator(.hidden)
+                                    case .pending(let msg):
+                                        MessageViewHolder(
+                                            viewModel: viewModel,
+                                            subject: msg.displayedSubject,
+                                            authoredOn: msg.formattedAuthoredOnDate,
+                                            authorAddress: registeredEmailAddress ?? "",
+                                            messageBody: msg.body ?? ""
+                                            
+                                        )
+                                        .listRowSeparator(.hidden)
+                                }
                             }
                             Color.clear.frame(height: NSFont.preferredFont(forTextStyle: .title3).pointSize + NSFont.preferredFont(forTextStyle: .body).pointSize + 7 * .Spacing.xxSmall + 4.0 + .Spacing.xSmall + 48 + NSFont.preferredFont(forTextStyle: .footnote).pointSize)
                         }.onAppear {
@@ -220,10 +244,19 @@ struct MessageThreadView: View {
 
 struct MessageViewHolder: View {
     let viewModel: MessageThreadViewModel
-    let message: Message
+    
+    let subject: String
+    let authoredOn: String
+    let authorAddress: String
+    let messageBody: String
+    
     var body: some View {
         VStack(alignment: .leading, spacing: .Spacing.large) {
-            MessageHeader(message: message)
+            MessageHeader(
+                subject: subject,
+                authoredOn: authoredOn,
+                authorAddress: authorAddress
+            )
             HStack {
                 RoundedRectangle(cornerRadius: .CornerRadii.default)
                     .frame(height: 1)
@@ -243,7 +276,7 @@ struct MessageViewHolder: View {
 //                    .frame(maxWidth: .infinity)
                 
             }
-            MessageBody(message: message)
+            MessageBody(messageBody: messageBody)
         }
         .padding(.all, .Spacing.default)
         .clipShape(RoundedRectangle(cornerRadius: .CornerRadii.default))
@@ -255,10 +288,10 @@ struct MessageViewHolder: View {
 }
 
 struct MessageBody: View {
-    let message: Message
+    let messageBody: String
     
     var body: some View {
-        Markdown(message.body ?? "")
+        Markdown(messageBody)
             .markdownTheme(.basic.blockquote { configuration in
                 let rawMarkdown = configuration.content.renderMarkdown()
                 
@@ -309,27 +342,27 @@ struct MessageHeader: View {
     @State var author: Profile?
     @State var readers: [Profile] = []
     
-    let message: Message
+    let subject: String
+    let authoredOn: String
+    let authorAddress: String
     
     var body: some View {
         VStack(alignment: .leading) {
             HStack(spacing: .Spacing.xSmall) {
-                Text(message.displayedSubject)
+                Text(subject)
                     .font(.title3)
                     .textSelection(.enabled)
                     .bold()
                 
                 Spacer()
                 
-                Text(
-                    message.formattedAuthoredOnDate
-                )
+                Text(authoredOn)
                 .foregroundStyle(.secondary)
                 .font(.subheadline)
             }
             
             HStack(spacing: .Spacing.xxSmall) {
-                ProfileImageView(emailAddress: message.author, size: .medium)
+                ProfileImageView(emailAddress: authorAddress, size: .medium)
                 
                 VStack(alignment: .leading, spacing: .Spacing.xxSmall) {
                     if let author = author {
@@ -343,61 +376,12 @@ struct MessageHeader: View {
                             ).id(author.address)
                         }
                     }
-                    
-                    if (message.isBroadcast == true) {
-                        HStack {
-                            Image(.scopeBroadcasts)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 11)
-                            Text("Broadcast")
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                                .font(.callout)
-                        }
-                    } else {
-                        HStack(alignment: .firstTextBaseline, spacing: .Spacing.xSmall) {
-                            ReadersLabelView()
-                            let deliveries = Binding<[String]>(
-                                get: {
-                                    message.deliveries
-                                },
-                                set: { _ in /* read only */ }
-                            )
-                            ReadersView(
-                                isEditable: false,
-                                readers: $readers,
-                                tickedReaders: deliveries,
-                                hasInvalidReader: .constant(false),
-                                addingContactProgress: .constant(false),
-                                showProfileType: .popover
-                            )
-                        }
-                    }
                 }
             }
-        }.task {
-            if let address = EmailAddress(message.author) {
-                let client = client
+        }
+        .task {
+            if let address = EmailAddress(authorAddress) {
                 author = try? await client.fetchProfile(address: address, force: false)
-                do {
-                    let fetchedReaders = try await withThrowingTaskGroup(of: Void.self, returning: [Profile].self) { group in
-                        var rv: [Profile] = []
-                        message.readers.forEach { readerStr in
-                            group.addTask {
-                                if let address = EmailAddress(readerStr),
-                                   let profile = try await client.fetchProfile(address: address, force: false) {
-                                    rv.append(profile)
-                                }
-                            }
-                        }
-                        try await group.waitForAll()
-                        return rv
-                    }
-                    readers = fetchedReaders.sorted(by: { $0.address > $1.address })
-                } catch {
-                    Log.error("Failed to fetch profiles: \(error)")
-                }
             }
         }
     }

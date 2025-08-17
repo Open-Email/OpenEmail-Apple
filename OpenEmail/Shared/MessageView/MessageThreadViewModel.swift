@@ -18,11 +18,16 @@ class MessageThreadViewModel {
 
     @ObservationIgnored
     @Injected(\.messagesStore) private var messagesStore
+    
+    @ObservationIgnored
+    @Injected(\.pendingMessageStore) private var pendingMessageStore
 
     @ObservationIgnored
     @Injected(\.attachmentsManager) private var attachmentsManager
 
     var messageThread: MessageThread?
+    var allMessages: [UnifiedMessage] = []
+    
     var editSubject: String = ""
     var editBody: String = ""
     var attachedFileItems: [AttachedFileItem] = []
@@ -37,16 +42,27 @@ class MessageThreadViewModel {
             }
         }.store(in: &subscriptions)
         
+        NotificationCenter.default.publisher(for: .didUpdatePendingMessages).sink { messages in
+            Task {
+                await self.updateThread()
+            }
+        }.store(in: &subscriptions)
+        
         NotificationCenter.default.publisher(for: .didUpdateMessages).sink { messages in
             Task {
                 await self.updateThread()
             }
         }.store(in: &subscriptions)
+        
+        Task {
+            await updateThread()
+        }
     }
 
     private func updateThread() async {
+        let pendingMessages = try? await pendingMessageStore.allPendingMessages(searchText: "")
         
-        let allMessages = try? await messagesStore
+        let savedMessages = try? await messagesStore
             .allMessages(searchText: "")
             .filteredBy(
                 scope: .messages
@@ -55,7 +71,10 @@ class MessageThreadViewModel {
             }
         
         messageThread?.messages.removeAll()
-        messageThread?.messages = allMessages ?? []
+        messageThread?.messages = savedMessages ?? []
+        
+        allMessages = (messageThread?.messages.map { .normal($0) } ?? []) +
+        (pendingMessages ?? []).map { .pending($0) }
     }
     
     func clear() {
@@ -137,6 +156,9 @@ class MessageThreadViewModel {
 
         return draftMessage
     }
+}
 
-    
+enum UnifiedMessage {
+    case normal(Message)
+    case pending(PendingMessage)
 }
