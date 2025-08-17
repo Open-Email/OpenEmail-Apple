@@ -50,8 +50,8 @@ struct MessageThreadView: View {
                                             subject: msg.displayedSubject,
                                             authoredOn: msg.formattedAuthoredOnDate,
                                             authorAddress: msg.author,
-                                            messageBody: msg.body ?? ""
-                                            
+                                            messageBody: msg.body ?? "",
+                                            attachments: msg.attachments
                                         )
                                         .listRowSeparator(.hidden)
                                     case .pending(let msg):
@@ -60,8 +60,8 @@ struct MessageThreadView: View {
                                             subject: msg.displayedSubject,
                                             authoredOn: msg.formattedAuthoredOnDate,
                                             authorAddress: registeredEmailAddress ?? "",
-                                            messageBody: msg.body ?? ""
-                                            
+                                            messageBody: msg.body ?? "",
+                                            attachments: nil
                                         )
                                         .listRowSeparator(.hidden)
                                 }
@@ -252,7 +252,6 @@ struct MessageViewHolder: View {
     let authorAddress: String
     let messageBody: String
     let attachments: [Attachment]?
-    let pedingAttachments: [URL]?
     
     var body: some View {
         VStack(alignment: .leading, spacing: .Spacing.large) {
@@ -261,26 +260,17 @@ struct MessageViewHolder: View {
                 authoredOn: authoredOn,
                 authorAddress: authorAddress
             )
-            HStack {
-                RoundedRectangle(cornerRadius: .CornerRadii.default)
-                    .frame(height: 1)
-                    .foregroundColor(.actionButtonOutline)
-                    .frame(maxWidth: .infinity)
-                
-//                AsyncButton {
-//                    //TODO confirmation dialog
-//                    try? await viewModel.markAsDeleted(message: message, deleted: true)
-//                } label: {
-//                    Image(systemName: "trash")
-//                }.help("Delete message")
-//                
-//                RoundedRectangle(cornerRadius: .CornerRadii.default)
-//                    .frame(height: 1)
-//                    .foregroundColor(.actionButtonOutline)
-//                    .frame(maxWidth: .infinity)
-                
-            }
+            
+            RoundedRectangle(cornerRadius: .CornerRadii.default)
+                .frame(height: 1)
+                .foregroundColor(.actionButtonOutline)
+                .frame(maxWidth: .infinity)
+            
             MessageBody(messageBody: messageBody)
+            
+            if attachments != nil && attachments?.isNotEmpty == true {
+                AttachmentsListView(attachments!)
+            }
         }
         .padding(.all, .Spacing.default)
         .clipShape(RoundedRectangle(cornerRadius: .CornerRadii.default))
