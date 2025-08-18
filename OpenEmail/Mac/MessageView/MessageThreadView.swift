@@ -37,33 +37,28 @@ struct MessageThreadView: View {
                             
                             MultiReadersView(readers: viewModel.messageThread?.readers ?? [])
                             
-                            ForEach(
-                                Array(viewModel.allMessages.enumerated()),
-                                id: \.offset
-                            ) {
-                                index,
-                                message in
-                                switch message {
-                                    case .normal(let msg):
-                                        MessageViewHolder(
-                                            viewModel: viewModel,
-                                            subject: msg.displayedSubject,
-                                            authoredOn: msg.formattedAuthoredOnDate,
-                                            authorAddress: msg.author,
-                                            messageBody: msg.body ?? "",
-                                            attachments: msg.attachments
-                                        )
-                                        .listRowSeparator(.hidden)
-                                    case .pending(let msg):
-                                        MessageViewHolder(
-                                            viewModel: viewModel,
-                                            subject: msg.displayedSubject,
-                                            authoredOn: msg.formattedAuthoredOnDate,
-                                            authorAddress: registeredEmailAddress ?? "",
-                                            messageBody: msg.body ?? "",
-                                            attachments: nil
-                                        )
-                                        .listRowSeparator(.hidden)
+                            ForEach(Array(viewModel.allMessages.enumerated()), id: \.element.id) { _, message in
+                                if let pending = message as? PendingMessage {
+                                    MessageViewHolder(
+                                        viewModel: viewModel,
+                                        subject: pending.displayedSubject,
+                                        authoredOn: pending.formattedAuthoredOnDate,
+                                        authorAddress: registeredEmailAddress ?? "",
+                                        messageBody: pending.body ?? "",
+                                        attachments: nil
+                                    )
+                                    .listRowSeparator(.hidden)
+                                }
+                                else if let message = message as? Message {
+                                    MessageViewHolder(
+                                        viewModel: viewModel,
+                                        subject: message.displayedSubject,
+                                        authoredOn: message.formattedAuthoredOnDate,
+                                        authorAddress: message.author,
+                                        messageBody: message.body ?? "",
+                                        attachments: message.attachments
+                                    )
+                                    .listRowSeparator(.hidden)
                                 }
                             }
                             Color.clear.frame(height: NSFont.preferredFont(forTextStyle: .title3).pointSize + NSFont.preferredFont(forTextStyle: .body).pointSize + 7 * .Spacing.xxSmall + 4.0 + .Spacing.xSmall + 48 + NSFont.preferredFont(forTextStyle: .footnote).pointSize)

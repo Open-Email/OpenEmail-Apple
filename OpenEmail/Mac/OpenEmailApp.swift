@@ -70,6 +70,10 @@ struct OpenEmailApp: App {
                 .keyboardShortcut("P", modifiers: [.command, .option])
             }
         }
+        
+        Window("Contacts", id: WindowIDs.contacts) {
+            ContactsListView().environment(navigationState)
+        }
 
         Settings {
             SettingsView()

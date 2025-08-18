@@ -10,11 +10,15 @@ struct ContentView: View {
     @Environment(NavigationState.self) private var navigationState
     @Environment(\.openWindow) private var openWindow
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
+    @AppStorage(UserDefaultsKeys.profileName) private var profileName: String?
     
     private let contactRequestsController = ContactRequestsController()
     
     @State private var fetchButtonRotation = 0.0
     @State private var searchText: String = ""
+    @State private var showAddContactView: Bool = false
+    @State private var showsAddContactError = false
+    @State private var addContactError: Error?
     @State private var contactsListViewModel: ContactsListViewModel = ContactsListViewModel()
     @State private var messageThreadViewModel: MessageThreadViewModel = MessageThreadViewModel(messageThread: nil)
     
@@ -41,15 +45,96 @@ struct ContentView: View {
             .frame(minWidth: 300, idealWidth: 650)
         }
         .toolbar {
-            ToolbarItem {
+            ToolbarItemGroup {
+                
                 AsyncButton {
                     await triggerSync()
                 } label: {
                     SyncProgressView()
                 }
                 .disabled(syncService.isSyncing)
+                
+                Button {
+                    guard let registeredEmailAddress else { return }
+                    
+                    openWindow(id: WindowIDs.compose, value: ComposeAction.newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: nil))
+                    
+                } label: {
+                    Image(systemName: "square.and.pencil")
+                }
+                
+                Button {
+                    showAddContactView = true
+                } label: {
+                    Image(systemName: "person.badge.plus")
+                }
+                Button {
+                    openWindow(id: WindowIDs.contacts)
+                } label: {
+                    Image(systemName: "person.3")
+                }
+                Spacer()
+                Button {
+                    openWindow(id: WindowIDs.profileEditor)
+                } label: {
+                    HStack(spacing: .Spacing.small) {
+                        ProfileImageView(
+                            emailAddress: registeredEmailAddress,
+                            size: .tiny
+                        )
+                        if let name = profileName {
+                            Text(name)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                                .font(.caption2)
+                        }
+                    }
+                }
             }
-
+            
+            
+        }
+        .sheet(isPresented: $showAddContactView) {
+            ContactsAddressInputView { address in
+                contactsListViewModel.onAddressSearch(address: address)
+                showAddContactView = false
+            } onCancel: {
+                contactsListViewModel.onAddressSearchDismissed()
+                showAddContactView = false
+            }
+        }.alert("Could not add contact", isPresented: $showsAddContactError, actions: {
+            Button("OK") {
+                showAddContactView = true
+            }
+        }, message: {
+            if let addContactError {
+                Text("Underlying error: \(String(describing: addContactError))")
+            }
+        })
+        .alert("Contact already exists", isPresented: $contactsListViewModel.showsContactExistsError, actions: {})
+        .sheet(isPresented: Binding<Bool>(
+            get: {
+                contactsListViewModel.contactToAdd != nil
+            },
+            set: { _ in }
+        )) {
+            ProfilePreviewSheetView(
+                profile: contactsListViewModel.contactToAdd!,
+                onCancelled: {
+                    contactsListViewModel.onAddressSearchDismissed()
+                },
+                onAddContactClicked: { address in
+                    Task {
+                        do {
+                            try await contactsListViewModel.addContact()
+                        } catch {
+                            Log.error("Error while adding contact: \(error)")
+                            addContactError = error
+                            showsAddContactError = true
+                        }
+                    }
+                }
+            )
         }
         .searchable(
             text: $searchText,

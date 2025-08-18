@@ -5,12 +5,8 @@ import OpenEmailCore
 import Logging
 
 struct ContactsListView: View {
-    @Binding private var viewModel: ContactsListViewModel
+    @State private var viewModel = ContactsListViewModel()
     @Environment(NavigationState.self) private var navigationState
-    
-    init(contactsListViewModel: Binding<ContactsListViewModel>) {
-        _viewModel = contactsListViewModel
-    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -44,30 +40,12 @@ struct ContactsListView: View {
 
 #Preview {
     @Previewable @State var selectedContactListItem: ContactListItem?
-    ContactsListView(
-        contactsListViewModel: Binding<ContactsListViewModel>(
-            get: {
-                ContactsListViewModel()
-            },
-            set: {_ in}
-        ),
-        
-    )
-    .frame(width: 300, height: 600)
+    ContactsListView().frame(width: 300, height: 600)
 }
 
 #Preview("empty") {
     @Previewable @State var selectedContactListItem: ContactListItem?
-    ContactsListView(
-        contactsListViewModel: Binding<ContactsListViewModel>(
-            get: {
-                ContactsListViewModel()
-            },
-            set: {_ in}
-        ),
-        
-    )
-    .frame(width: 300, height: 600)
+    ContactsListView().frame(width: 300, height: 600)
 }
 
 #endif

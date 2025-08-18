@@ -35,7 +35,7 @@ class MessageThreadViewModel {
         }
     }
     
-    var allMessages: [UnifiedMessage] = []
+    var allMessages: [any UnifiedMessage] = []
     
     var editSubject: String = ""
     var editBody: String = ""
@@ -83,8 +83,7 @@ class MessageThreadViewModel {
         messageThread?.messages.removeAll()
         messageThread?.messages = savedMessages ?? []
         
-        allMessages = (messageThread?.messages.map { .normal($0) } ?? []) +
-        (pendingMessages ?? []).map { .pending($0) }
+        allMessages = (messageThread?.messages ?? []) + (pendingMessages ?? [])
         loading = false
     }
     
@@ -167,9 +166,4 @@ class MessageThreadViewModel {
 
         return draftMessage
     }
-}
-
-enum UnifiedMessage {
-    case normal(Message)
-    case pending(PendingMessage)
 }

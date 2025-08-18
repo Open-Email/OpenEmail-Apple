@@ -1,7 +1,7 @@
 import Foundation
 import Utils
 
-public struct Message: Identifiable, Equatable, Hashable {
+public struct Message: UnifiedMessage {
     public let id: String
     public let authoredOn: Date
     public let receivedOn: Date
