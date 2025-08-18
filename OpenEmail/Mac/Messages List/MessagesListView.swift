@@ -27,15 +27,35 @@ struct MessagesListView: View {
                 )
                 .tag(messageThread)
                 .padding(.all, .Spacing.xxxSmall)
+                .swipeActions(edge: .trailing) {
+                    AsyncButton("Delete") {
+                        await viewModel.markAsDeleted(threads: [messageThread], isDeleted: true)
+                    }
+                    .tint(.red)
+                }
+                .swipeActions(edge: .leading) {
+                    Button(messageThread.isRead ? "Mark as Unread" : "Mark as Read") {
+                        if messageThread.isRead {
+                            viewModel.markAsUnread(threads: [messageThread])
+                        } else {
+                            viewModel.markAsRead(threads: [messageThread])
+                        }
+                    }
+                    .tint(.accentColor)
+                }
             }
            
         }
         .frame(idealWidth: 200)
         .listStyle(.automatic)
         .scrollBounceBehavior(.basedOnSize)
-//        .contextMenu(
-//            forSelectionType: MessageThread.self,
-//            menu: { threads in
+        .onChange(of: navigationState.selectedMessageThreads) {
+            viewModel
+                .markAsRead(threads: navigationState.selectedMessageThreads)
+        }
+        .contextMenu(
+            forSelectionType: MessageThread.self,
+            menu: { threads in
 //                if (navigationState.selectedScope == .trash) {
 //                    AsyncButton("Restore") {
 //                        await viewModel.markAsDeleted(threads: threads, isDeleted: false)
@@ -52,7 +72,11 @@ struct MessagesListView: View {
 //                        navigationState.clearSelection()
 //                    }
 //                }
-//            })
+                AsyncButton("Delete") {
+                    await viewModel.markAsDeleted(threads: threads, isDeleted: true)
+                    navigationState.clearSelection()
+                }
+            })
         .animation(.easeInOut(duration: viewModel.threads.isEmpty ? 0 : 0.2), value: viewModel.threads)
         .onChange(of: searchText) {
             viewModel.searchText = searchText
