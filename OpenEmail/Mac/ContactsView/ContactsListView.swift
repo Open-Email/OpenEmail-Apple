@@ -6,14 +6,12 @@ import Logging
 
 struct ContactsListView: View {
     @State private var viewModel = ContactsListViewModel()
-    @Environment(NavigationState.self) private var navigationState
+    @State var selectedContact: ContactListItem?
+    @Injected(\.client) private var client
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            List(selection: Binding(
-                get:   { navigationState.selectedContact },
-                set:   { navigationState.selectedContact = $0 }
-            )) {
+        NavigationSplitView {
+            List(selection: $selectedContact) {
                 if viewModel.contactRequestItems.isEmpty && viewModel.contactsCount == 0 && viewModel.searchText.isEmpty {
                     EmptyListView(
                         icon: SidebarScope.contacts.imageResource,
@@ -32,7 +30,11 @@ struct ContactsListView: View {
             }
             .listStyle(.automatic)
             .scrollBounceBehavior(.basedOnSize)
-        }.frame(idealWidth: 200)
+            .frame(idealWidth: 200)
+        } detail: {
+            ContactDetailView(selectedContact: selectedContact)
+                .id(selectedContact?.email)
+        }
     }
 }
 

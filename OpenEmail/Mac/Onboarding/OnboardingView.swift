@@ -15,7 +15,6 @@ struct OnboardingView: View {
                 OnboardingNewAccountView(onboardingPage: $currentPage)
             }
         }
-        .frame(width: 400)
     }
 }
 
