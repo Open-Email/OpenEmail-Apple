@@ -201,6 +201,8 @@ class SyncService: MessageSyncing {
             await group.waitForAll()
         }
         
+        
+        
         postMessagesSyncedNotification()
         Log.info("Syncing complete")
     }
@@ -355,11 +357,7 @@ class SyncService: MessageSyncing {
             Log.error("could not fetch messages from user \(profile.address.address): \(error)")
         }
     }
-
-    /// Oubtbox messages disappear from the server after a while, so they have to be deleted from the local
-    /// storage in order to stay in sync with the server.
-    ///
-    /// This is best effort, ignoring any errors.
+    
     private func cleanUpOutboxMessages(remoteOutboxIds: [String]) async {
         guard
             let localUser = LocalUser.current,
@@ -368,10 +366,9 @@ class SyncService: MessageSyncing {
             return
         }
         
-        let localOutboxMessageIds = allMessages
-            .filteredBy(scope: .outbox, localUser: localUser)
+        let localOutboxMessages = allMessages.filter { $0.author == localUser.address.address }
         
-        for localMessage in localOutboxMessageIds {
+        for localMessage in localOutboxMessages {
             if !remoteOutboxIds.contains(localMessage.id) {
                 try? await messagesStore
                     .markAsDeleted(message: localMessage, deleted: true)

@@ -146,7 +146,9 @@ struct DebugView: View {
             .tabItem { Text("Notifications") }
 
             List {
-                Text("selectedMessageIDs: \(navigationState.selectedMessageIDs)")
+                Text(
+                    "selectedMessageThreads: \(navigationState.selectedMessageThreads)"
+                )
 
                 Section("Remote Messages") {
                     AsyncButton("Fetch all messages") {
@@ -163,10 +165,10 @@ struct DebugView: View {
                 Section("Local Storage") {
                     AsyncButton("Generate random message") {
                         guard let localUser = LocalUser.current else { return }
-                        let message = Message.makeRandom(readers: [localUser.address.address])
+                        let thread = MessageThread.makeRandom(readers: [localUser.address.address])
 
                         do {
-                            try await messagesStore.storeMessages([message])
+                            try await messagesStore.storeMessages(thread.messages)
                         } catch {
                             Log.error("Error: could not store messages:", context: error)
                         }

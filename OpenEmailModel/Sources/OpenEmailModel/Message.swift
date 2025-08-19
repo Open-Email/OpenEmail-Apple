@@ -1,14 +1,14 @@
 import Foundation
 import Utils
 
-public struct Message: Identifiable, Equatable {
+public struct Message: UnifiedMessage {
     public let id: String
     public let authoredOn: Date
     public let receivedOn: Date
     public let author: String
     public var readers: [String]
     public var subject: String
-    public let subjectId: String
+    public var subjectId: String
     public let localUserAddress: String
     public var isBroadcast: Bool
     public let accessKey: [UInt8]?

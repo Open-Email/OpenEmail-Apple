@@ -5,19 +5,13 @@ import OpenEmailCore
 import Logging
 
 struct ContactsListView: View {
-    @Binding private var viewModel: ContactsListViewModel
-    @Environment(NavigationState.self) private var navigationState
-    
-    init(contactsListViewModel: Binding<ContactsListViewModel>) {
-        _viewModel = contactsListViewModel
-    }
+    @State private var viewModel = ContactsListViewModel()
+    @State var selectedContact: ContactListItem?
+    @Injected(\.client) private var client
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            List(selection: Binding(
-                get:   { navigationState.selectedContact },
-                set:   { navigationState.selectedContact = $0 }
-            )) {
+        NavigationSplitView {
+            List(selection: $selectedContact) {
                 if viewModel.contactRequestItems.isEmpty && viewModel.contactsCount == 0 && viewModel.searchText.isEmpty {
                     EmptyListView(
                         icon: SidebarScope.contacts.imageResource,
@@ -36,7 +30,11 @@ struct ContactsListView: View {
             }
             .listStyle(.automatic)
             .scrollBounceBehavior(.basedOnSize)
-        }.frame(idealWidth: 200)
+            .frame(idealWidth: 200)
+        } detail: {
+            ContactDetailView(selectedContact: selectedContact)
+                .id(selectedContact?.email)
+        }
     }
 }
 
@@ -44,30 +42,12 @@ struct ContactsListView: View {
 
 #Preview {
     @Previewable @State var selectedContactListItem: ContactListItem?
-    ContactsListView(
-        contactsListViewModel: Binding<ContactsListViewModel>(
-            get: {
-                ContactsListViewModel()
-            },
-            set: {_ in}
-        ),
-        
-    )
-    .frame(width: 300, height: 600)
+    ContactsListView().frame(width: 300, height: 600)
 }
 
 #Preview("empty") {
     @Previewable @State var selectedContactListItem: ContactListItem?
-    ContactsListView(
-        contactsListViewModel: Binding<ContactsListViewModel>(
-            get: {
-                ContactsListViewModel()
-            },
-            set: {_ in}
-        ),
-        
-    )
-    .frame(width: 300, height: 600)
+    ContactsListView().frame(width: 300, height: 600)
 }
 
 #endif

@@ -9,6 +9,7 @@ enum ProfileImageShapeType {
 }
 
 enum ProfileImageSize {
+    case tiny
     case small
     case medium
     case large
@@ -16,6 +17,7 @@ enum ProfileImageSize {
     
     var size: CGFloat {
            switch self {
+           case .tiny:  return 24.0
            case .small:  return 32.0
            case .medium: return 40.0
            case .large:  return 64.0

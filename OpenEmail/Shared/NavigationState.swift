@@ -1,9 +1,10 @@
 import Foundation
+import OpenEmailModel
 import Observation
 
 @Observable class NavigationState {
-    var selectedMessageIDs: Set<String> = []
-    var selectedScope: SidebarScope = .inbox {
+    var selectedMessageThreads: Set<MessageThread> = []
+    var selectedScope: SidebarScope = .messages {
         didSet {
             clearSelection()
         }
@@ -11,7 +12,7 @@ import Observation
     var selectedContact: ContactListItem? = nil
     
     func clearSelection() {
-        selectedMessageIDs.removeAll()
+        selectedMessageThreads.removeAll()
         selectedContact = nil
     }
 }

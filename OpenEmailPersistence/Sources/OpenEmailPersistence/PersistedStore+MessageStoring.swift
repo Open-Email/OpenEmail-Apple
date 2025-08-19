@@ -64,7 +64,7 @@ extension PersistedStore: MessageStoring {
                 message.author.localizedStandardContains(cleanSearchText) ||
                 message.readersStr.localizedStandardContains(cleanSearchText)
             },
-            sortBy: [SortDescriptor<PersistedMessage>(\.authoredOn, order: .reverse)])
+            sortBy: [SortDescriptor<PersistedMessage>(\.authoredOn, order: .forward)])
         fetch.includePendingChanges = true
 
         let results = try modelContext.fetch(fetch)

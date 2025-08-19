@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Attachment: Identifiable, Equatable {
+public struct Attachment: Identifiable, Equatable, Hashable {
     public let id: String
     public let parentMessageId: String
     public let fileMessageIds: [String]

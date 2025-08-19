@@ -48,6 +48,10 @@ struct AttachedFileItem: Identifiable, Equatable {
 
     var exists: Bool { url.fileExists }
 
+    var name: String? {
+        return url.pathComponents.last
+    }
+    
     init(url: URL) {
         self.url = url
         self.size = url.fileSize
@@ -216,7 +220,7 @@ class ComposeMessageViewModel {
         
         isSending = false
     }
-
+    
     func cancelSending() {
         sendTask?.cancel()
     }
@@ -489,7 +493,7 @@ class ComposeMessageViewModel {
                 try await withThrowingTaskGroup(of: Void.self) { group in
                     for url in urls {
                         group.addTask {
-                            let sandboxUrl = preserveFilePath ? url : try await self.copyFileIntoSandbox(url)
+                            let sandboxUrl = preserveFilePath ? url : try await copyFileIntoSandbox(url)
                             if !self.attachedFileItems.contains(where: { sandboxUrl == $0.url }) {
                                 let item = AttachedFileItem(url: sandboxUrl)
                                 self.attachedFileItems.append(item)
@@ -629,31 +633,6 @@ class ComposeMessageViewModel {
     
 #endif
     
-    private func copyFileIntoSandbox(_ sourceURL: URL) async throws -> URL {
-        let needsSecurityAccess = sourceURL.startAccessingSecurityScopedResource()
-        defer {
-            if needsSecurityAccess {
-                sourceURL.stopAccessingSecurityScopedResource()
-            }
-        }
-
-        let fileName = sourceURL.lastPathComponent
-        let destDir = try FileManager.default.url(
-            for: .documentDirectory,
-            in: .userDomainMask,
-            appropriateFor: nil,
-            create: true
-        )
-        let destURL = destDir.appendingPathComponent(fileName)
-
-        if FileManager.default.fileExists(atPath: destURL.path) {
-            try FileManager.default.removeItem(at: destURL)
-        }
-        try FileManager.default.copyItem(at: sourceURL, to: destURL)
-
-        return destURL
-    }
-
     func removeAttachedFileItem(item: AttachedFileItem) {
         if let index = attachedFileItems.firstIndex(where: { item.url == $0.url }) {
             if item.url.isInTemporaryDirectory {
@@ -715,4 +694,29 @@ private extension Message {
         readers.isEmpty &&
         draftAttachmentUrls.isEmpty
     }
+}
+
+public func copyFileIntoSandbox(_ sourceURL: URL) async throws -> URL {
+    let needsSecurityAccess = sourceURL.startAccessingSecurityScopedResource()
+    defer {
+        if needsSecurityAccess {
+            sourceURL.stopAccessingSecurityScopedResource()
+        }
+    }
+    
+    let fileName = sourceURL.lastPathComponent
+    let destDir = try FileManager.default.url(
+        for: .documentDirectory,
+        in: .userDomainMask,
+        appropriateFor: nil,
+        create: true
+    )
+    let destURL = destDir.appendingPathComponent(fileName)
+    
+    if FileManager.default.fileExists(atPath: destURL.path) {
+        try FileManager.default.removeItem(at: destURL)
+    }
+    try FileManager.default.copyItem(at: sourceURL, to: destURL)
+    
+    return destURL
 }

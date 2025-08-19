@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct PendingMessage {
+public struct PendingMessage: UnifiedMessage {
     public let id: String
     public let authoredOn: Date
     public let readers: [String]

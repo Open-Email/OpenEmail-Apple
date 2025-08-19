@@ -25,5 +25,5 @@ struct MessageTypeBadge: View {
 }
 
 #Preview {
-    MessageTypeBadge(scope: .inbox)
+    MessageTypeBadge(scope: .messages)
 }

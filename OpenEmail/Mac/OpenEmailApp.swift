@@ -33,13 +33,12 @@ struct OpenEmailApp: App {
                     }
             } else {
                 OnboardingView()
-                    .fixedSize(horizontal: true, vertical: true)
             }
         }
         .defaultSize(width: 1000, height: 800)
         .environment(navigationState)
         .windowToolbarStyle(.unified(showsTitle: false))
-        .windowResizability(hasCompletedOnboarding ? .automatic : .contentSize)
+        .windowResizability(.automatic)
         .commands {
             CommandGroup(replacing: .singleWindowList) {
                 Button("Message Viewer") {
@@ -69,6 +68,10 @@ struct OpenEmailApp: App {
                 }
                 .keyboardShortcut("P", modifiers: [.command, .option])
             }
+        }
+        
+        Window("Contacts", id: WindowIDs.contacts) {
+            ContactsListView().environment(navigationState)
         }
 
         Settings {
