@@ -8,269 +8,198 @@ import MarkdownUI
 
 @MainActor
 struct MessageThreadView: View {
+    @Environment(NavigationState.self) private var navigationState
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
-    @Injected(\.client) private var client
+    @Injected(\.syncService) private var syncService
+    @Injected(\.messagesStore) private var messagesStore
+    @Injected(\.pendingMessageStore) private var pendingMessageStore
     
-    @Binding var selectedMessageID: String?
-    let selectedScope: SidebarScope
-
-    @State private var viewModel: MessageThreadViewModel
-    @State private var attachmentsListViewModel: AttachmentsListViewModel?
-
+    @Binding private var viewModel: MessageThreadViewModel
+    
+    @State private var filePickerOpen: Bool = false
     @State private var showDeleteConfirmationAlert = false
     @State private var showFilesPopover = false
     @State private var toolbarBarVisibility: Visibility = .hidden
     @State private var composeAction: ComposeAction?
-
-    init(messageID: String, selectedScope: SidebarScope, selectedMessageID: Binding<String?>) {
-        viewModel = MessageThreadViewModel(messageID: messageID)
-        self.selectedScope = selectedScope
-        _selectedMessageID = selectedMessageID
+    
+    init(messageViewModel: Binding<MessageThreadViewModel> ) {
+        _viewModel = messageViewModel
     }
-
+    
     var body: some View {
-        Group {
-            if let _ = viewModel.messageID {
-                if let message = viewModel.message {
-                    messageView(message: message)
-                        .alert("Are you sure you want to delete this message?", isPresented: $showDeleteConfirmationAlert) {
-                            Button("Cancel", role: .cancel) {}
-                            AsyncButton("Delete", role: .destructive) {
-                                await permanentlyDelete()
-                            }
-                        } message: {
-                            Text("This action cannot be undone.")
+        ZStack(alignment: .bottom) {
+            ScrollViewReader { proxy in
+                List {
+                    MultiReadersView(readers: viewModel.messageThread?.readers ?? [])
+                    
+                    ForEach(Array(viewModel.allMessages.enumerated()), id: \.element.id) { _, message in
+                        if let pending = message as? PendingMessage {
+                            MessageViewHolder(
+                                viewModel: viewModel,
+                                subject: pending.displayedSubject,
+                                authoredOn: pending.formattedAuthoredOnDate,
+                                authorAddress: registeredEmailAddress ?? "",
+                                messageBody: pending.body ?? "",
+                                attachments: nil
+                            )
+                            .listRowSeparator(.hidden)
                         }
-                        .navigationBarTitleDisplayMode(.inline)
-                }
-            }
-        }
-        .onChange(of: viewModel.message) {
-            attachmentsListViewModel = nil
-
-            guard
-                let message = viewModel.message,
-                let registeredEmailAddress
-            else {
-                return
-            }
-
-            if message.isDraft {
-                if !message.draftAttachmentUrls.isEmpty {
-                    attachmentsListViewModel = AttachmentsListViewModel(
-                        localUserAddress: registeredEmailAddress,
-                        message: message,
-                        draftAttachmentUrls: message.draftAttachmentUrls
-                    )
-                }
-            } else {
-                attachmentsListViewModel = AttachmentsListViewModel(
-                    localUserAddress: registeredEmailAddress,
-                    message: message,
-                    attachments: message.attachments
-                )
-            }
-        }
-    }
-
-    @ToolbarContentBuilder
-    private func bottomToolbarContent(message: Message) -> some ToolbarContent {
-        if message.isDraft {
-            ToolbarItemGroup(placement: .bottomBar) {
-                deleteButton(message: message)
-
-                Button {
-                    composeAction = .editDraft(messageId: message.id)
-                } label: {
-                    Image(.compose)
-                }
-            }
-        } else {
-            ToolbarItemGroup(placement: .bottomBar) {
-                if selectedScope == .trash && message.author != registeredEmailAddress {
-                    undeleteButton
-                    Spacer()
-                    deleteButton(message: message)
-                } else {
-                    deleteButton(message: message)
-                }
-
-                Spacer()
-                Button("Reply", image: .reply) {
-                    guard let registeredEmailAddress else { return }
-                    composeAction = .reply(
-                        id: UUID(),
-                        authorAddress: registeredEmailAddress,
-                        messageId: message.id,
-                        quotedText: message.body
-                    )
-                }
-
-                if message.readers.count > 1 {
-                    Spacer()
-                    Button("Reply all", image: .replyAll) {
-                        guard let registeredEmailAddress else { return }
-                        composeAction = .replyAll(
-                            id: UUID(),
-                            authorAddress: registeredEmailAddress,
-                            messageId: message.id,
-                            quotedText: message.body
-                        )
+                        else if let message = message as? Message {
+                            MessageViewHolder(
+                                viewModel: viewModel,
+                                subject: message.displayedSubject,
+                                authoredOn: message.formattedAuthoredOnDate,
+                                authorAddress: message.author,
+                                messageBody: message.body ?? "",
+                                attachments: message.attachments
+                            )
+                            .listRowSeparator(.hidden)
+                        }
                     }
                 }
-
-                Spacer()
-                Button("Forward", image: .forward) {
-                    guard let registeredEmailAddress else { return }
-                    composeAction = .forward(
-                        id: UUID(),
-                        authorAddress: registeredEmailAddress,
-                        messageId: message.id
-                    )
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var undeleteButton: some View {
-        AsyncButton {
-            do {
-                try await viewModel.markAsDeleted(false)
-                selectedMessageID = nil
-            } catch {
-                Log.error("Could not mark message as undeleted: \(error)")
-            }
-        } label: {
-            Image(.undelete)
-        }
-        .help("Undelete")
-    }
-
-    @ViewBuilder
-    private func deleteButton(message: Message) -> some View {
-        AsyncButton(role: .destructive) {
-            if selectedScope == .trash {
-                showDeleteConfirmationAlert = true
-            } else {
-                do {
-                    try await viewModel.markAsDeleted(true)
-                    selectedMessageID = nil
-                } catch {
-                    Log.error("Could not mark message as deleted: \(error)")
-                }
-            }
-        } label: {
-            Image(.trash)
-        }
-        .help("Delete")
-    }
-
-    @ViewBuilder
-    private func messageView(message: Message) -> some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: .Spacing.default) {
-                MessageHeaderView(
-                    message: message,
-                    selectedScope: selectedScope,
-                    viewModel: viewModel,
-                )
-
-                Divider()
-
-                readers(message: message)
-
-                Divider()
-
-                Markdown(message.body ?? "").markdownTheme(.basic.blockquote { configuration in
-                    let rawMarkdown = configuration.content.renderMarkdown()
+                .listStyle(.plain)
+                
+                VStack(spacing: .zero) {
+                    if viewModel.attachedFileItems.isNotEmpty {
+                        ScrollView(.horizontal) {
+                            HStack {
+                                ForEach(viewModel.attachedFileItems) { attachment in
+                                    ZStack(
+                                        alignment: Alignment.topTrailing
+                                    ) {
+                                        VStack(spacing: .Spacing.xxSmall) {
+                                            attachment.icon.swiftUIImage
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fit)
+                                                .frame(width: 48, height: 48)
+                                            
+                                            Text(attachment.name ?? "")
+                                                .font(.footnote)
+                                        }
+                                        
+                                        Button {
+                                            if let index = viewModel.attachedFileItems
+                                                .firstIndex(where: { $0.id.absoluteString == attachment.id.absoluteString }) {
+                                                viewModel.attachedFileItems.remove(at: index)
+                                            }
+                                        } label: {
+                                            Image(systemName: "xmark.circle.fill")
+                                            
+                                        }.buttonStyle(.borderless)
+                                    }
+                                }
+                            }.padding(.horizontal, .Spacing.xxSmall)
+                        }.padding(.vertical, .Spacing.xxSmall)
+                    }
                     
-                    let maxDepth = rawMarkdown
-                        .components(separatedBy: "\n")
-                        .map { line -> Int in
-                            var level = 0
-                            for char in line {
-                                if char == " " {
-                                    continue
-                                }
-                                if (char != ">") {
-                                    break
-                                } else {
-                                    level += 1
-                                }
+                    HStack {
+                        TextField("Subject:", text: $viewModel.editSubject)
+                            .font(.title3)
+                            .textFieldStyle(.plain)
+                        
+                        AsyncButton {
+                            do {
+                                try await pendingMessageStore
+                                    .storePendingMessage(
+                                        PendingMessage(
+                                            id: UUID().uuidString,
+                                            authoredOn: Date(),
+                                            readers: viewModel.messageThread?.readers
+                                                .filter { $0 != registeredEmailAddress } ?? [],
+                                            draftAttachmentUrls: viewModel.attachedFileItems.map { $0.url },
+                                            subject: viewModel.editSubject.trimmingCharacters(in: .whitespacesAndNewlines),
+                                            subjectId: viewModel.messageThread?.subjectId ?? "",
+                                            body: viewModel.editBody.trimmingCharacters(in: .whitespacesAndNewlines),
+                                            isBroadcast: false
+                                        )
+                                    )
+                            } catch {
+                                Log.error("Could not save pending message")
                             }
-                            return level
-                        }.max() ?? 0
+                            
+                            viewModel.clear()
+                            
+                            Task.detached(priority: .userInitiated) {
+                                await syncService.synchronize()
+                            }
+                        } label: {
+                            Image(systemName: "paperplane.fill")
+                        }.buttonStyle(.borderless)
+                            .foregroundColor(.accentColor)
+                            .disabled(
+                                viewModel.editSubject.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+                                viewModel.editBody.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                            )
+                    }.padding(.horizontal, .Spacing.xSmall)
+                        .padding(.vertical, .Spacing.xxSmall)
                     
-                    let depth = max(maxDepth, 1)
+                    RoundedRectangle(cornerRadius: .CornerRadii.default)
+                        .frame(height: 1)
                     
-                    let barColor: Color = if depth % 3 == 0 {
-                        .red
-                    } else if depth % 2 == 0 {
-                        .green
-                    } else {
-                        .accent
-                    }
+                        .foregroundColor(.actionButtonOutline)
+                        .frame(maxWidth: .infinity)
                     
-                    HStack(spacing: 0) {
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(barColor)
-                            .relativeFrame(width: .em(0.2))
-                        configuration.label
-                        //.markdownTextStyle { ForegroundColor(.secondaryText) }
-                            .relativePadding(.horizontal, length: .em(1))
-                    }
-                    .fixedSize(horizontal: false, vertical: true)
-                })
-
-                if let attachmentsListViewModel, !attachmentsListViewModel.items.isEmpty {
-                    Divider()
-                    AttachmentsListView(viewModel: attachmentsListViewModel)
+                    HStack {
+                        TextField("Body:", text: $viewModel.editBody, axis: .vertical)
+                            .font(.body)
+                            .lineLimit(nil)
+                            .textFieldStyle(.plain)
+                            .multilineTextAlignment(.leading)
+                        
+                        AsyncButton {
+                            do {
+                                try await openComposingScreenAction()
+                            } catch {
+                                Log.error("Could not open compose screen: \(error)")
+                            }
+                        } label: {
+                            Text(".md")
+                        }.buttonStyle(.borderless)
+                        
+                        Button {
+                            filePickerOpen = true
+                        } label: {
+                            Image(systemName: "paperclip")
+                            
+                        }.buttonStyle(.borderless)
+                    }.padding(.horizontal, .Spacing.xSmall)
+                        .padding(.vertical, .Spacing.xxSmall)
                 }
-            }
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .topLeading)
-        }
-        .toolbar {
-            bottomToolbarContent(message: message)
-        }
-        .toolbarBackground(.thinMaterial, for: .bottomBar)
-        .toolbar(toolbarBarVisibility, for: .bottomBar)
-        .modify {
-            if #available(iOS 18.0, *) {
-                $0.toolbarBackgroundVisibility(.visible, for: .bottomBar)
-            }
-        }
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                toolbarBarVisibility = .visible
+                .clipShape(RoundedRectangle(cornerRadius: .CornerRadii.default))
+                .background {
+                    RoundedRectangle(cornerRadius: .CornerRadii.default)
+                        .fill(.themeViewBackground)
+                        .stroke(.actionButtonOutline, lineWidth: 1)
+                        .shadow(color: .actionButtonOutline, radius: 5)
+                }
+                .overlay(
+                    RoundedRectangle(cornerRadius: .CornerRadii.default)
+                        .stroke(.actionButtonOutline, lineWidth: 1)
+                )
+                
+                .padding(.horizontal, .Spacing.default)
+                .padding(.bottom, .Spacing.default)
             }
         }
-        .animation(.default, value: toolbarBarVisibility)
         .sheet(isPresented: composeSheetBinding) {
             if let composeAction {
-                ComposeMessageView(action: composeAction) { result in
-                    switch composeAction {
-                    case .editDraft: handleCloseDraft(result: result)
-                    default: break
-                    }
-                }
+                ComposeMessageView(action: composeAction)
             }
         }
-    }
-
-    private func handleCloseDraft(result: ComposeResult) {
-        switch result {
-        case .sent:
-            // After sending a draft, the draft message is deleted.
-            // Setting selectedMessageID to nil will navigate back to the drafts list.
-            selectedMessageID = nil
-        case .cancel:
-            // A draft may have updated data, so reload the draft message
-            viewModel.fetchMessage()
+        .fileImporter(isPresented: $filePickerOpen, allowedContentTypes: [.data], allowsMultipleSelection: true) {
+            do {
+                let urls = try $0.get()
+                viewModel.appendAttachedFiles(urls: urls)
+            }
+            catch {
+                Log.error("error reading files: \(error)")
+            }
         }
+        
+        .navigationTitle(viewModel.messageThread?.topic ?? "")
+        .navigationBarTitleDisplayMode(.inline)
     }
-
+    
     private var composeSheetBinding: Binding<Bool> {
         .init(
             get: { composeAction != nil
@@ -281,154 +210,60 @@ struct MessageThreadView: View {
                 }
             })
     }
-
-    @ViewBuilder
-    private func readers(message: Message) -> some View {
-        VStack(alignment: .leading, spacing: .Spacing.small) {
-            ReadersView(
-                isEditable: false,
-                readers: $viewModel.readers,
-                tickedReaders: .constant(viewModel.message?.deliveries ?? []),
-                hasInvalidReader: .constant(false)
-            )
+    
+    private func openComposingScreenAction() async throws {
+        
+        let draftMessage: Message? = Message.draft()
+        
+        guard var draftMessage = draftMessage else {
+            return
         }
-    }
-
-    private func permanentlyDelete() async {
-        do {
-            try await viewModel.permanentlyDeleteMessage()
-            selectedMessageID = nil
-        } catch {
-            Log.error("Could not delete message: \(error)")
-        }
-    }
-}
-
-struct MessageHeaderView: View {
-    
-    let message: Message
-    let selectedScope: SidebarScope
-    let viewModel: MessageThreadViewModel
-    
-    @Injected(\.client) private var client
-    @State private var profile: Profile? = nil
-    @State private var showAuthorProfilePopover = false
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: .Spacing.large) {
-            HStack(alignment: .top, spacing: .Spacing.small) {
-                Text(message.subject)
-                    .font(.title2)
-                    .textSelection(.enabled)
-                
-                MessageTypeBadge(scope: selectedScope)
-            }
+        
+        if viewModel.editSubject.trimmingCharacters(in: .whitespacesAndNewlines).isNotEmpty ||
+            viewModel.editBody.trimmingCharacters(in: .whitespacesAndNewlines).isNotEmpty ||
+            viewModel.attachedFileItems.isNotEmpty {
             
-            HStack(alignment: .top) {
-                if profile != nil {
-                    ProfileImageView(emailAddress: profile!.address.address, size: .medium)
-                }
-                
-                if message.isBroadcast {
-                    HStack {
-                        HStack(spacing: 2) {
-                            Image(.scopeBroadcasts)
-                            Text("Broadcast")
-                        }
-                    }
-                } else {
-                    VStack(alignment: .leading, spacing: 0) {
-                        if let profile = viewModel.authorProfile {
-                            Text(profile.name).font(.headline)
-                            Text(message.author)
-                        } else {
-                            Text(message.author).font(.headline)
-                        }
-                    }
-                    .frame(maxHeight: .infinity)
-                }
-                
-                Spacer()
-                Text(message.formattedAuthoredOnDate)
-                    .font(.subheadline)
-                    .foregroundStyle(.tertiary)
-            }
-        }.task {
-            if let emailAddress = EmailAddress(message.author) {
-                profile = try? await client.fetchProfile(address: emailAddress, force: false)
-            }
-        }.onTapGesture {
-            showAuthorProfilePopover = profile != nil
+            draftMessage.subject = viewModel.editSubject.trimmingCharacters(in: .whitespacesAndNewlines)
+            draftMessage.body = viewModel.editBody.trimmingCharacters(in: .whitespacesAndNewlines)
+            
+            draftMessage.draftAttachmentUrls = viewModel.attachedFileItems.map { $0.url }
+            
         }
-        .popover(isPresented: $showAuthorProfilePopover) {
-            NavigationStack {
-                ProfileView(profile: profile!)
-            }
-        }
+        draftMessage.readers = viewModel.messageThread?.readers ?? []
+        draftMessage.isBroadcast = false
+        draftMessage.subjectId = viewModel.messageThread?.subjectId ?? ""
+        
+        try await messagesStore.storeMessage(draftMessage)
+        
+        composeAction = .editDraft(messageId: draftMessage.id)
     }
 }
 
 
-
-struct ViewHeightKey: PreferenceKey {
-    static var defaultValue: CGFloat { 0 }
-    static func reduce(value: inout Value, nextValue: () -> Value) {
-        value = value + nextValue()
-    }
-}
 
 #if DEBUG
 #Preview {
     let messageStore = MessageStoreMock()
     messageStore.stubMessages = [
-        .makeRandom(
-            id: "1",
-            subject: "This is a long subject that will spread to multiple lines",
-            body: """
-            Lorem ipsum dolor sit amet, sea pertinax pertinacia appellantur in, est ad esse assentior mediocritatem, magna populo menandri cum te. Vel augue menandri eu, at integre appareat splendide duo. Est ne tollit ullamcorper, eu pro falli diceret perpetua, sea ferri numquam legendos ut. Diceret suscipiantur at nec, his ei nulla mentitum efficiantur. Errem saepe ei vis.
-            """
-        ),
+        .makeRandom(id: "1"),
+        .makeRandom(id: "2"),
+        .makeRandom(id: "3")
     ]
     InjectedValues[\.messagesStore] = messageStore
-
-    return NavigationStack {
-        MessageThreadView(messageID: "1", selectedScope: .inbox, selectedMessageID: .constant("1"))
-    }
+    
+    return MessageThreadView(
+        messageViewModel: Binding<MessageThreadViewModel>(
+            get: {
+                MessageThreadViewModel(
+                    messageThread: messageStore.stubMessages.first!
+                )
+            },
+            set: { _ in }
+        )
+    )
+    .frame(width: 800, height: 600)
+    .background(.themeViewBackground)
+    .environment(NavigationState())
 }
 
-#Preview("Short text") {
-    let messageStore = MessageStoreMock()
-    messageStore.stubMessages = [
-        .makeRandom(id: "1", subject: "Hello", body: "Hello"),
-    ]
-    InjectedValues[\.messagesStore] = messageStore
-
-    return NavigationStack {
-        MessageThreadView(messageID: "1", selectedScope: .inbox, selectedMessageID: .constant("1"))
-    }
-}
-
-#Preview("Draft") {
-    let messageStore = MessageStoreMock()
-    messageStore.stubMessages = [
-        .makeRandom(id: "1", isDraft: true)
-    ]
-    InjectedValues[\.messagesStore] = messageStore
-
-    return NavigationStack {
-        MessageThreadView(messageID: "1", selectedScope: .inbox, selectedMessageID: .constant("1"))
-    }
-}
-
-#Preview("Draft Broadcast") {
-    let messageStore = MessageStoreMock()
-    messageStore.stubMessages = [
-        .makeRandom(id: "1", isDraft: true, isBroadcast: true)
-    ]
-    InjectedValues[\.messagesStore] = messageStore
-
-    return NavigationStack {
-        MessageThreadView(messageID: "1", selectedScope: .inbox, selectedMessageID: .constant("1"))
-    }
-}
 #endif
