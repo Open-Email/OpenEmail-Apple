@@ -131,7 +131,7 @@ class ComposeMessageViewModel {
 
     var attachedFileItems: [AttachedFileItem] = []
     var attachmentLoading: Bool = false
-    var action: ComposeAction
+    let action: ComposeAction
 
     var draftMessage: Message?
 
