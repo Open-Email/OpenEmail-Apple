@@ -9,7 +9,7 @@ import Utils
 struct AttachmentsListView: View {
     @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
     @Injected(\.attachmentsManager) private var attachmentsManager
-    var attachmentItems: [AttachmentItem] = []
+    private var attachmentItems: [AttachmentItem] = []
     
     init(_ attachments: [Attachment]) {
         self.attachmentItems = attachments.map {

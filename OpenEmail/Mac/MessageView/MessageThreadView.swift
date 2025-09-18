@@ -138,7 +138,7 @@ struct MessageThreadView: View {
                             }.buttonStyle(.borderless)
                                 .foregroundColor(.accentColor)
                                 .disabled(
-                                    viewModel.editSubject.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+                                    viewModel.editSubject.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
                                     viewModel.editBody.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                                 )
                         }.padding(.horizontal, .Spacing.xSmall)

@@ -37,11 +37,8 @@ struct ComposeMessageView: View {
     @State private var videoPickerItems: [PhotosPickerItem] = []
     @State private var bodyText: String = ""
 
-    private var onClose: ((ComposeResult) -> Void)?
-
-    init(action: ComposeAction, onClose: ((ComposeResult) -> Void)? = nil) {
+    init(action: ComposeAction) {
         viewModel = ComposeMessageViewModel(action: action)
-        self.onClose = onClose
     }
 
     var body: some View {
@@ -103,7 +100,6 @@ struct ComposeMessageView: View {
                     Button("Cancel") {
                         viewModel.updateDraft()
                         dismiss()
-                        onClose?(.cancel)
                     }
                     .disabled(viewModel.isSending)
                 }
@@ -211,7 +207,6 @@ struct ComposeMessageView: View {
             await syncService.synchronize()
         }
         dismiss()
-        onClose?(.sent)
     }
 }
 

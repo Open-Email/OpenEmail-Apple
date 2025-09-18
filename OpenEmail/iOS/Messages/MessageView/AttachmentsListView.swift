@@ -6,7 +6,9 @@ import CoreTransferable
 import Flow
 
 struct AttachmentsListView: View {
-    var viewModel: AttachmentsListViewModel
+    @AppStorage(UserDefaultsKeys.registeredEmailAddress) private var registeredEmailAddress: String?
+    @Injected(\.attachmentsManager) private var attachmentsManager
+    @Injected(\.networkConnectionMonitor) private var networkConnectionMonitor
 
     @State private var selection: AttachmentItem.ID?
     @State private var previewFileUrl: URL?
@@ -14,24 +16,34 @@ struct AttachmentsListView: View {
     @State private var savedFileUrl: URL?
     @State private var showDownloadBigFileWarning = false
     @State private var selectedAttachmentItem: AttachmentItem?
-
-    @Injected(\.attachmentsManager) private var attachmentsManager
-
-    @Injected(\.networkConnectionMonitor) private var networkConnectionMonitor
-
+    
+    private var attachmentItems: [AttachmentItem] = []
+    init(_ attachments: [Attachment]) {
+        self.attachmentItems = attachments.map {
+            AttachmentItem(
+                localUserAddress: registeredEmailAddress ?? "",
+                attachment: $0,
+                isAvailable: attachmentsManager.fileUrl(for: $0) != nil,
+                isDraft: false,
+                formattedFileSize: Formatters.fileSizeFormatter
+                    .string(fromByteCount: Int64($0.size)),
+                icon: $0.fileIcon,
+                draftFileUrl: nil
+            )
+        }
+    }
+    
     var body: some View {
-        @Bindable var viewModel = viewModel
 
         VStack(alignment: .leading, spacing: .Spacing.small) {
-            Text("Attachments (\(viewModel.items.count))")
+            Text("Attachments (\(attachmentItems.count))")
                 .font(.headline)
 
             HFlow(alignment: .top, itemSpacing: .Spacing.small, rowSpacing: .Spacing.small) {
-                ForEach(viewModel.items) { item in
+                ForEach(attachmentItems) { item in
                     AttachmentItemView(
                         item: item,
-                        isDraft: viewModel.isDraft,
-                        isMessageDeleted: viewModel.isMessageDeleted,
+                        isDraft: item.isDraft,
                         onDownload: { attachment in
                             if attachment.isBig && networkConnectionMonitor.isOnCellular {
                                 selectedAttachmentItem = item
@@ -68,11 +80,6 @@ struct AttachmentsListView: View {
                 DocumentPicker(url: savedFileUrl) { _ in
                     self.savedFileUrl = nil
                 }
-            }
-        }
-        .onChange(of: attachmentsManager.downloadInfos) {
-            Task {
-                await viewModel.updateItems()
             }
         }
         .onAppear {
@@ -142,21 +149,12 @@ private extension Attachment {
 
 #if DEBUG
 #Preview {
-    let messageStore = MessageStoreMock()
-    messageStore.stubMessages = [
-        .makeRandom(id: "1"),
-        .makeRandom(id: "2"),
-        .makeRandom(id: "3"),
-        .makeRandom(id: "4"),
-    ]
-    InjectedValues[\.messagesStore] = messageStore
-
-    let attachment1 = Attachment(id: "2_picture.jpg", parentMessageId: "2", fileMessageIds: ["22"], filename: "picture.jpg", size: 123456, mimeType: "image/jpeg")
-    let attachment2 = Attachment(id: "3_documents.zip", parentMessageId: "3", fileMessageIds: ["33"], filename: "documents.zip", size: 654321, mimeType: "application/zip")
-    let attachment3 = Attachment(id: "4_doc.pdf", parentMessageId: "4", fileMessageIds: ["44"], filename: "doc.pdf", size: 12345, mimeType: "application/pdf")
-
-    let viewModel = AttachmentsListViewModel(localUserAddress: "pera@toons.com", message: messageStore.stubMessages[0], attachments: [attachment1, attachment2, attachment3])
-    return AttachmentsListView(viewModel: viewModel)
+    let attachment1 = Attachment(id: "1_picture.jpg", parentMessageId: "1", fileMessageIds: ["2"], filename: "picture.jpg", size: 123456, mimeType: "image/jpeg")
+    let attachment2 = Attachment(id: "1_documents.zip.jpg", parentMessageId: "2", fileMessageIds: ["3"], filename: "documents.zip", size: 654321, mimeType: "application/zip")
+    
+    AttachmentsListView([attachment1, attachment2])
+        .frame(width: 800)
         .padding()
+        .background(.themeViewBackground)
 }
 #endif

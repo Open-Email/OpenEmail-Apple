@@ -17,8 +17,12 @@ struct MessagesListView: View {
     }
     
     var body: some View {
-        @Bindable var navigationState = navigationState
-        List(selection: $navigationState.selectedMessageThreads) {
+        List(selection: Binding<Set<MessageThread>> (
+            get: {
+                navigationState.selectedMessageThreads
+            },
+            set: { navigationState.selectedMessageThreads = $0 }
+        )) {
             Color.clear.frame(height: .Spacing.xxxSmall)
             ForEach(viewModel.threads) { messageThread in
                 MessageListItemView(

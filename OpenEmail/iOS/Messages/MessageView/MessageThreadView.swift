@@ -127,7 +127,7 @@ struct MessageThreadView: View {
                         }.buttonStyle(.borderless)
                             .foregroundColor(.accentColor)
                             .disabled(
-                                viewModel.editSubject.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+                                viewModel.editSubject.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
                                 viewModel.editBody.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                             )
                     }.padding(.horizontal, .Spacing.xSmall)
@@ -181,10 +181,17 @@ struct MessageThreadView: View {
                 .padding(.bottom, .Spacing.default)
             }
         }
-        .sheet(isPresented: composeSheetBinding) {
-            if let composeAction {
-                ComposeMessageView(action: composeAction)
+        .sheet(isPresented: Binding<Bool> (
+            get: {
+                composeAction != nil
+            },
+            set: {
+                if $0 == false {
+                    composeAction = nil
+                }
             }
+        )) {
+            ComposeMessageView(action: composeAction!)
         }
         .fileImporter(isPresented: $filePickerOpen, allowedContentTypes: [.data], allowsMultipleSelection: true) {
             do {
@@ -198,17 +205,6 @@ struct MessageThreadView: View {
         
         .navigationTitle(viewModel.messageThread?.topic ?? "")
         .navigationBarTitleDisplayMode(.inline)
-    }
-    
-    private var composeSheetBinding: Binding<Bool> {
-        .init(
-            get: { composeAction != nil
-            },
-            set: {
-                if $0 == false {
-                    composeAction = nil
-                }
-            })
     }
     
     private func openComposingScreenAction() async throws {
@@ -235,7 +231,8 @@ struct MessageThreadView: View {
         
         try await messagesStore.storeMessage(draftMessage)
         
-        composeAction = .editDraft(messageId: draftMessage.id)
+        composeAction =
+            .newMessage(id: UUID(), authorAddress: draftMessage.author)
     }
 }
 

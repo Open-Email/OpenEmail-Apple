@@ -24,7 +24,6 @@ struct ContactsTabView: View {
 }
 
 struct ContactDetails: View {
-    @Environment(NavigationState.self) private var navigationState
     @State private var profile: Profile? = nil
     @State private var loading: Bool = false
     @Injected(\.client) private var client

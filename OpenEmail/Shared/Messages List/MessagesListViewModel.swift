@@ -67,7 +67,6 @@ class MessagesListViewModel {
                         }
                     }
                         //.map(MessageThread.init).sorted(by: { $0.lastMessageDate > $1.lastMessageDate }).forEach(\.id)
-                    print("Threads: \(threads)")
                 } catch {
                     Log.error("Could not get messages from store:", context: error)
                 }
