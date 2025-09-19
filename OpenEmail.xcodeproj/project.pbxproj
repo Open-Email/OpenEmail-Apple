@@ -133,7 +133,6 @@
 		5BB882012D4D22BE003A76F3 /* AttachmentItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB882002D4D22BD003A76F3 /* AttachmentItemView.swift */; };
 		5BB910512CF9E80B00D2D8A5 /* ConditionalModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB910502CF9E80B00D2D8A5 /* ConditionalModifier.swift */; };
 		5BB910522CF9E80B00D2D8A5 /* ConditionalModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB910502CF9E80B00D2D8A5 /* ConditionalModifier.swift */; };
-		5BBE54A22C53D961008F25CC /* LogoutUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BBE54A12C53D961008F25CC /* LogoutUseCase.swift */; };
 		5BC018EB2B19D13F00353A8C /* ContactsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC018EA2B19D13F00353A8C /* ContactsListView.swift */; };
 		5BC018EF2B19FCDE00353A8C /* ContactRequestsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC018EE2B19FCDE00353A8C /* ContactRequestsController.swift */; };
 		5BC018F12B1A3E2500353A8C /* ContactStoreMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC018F02B1A3E2500353A8C /* ContactStoreMock.swift */; };
@@ -168,7 +167,6 @@
 		5BDA2EBE2C5CCD91009FB2BD /* OpenEmailApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDA2EB92C5CCD91009FB2BD /* OpenEmailApp.swift */; };
 		5BDA2EC02C5CCF35009FB2BD /* Dependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC6E0A72C2EE88000C5951C /* Dependencies.swift */; };
 		5BDA2EC32C5CCF35009FB2BD /* AddToContactsUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B3C03572BDBF7F700A8B35B /* AddToContactsUseCase.swift */; };
-		5BDA2EC42C5CCF35009FB2BD /* LogoutUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BBE54A12C53D961008F25CC /* LogoutUseCase.swift */; };
 		5BDA2EC52C5CCF48009FB2BD /* DateFormatter+Shared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F25942AFE959E00226455 /* DateFormatter+Shared.swift */; };
 		5BDA2EC62C5CCF48009FB2BD /* Injection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC6E0A52C2EE84900C5951C /* Injection.swift */; };
 		5BDA2EC72C5CCF48009FB2BD /* LocalUserMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1638BE8D2B22731A0036409E /* LocalUserMock.swift */; };
@@ -363,7 +361,6 @@
 		5BB70A3C2D71EF1E005DDA48 /* ProfileAttributeInfoText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileAttributeInfoText.swift; sourceTree = "<group>"; };
 		5BB882002D4D22BD003A76F3 /* AttachmentItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentItemView.swift; sourceTree = "<group>"; };
 		5BB910502CF9E80B00D2D8A5 /* ConditionalModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConditionalModifier.swift; sourceTree = "<group>"; };
-		5BBE54A12C53D961008F25CC /* LogoutUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogoutUseCase.swift; sourceTree = "<group>"; };
 		5BBE54AC2C5CCD3C008F25CC /* OpenEmail.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpenEmail.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5BC018EA2B19D13F00353A8C /* ContactsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsListView.swift; sourceTree = "<group>"; };
 		5BC018EE2B19FCDE00353A8C /* ContactRequestsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactRequestsController.swift; sourceTree = "<group>"; };
@@ -730,7 +727,6 @@
 				5B4452652CCBB48200A2FE5E /* Theme */,
 				5B3C03572BDBF7F700A8B35B /* AddToContactsUseCase.swift */,
 				5B3046BE2C7882CB00B33157 /* DeleteContactUseCase.swift */,
-				5BBE54A12C53D961008F25CC /* LogoutUseCase.swift */,
 				5BC6E0A72C2EE88000C5951C /* Dependencies.swift */,
 				5B3046782C6F599E00B33157 /* ProfileImageView.swift */,
 				5B8DAF5F2D5F796000229F9E /* Shared Views */,
@@ -1289,7 +1285,6 @@
 				5B141C2E2C134A4B00597F70 /* TimeInterval+Extension.swift in Sources */,
 				5BE2CFA02D4D0E9800E9DB1A /* Modify.swift in Sources */,
 				5BA2D65A2CC26D38004783B7 /* Spacings.swift in Sources */,
-				5BBE54A22C53D961008F25CC /* LogoutUseCase.swift in Sources */,
 				5B34FF282D1579620033F0C1 /* ContactsProfileAttributesEditorView.swift in Sources */,
 				5B34FF242D1574E00033F0C1 /* WorkProfileAttributesEditorView.swift in Sources */,
 				5BC6E0A62C2EE84900C5951C /* Injection.swift in Sources */,
@@ -1429,7 +1424,6 @@
 				5BE491702D565E940036DBBF /* ContactsListViewModel.swift in Sources */,
 				5BE491712D565E940036DBBF /* ContactListItemView.swift in Sources */,
 				5B3046C02C7882CB00B33157 /* DeleteContactUseCase.swift in Sources */,
-				5BDA2EC42C5CCF35009FB2BD /* LogoutUseCase.swift in Sources */,
 				5BDA2EBD2C5CCD91009FB2BD /* ContentView.swift in Sources */,
 				5BF25D302D71E3BD00720F54 /* OpenEmailTextEditor.swift in Sources */,
 				5B5E88642D68C15A009EBE37 /* Bundle+Info.swift in Sources */,

@@ -4,6 +4,8 @@
 //
 //  Created by Antony Akimchenko on 10.04.25.
 //
+import OpenEmailCore
+
 class DeleteAccountUseCase {
     @Injected(\.client) private var client
     

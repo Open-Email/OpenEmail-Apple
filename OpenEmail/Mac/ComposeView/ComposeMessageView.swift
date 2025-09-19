@@ -115,10 +115,7 @@ struct ComposeMessageView: View {
                             Toggle("Broadcast", isOn: $viewModel.isBroadcast)
                                 .toggleStyle(.switch)
                                 .labelsHidden()
-                        }.disabled(!viewModel.canBroadcast).padding(
-                            .horizontal,
-                            .Spacing.default
-                        )
+                        }
                         Button {
                             filePickerOpen = true
                         } label: {
@@ -147,15 +144,7 @@ struct ComposeMessageView: View {
     private var readersRow: some View {
         if !viewModel.isBroadcast {
             HStack {
-                if viewModel.action.isReplyAction {
-                    HStack(spacing: .Spacing.xxxSmall) {
-                        Image(systemName: "arrowshape.turn.up.left")
-                        Text("Reply to:").font(.body)
-                    }
-                    .foregroundStyle(.secondary)
-                } else {
-                    ReadersLabelView()
-                }
+                ReadersLabelView()
                 
                 ReadersView(
                     isEditable: true,

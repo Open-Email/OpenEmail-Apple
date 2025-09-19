@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import Logging
+import OpenEmailCore
 
 struct SettingsView: View {
     @State private var showLogoutConfirmation = false

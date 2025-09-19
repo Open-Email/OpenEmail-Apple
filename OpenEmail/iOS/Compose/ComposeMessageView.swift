@@ -44,14 +44,12 @@ struct ComposeMessageView: View {
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading) {
-                if viewModel.canBroadcast {
-                    Toggle("Broadcast", isOn: $viewModel.isBroadcast)
-                        .font(.subheadline)
-                        .tint(Color.accentColor)
-                        .foregroundStyle(.secondary)
-                        .padding(.vertical, .Spacing.xSmall)
-                    Divider()
-                }
+                Toggle("Broadcast", isOn: $viewModel.isBroadcast)
+                    .font(.subheadline)
+                    .tint(Color.accentColor)
+                    .foregroundStyle(.secondary)
+                    .padding(.vertical, .Spacing.xSmall)
+                Divider()
                 
                 if !viewModel.isBroadcast {
                     ReadersView(isEditable: true, readers: $viewModel.readers, tickedReaders: .constant([]), hasInvalidReader: $hasInvalidReader, pendingText: $pendingEmailAddress)

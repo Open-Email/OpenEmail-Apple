@@ -4,12 +4,6 @@ public extension LocalUser {
     private static var internalCurrentUser: LocalUser?
 
     static var current: LocalUser? {
-        guard UserDefaults.standard.registeredEmailAddress != nil else {
-            // Return nil if there is no user logged in
-            internalCurrentUser = nil
-            return nil
-        }
-
         if let internalCurrentUser {
             // return the cached user
             return internalCurrentUser
@@ -31,6 +25,7 @@ public extension LocalUser {
             let publicEncryptionKeyId = UserDefaults.standard.publicEncryptionKeyId
         else {
             internalCurrentUser = nil
+            LogoutUseCase().logout()
             return
         }
 
