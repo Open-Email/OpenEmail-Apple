@@ -247,6 +247,8 @@
 		9D5B51D32E00319E002E92E1 /* PendingMessageStoreMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D5B51D12E003191002E92E1 /* PendingMessageStoreMock.swift */; };
 		9D8B1C012E7EE82C003B5493 /* QuickResponseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D8B1C002E7EE821003B5493 /* QuickResponseView.swift */; };
 		9D8B1C022E7EE82C003B5493 /* QuickResponseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D8B1C002E7EE821003B5493 /* QuickResponseView.swift */; };
+		9D8B1C072E7EF94E003B5493 /* OpenEmail.icon in Resources */ = {isa = PBXBuildFile; fileRef = 9D8B1C062E7EF94E003B5493 /* OpenEmail.icon */; };
+		9D8B1C082E7EF94E003B5493 /* OpenEmail.icon in Resources */ = {isa = PBXBuildFile; fileRef = 9D8B1C062E7EF94E003B5493 /* OpenEmail.icon */; };
 		9DB5514D2E782E7F00B5DF79 /* MessageViewHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DB5514C2E782E7600B5DF79 /* MessageViewHolder.swift */; };
 		9DB5514E2E782E7F00B5DF79 /* MessageViewHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DB5514C2E782E7600B5DF79 /* MessageViewHolder.swift */; };
 		9DB551502E78328800B5DF79 /* AttachmentItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DB5514F2E78328300B5DF79 /* AttachmentItem.swift */; };
@@ -428,6 +430,7 @@
 		9D31B6F62E4B8043008AEADC /* MultiReadersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiReadersView.swift; sourceTree = "<group>"; };
 		9D5B51D12E003191002E92E1 /* PendingMessageStoreMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingMessageStoreMock.swift; sourceTree = "<group>"; };
 		9D8B1C002E7EE821003B5493 /* QuickResponseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickResponseView.swift; sourceTree = "<group>"; };
+		9D8B1C062E7EF94E003B5493 /* OpenEmail.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = OpenEmail.icon; sourceTree = "<group>"; };
 		9DB5514C2E782E7600B5DF79 /* MessageViewHolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageViewHolder.swift; sourceTree = "<group>"; };
 		9DB5514F2E78328300B5DF79 /* AttachmentItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentItem.swift; sourceTree = "<group>"; };
 		9DDF95782DFC69E90077BCC1 /* OpenEmail iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "OpenEmail iOS.entitlements"; sourceTree = "<group>"; };
@@ -781,6 +784,7 @@
 				162A1DA42B13D2B400BCD8BC /* ContactsView */,
 				5B7C80AA2AEBF5A30088E2EA /* Messages List */,
 				5BA2D6572CC242E3004783B7 /* Images.xcassets */,
+				9D8B1C062E7EF94E003B5493 /* OpenEmail.icon */,
 				5B7C80852AEBF1120088E2EA /* OpenEmail.entitlements */,
 				5B3C037D2BE26C7B00A8B35B /* versions.xcconfig */,
 			);
@@ -1181,6 +1185,7 @@
 			files = (
 				5BA2D6582CC242E3004783B7 /* Images.xcassets in Resources */,
 				5B2C7CC82CCB978C00948B0F /* SharedImages.xcassets in Resources */,
+				9D8B1C082E7EF94E003B5493 /* OpenEmail.icon in Resources */,
 				5B7C80842AEBF1120088E2EA /* Preview Assets.xcassets in Resources */,
 				5B7C80812AEBF1120088E2EA /* Colors.xcassets in Resources */,
 			);
@@ -1192,6 +1197,7 @@
 			files = (
 				5B2C7CC72CCB978C00948B0F /* SharedImages.xcassets in Resources */,
 				5B2C7CCA2CCB9A9600948B0F /* Colors.xcassets in Resources */,
+				9D8B1C072E7EF94E003B5493 /* OpenEmail.icon in Resources */,
 				5BDA2EBC2C5CCD91009FB2BD /* Assets.xcassets in Resources */,
 				5BDA2EBB2C5CCD91009FB2BD /* Preview Assets.xcassets in Resources */,
 			);
@@ -1611,7 +1617,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 5B3C037D2BE26C7B00A8B35B /* versions.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = OpenEmail;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = OpenEmail/Mac/OpenEmail.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
@@ -1644,7 +1650,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 5B3C037D2BE26C7B00A8B35B /* versions.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = OpenEmail;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = OpenEmail/Mac/OpenEmail.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
@@ -1676,7 +1682,7 @@
 		5BBE54B82C5CCD3D008F25CC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = OpenEmail;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColorMobile;
 				CODE_SIGN_ENTITLEMENTS = "OpenEmail iOS.entitlements";
 				CODE_SIGN_STYLE = Automatic;
@@ -1714,7 +1720,7 @@
 		5BBE54B92C5CCD3D008F25CC /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = OpenEmail;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColorMobile;
 				CODE_SIGN_ENTITLEMENTS = "OpenEmail iOS.entitlements";
 				CODE_SIGN_STYLE = Automatic;
