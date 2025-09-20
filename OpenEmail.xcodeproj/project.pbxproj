@@ -245,6 +245,8 @@
 		9D31B6F82E4B8043008AEADC /* MultiReadersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D31B6F62E4B8043008AEADC /* MultiReadersView.swift */; };
 		9D5B51D22E00319E002E92E1 /* PendingMessageStoreMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D5B51D12E003191002E92E1 /* PendingMessageStoreMock.swift */; };
 		9D5B51D32E00319E002E92E1 /* PendingMessageStoreMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D5B51D12E003191002E92E1 /* PendingMessageStoreMock.swift */; };
+		9D8B1C012E7EE82C003B5493 /* QuickResponseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D8B1C002E7EE821003B5493 /* QuickResponseView.swift */; };
+		9D8B1C022E7EE82C003B5493 /* QuickResponseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D8B1C002E7EE821003B5493 /* QuickResponseView.swift */; };
 		9DB5514D2E782E7F00B5DF79 /* MessageViewHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DB5514C2E782E7600B5DF79 /* MessageViewHolder.swift */; };
 		9DB5514E2E782E7F00B5DF79 /* MessageViewHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DB5514C2E782E7600B5DF79 /* MessageViewHolder.swift */; };
 		9DB551502E78328800B5DF79 /* AttachmentItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DB5514F2E78328300B5DF79 /* AttachmentItem.swift */; };
@@ -425,6 +427,7 @@
 		9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountUseCase.swift; sourceTree = "<group>"; };
 		9D31B6F62E4B8043008AEADC /* MultiReadersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiReadersView.swift; sourceTree = "<group>"; };
 		9D5B51D12E003191002E92E1 /* PendingMessageStoreMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingMessageStoreMock.swift; sourceTree = "<group>"; };
+		9D8B1C002E7EE821003B5493 /* QuickResponseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickResponseView.swift; sourceTree = "<group>"; };
 		9DB5514C2E782E7600B5DF79 /* MessageViewHolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageViewHolder.swift; sourceTree = "<group>"; };
 		9DB5514F2E78328300B5DF79 /* AttachmentItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentItem.swift; sourceTree = "<group>"; };
 		9DDF95782DFC69E90077BCC1 /* OpenEmail iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "OpenEmail iOS.entitlements"; sourceTree = "<group>"; };
@@ -903,6 +906,7 @@
 		5BD1FA732C6A3EC300DE4B5D /* MessageView */ = {
 			isa = PBXGroup;
 			children = (
+				9D8B1C002E7EE821003B5493 /* QuickResponseView.swift */,
 				9DB5514F2E78328300B5DF79 /* AttachmentItem.swift */,
 				9DB5514C2E782E7600B5DF79 /* MessageViewHolder.swift */,
 				5B3046752C6F599000B33157 /* MessageThreadViewModel.swift */,
@@ -1265,6 +1269,7 @@
 				5B141C282C1346A500597F70 /* TrashPurgingService.swift in Sources */,
 				162A1DA32B13C35A00BCD8BC /* ContactsAddressInputView.swift in Sources */,
 				5BD1FA382C63A92500DE4B5D /* SidebarScope+Display.swift in Sources */,
+				9D8B1C022E7EE82C003B5493 /* QuickResponseView.swift in Sources */,
 				5B44526B2CCBE50C00A2FE5E /* OpenEmailTextFieldStyle.swift in Sources */,
 				5BB3A3F52B177DE70025E50A /* ContactsListViewModel.swift in Sources */,
 				5B80C8482B35CCDD00F882F8 /* Messages+Filtering.swift in Sources */,
@@ -1355,6 +1360,7 @@
 				5BE491672D562BB70036DBBF /* ProfileActionButton.swift in Sources */,
 				5BDA2ECE2C5CCF48009FB2BD /* TimeInterval+Extension.swift in Sources */,
 				5BDA2ECF2C5CCF48009FB2BD /* SnackBar.swift in Sources */,
+				9D8B1C012E7EE82C003B5493 /* QuickResponseView.swift in Sources */,
 				5BDA2ED02C5CCF48009FB2BD /* SyncServiceMock.swift in Sources */,
 				5B30465A2C6BABC100B33157 /* Message+Display.swift in Sources */,
 				5BD1FA682C664C2A00DE4B5D /* SettingsView.swift in Sources */,
