@@ -106,36 +106,36 @@ struct ComposeMessageView: View {
             }
         }.animation(.default, value: viewModel.isBroadcast)
             .toolbar {
-                ToolbarItem(placement: .primaryAction) {
+                ToolbarItemGroup(placement: .primaryAction) {
                     HStack {
-                        HStack {
-                            Text("Broadcast").font(.subheadline).onTapGesture {
-                                viewModel.isBroadcast.toggle()
-                            }
-                            Toggle("Broadcast", isOn: $viewModel.isBroadcast)
-                                .toggleStyle(.switch)
-                                .labelsHidden()
+                        Text("Broadcast").font(.subheadline).onTapGesture {
+                            viewModel.isBroadcast.toggle()
                         }
-                        Button {
-                            filePickerOpen = true
-                        } label: {
-                            Image( systemName: "paperclip")
-                            
-                        }
-                        .help("Add files to the message")
-                        Divider()
-                        AsyncButton {
-                            await viewModel.send()
-                            Task.detached(priority: .userInitiated) {
-                                await syncService.synchronize()
-                            }
-                            dismiss()
-                        } label: {
-                            Image(systemName: "paperplane")
-                        }
-                        .disabled(hasInvalidReader || !viewModel.isSendButtonEnabled || addingContactProgress)
-                        .help(viewModel.hasAllDataForSending ? "" : "Subject and message fields are required")
+                        Toggle("Broadcast", isOn: $viewModel.isBroadcast)
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                            .controlSize(.small)
+                    }.padding(.horizontal, .Spacing.xSmall)
+                    Button {
+                        filePickerOpen = true
+                    } label: {
+                        Image( systemName: "paperclip")
+                        
                     }
+                    .help("Add files to the message")
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    AsyncButton {
+                        await viewModel.send()
+                        Task.detached(priority: .userInitiated) {
+                            await syncService.synchronize()
+                        }
+                        dismiss()
+                    } label: {
+                        Image(systemName: "paperplane")
+                    }
+                    .disabled(hasInvalidReader || !viewModel.isSendButtonEnabled || addingContactProgress)
+                    .help(viewModel.hasAllDataForSending ? "" : "Subject and message fields are required")
                 }
             }
     }
