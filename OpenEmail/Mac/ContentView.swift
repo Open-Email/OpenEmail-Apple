@@ -29,7 +29,92 @@ struct ContentView: View {
     
     var body: some View {
         NavigationSplitView {
-            MessagesListView(searchText: $searchText)
+            ZStack {
+                VStack(spacing: .zero) {
+                    MessagesListView(searchText: $searchText)
+                    Spacer()
+                }
+                
+                VStack(spacing: .zero) {
+                    Spacer()
+                    Group {
+                        if #available(macOS 26.0, *) {
+                            Button {
+                                openWindow(id: WindowIDs.profileEditor)
+                            } label: {
+                                HStack(spacing: .Spacing.small) {
+                                    ProfileImageView(
+                                        emailAddress: registeredEmailAddress,
+                                        size: .tiny
+                                    )
+                                    if let name = profileName {
+                                        Text(name)
+                                            .lineLimit(1)
+                                            .truncationMode(.tail)
+                                            .font(.caption2)
+                                    }
+                                }
+                            }
+                            .padding(.horizontal, .Spacing.small)
+                            .padding(.vertical, .Spacing.xSmall)
+                            .glassEffect(Glass.regular, in: RoundedRectangle(cornerRadius: .CornerRadii.default))
+                            .buttonStyle(.plain)
+                            .clipShape(
+                                RoundedRectangle(cornerRadius: .CornerRadii.default)
+                            )
+                            .padding(.Spacing.small)
+                        } else {
+                            Button {
+                                openWindow(id: WindowIDs.profileEditor)
+                            } label: {
+                                HStack(spacing: .Spacing.small) {
+                                    ProfileImageView(
+                                        emailAddress: registeredEmailAddress,
+                                        size: .tiny
+                                    )
+                                    if let name = profileName {
+                                        Text(name)
+                                            .lineLimit(1)
+                                            .truncationMode(.tail)
+                                            .font(.caption2)
+                                    }
+                                }
+                            }
+                            .padding(.horizontal, .Spacing.small)
+                            .padding(.vertical, .Spacing.xSmall)
+                            .background {
+                                RoundedRectangle(cornerRadius: .CornerRadii.default)
+                                    .fill(.themeViewBackground)
+                                    .stroke(.actionButtonOutline, lineWidth: 1)
+                                    .shadow(color: .actionButtonOutline, radius: 5)
+                            }
+                            .overlay(
+                                RoundedRectangle(cornerRadius: .CornerRadii.default)
+                                    .stroke(.actionButtonOutline, lineWidth: 1)
+                            )
+                            .buttonStyle(.plain)
+                            .padding(.Spacing.small)
+                            
+                        }
+                    }.frame(maxWidth: .infinity)
+                        .background {
+                            if #available(macOS 26.0, *) {
+                                VStack {
+                                    Spacer()
+                                    LinearGradient(colors: [Color.clear,
+                                                            .themeViewBackground],
+                                                   startPoint: .top,
+                                                   endPoint: .bottom)
+                                }
+                                
+                            } else {
+                                RoundedRectangle(cornerRadius: .CornerRadii.default)
+                                    .fill(.thinMaterial)
+                            }
+                        }
+                }
+            }
+            
         }  detail: {
             VStack {
                 if navigationState.selectedMessageThreads.isEmpty {
@@ -43,57 +128,44 @@ struct ContentView: View {
                 }
             }
             .frame(minWidth: 300, idealWidth: 650)
-        }
-        .toolbar {
-            ToolbarItemGroup {
-                
-                AsyncButton {
-                    await triggerSync()
-                } label: {
-                    SyncProgressView()
+            .toolbar {
+                ToolbarItem(placement: .navigation) {
+                    Button {
+                        guard let registeredEmailAddress else { return }
+                        
+                        openWindow(id: WindowIDs.compose, value: ComposeAction.newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: nil))
+                        
+                    } label: {
+                        Image(systemName: "square.and.pencil")
+                    }
                 }
-                .disabled(syncService.isSyncing)
-                
-                Button {
-                    guard let registeredEmailAddress else { return }
+                ToolbarItemGroup(placement: .automatic) {
                     
-                    openWindow(id: WindowIDs.compose, value: ComposeAction.newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: nil))
+                    AsyncButton {
+                        await triggerSync()
+                    } label: {
+                        SyncProgressView()
+                    }
+                    .disabled(syncService.isSyncing)
                     
-                } label: {
-                    Image(systemName: "square.and.pencil")
-                }
-                
-                Button {
-                    showAddContactView = true
-                } label: {
-                    Image(systemName: "person.badge.plus")
-                }
-                Button {
-                    openWindow(id: WindowIDs.contacts)
-                } label: {
-                    Image(systemName: "person.3")
-                }
-                Spacer()
-                Button {
-                    openWindow(id: WindowIDs.profileEditor)
-                } label: {
-                    HStack(spacing: .Spacing.small) {
-                        ProfileImageView(
-                            emailAddress: registeredEmailAddress,
-                            size: .tiny
-                        )
-                        if let name = profileName {
-                            Text(name)
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                                .font(.caption2)
-                        }
+                    Button {
+                        showAddContactView = true
+                    } label: {
+                        Image(systemName: "person.badge.plus")
+                    }
+                    Button {
+                        openWindow(id: WindowIDs.contacts)
+                    } label: {
+                        Image(systemName: "person.3")
                     }
                 }
             }
-            
-            
         }
+        
+        .searchable(
+            text: $searchText,
+            placement: SearchFieldPlacement.sidebar
+        )
         .sheet(isPresented: $showAddContactView) {
             ContactsAddressInputView { address in
                 contactsListViewModel.onAddressSearch(address: address)
@@ -136,10 +208,6 @@ struct ContentView: View {
                 }
             )
         }
-        .searchable(
-            text: $searchText,
-            placement: SearchFieldPlacement.sidebar
-        )
         .onChange(of: navigationState.selectedMessageThreads) {
             if navigationState.selectedMessageThreads.count == 1 {
                 messageThreadViewModel.messageThread = navigationState.selectedMessageThreads.first

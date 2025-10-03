@@ -48,6 +48,8 @@ struct MessagesListView: View {
                     .tint(.accentColor)
                 }
             }
+            
+            Color.clear.frame(height: 100)
            
         }
         .frame(idealWidth: 200)
@@ -60,22 +62,6 @@ struct MessagesListView: View {
         .contextMenu(
             forSelectionType: MessageThread.self,
             menu: { threads in
-//                if (navigationState.selectedScope == .trash) {
-//                    AsyncButton("Restore") {
-//                        await viewModel.markAsDeleted(threads: threads, isDeleted: false)
-//                        navigationState.clearSelection()
-//                    }
-//                    AsyncButton("Delete permanently") {
-//                        await viewModel
-//                            .deletePermanently(threads: threads)
-//                        navigationState.clearSelection()
-//                    }
-//                } else {
-//                    AsyncButton("Delete") {
-//                        await viewModel.markAsDeleted(threads: threads, isDeleted: true)
-//                        navigationState.clearSelection()
-//                    }
-//                }
                 AsyncButton("Delete") {
                     await viewModel.markAsDeleted(threads: threads, isDeleted: true)
                     navigationState.clearSelection()
