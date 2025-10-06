@@ -18,17 +18,7 @@ enum ComposeAction: Codable, Equatable, Hashable {
     // `id` is a temporary ID to make the instance of `ComposeAction` unique.
     // This allows multiple compose windows at the same time.
     case newMessage(id: UUID, authorAddress: String, readerAddress: String? = nil)
-    case forward(id: UUID,  authorAddress: String, messageId: String)
-    case reply(id: UUID,  authorAddress: String, messageId: String, quotedText: String?)
-    case replyAll(id: UUID,  authorAddress: String, messageId: String, quotedText: String?)
     case editDraft(messageId: String)
-
-    var isReplyAction: Bool {
-        switch self {
-        case .reply, .replyAll: return true
-        default: return false
-        }
-    }
 }
 
 enum AttachmentsError: Error {
@@ -131,7 +121,7 @@ class ComposeMessageViewModel {
 
     var attachedFileItems: [AttachedFileItem] = []
     var attachmentLoading: Bool = false
-    var action: ComposeAction
+    let action: ComposeAction
 
     var draftMessage: Message?
 
@@ -142,15 +132,6 @@ class ComposeMessageViewModel {
     var hasAllDataForSending: Bool {
         !subject.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty // non-empty subject
         && !fullText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty // non-empty body
-    }
-
-    var canBroadcast: Bool {
-        switch action {
-        case .reply, .replyAll, .forward:
-            false
-        default:
-            true
-        }
     }
 
     var isSending: Bool = false
@@ -169,22 +150,6 @@ class ComposeMessageViewModel {
         case .newMessage(_, _, let readerAddress):
             if let email = EmailAddress(readerAddress) {
                 addReader(email)
-            }
-
-        case .forward(_, let localUserAddress, let messageId):
-            Task {
-                // TODO: error handling?
-                try await setupForward(localUserAddress: localUserAddress, messageId: messageId)
-            }
-
-        case .reply(_, let authorAddress, let messageId, let quotedText):
-            Task {
-                await setupReply(authorAddress: authorAddress, messageId: messageId, quotedText: quotedText)
-            }
-
-        case .replyAll(_, let authorAddress, let messageId, let quotedText):
-            Task {
-                await setupReplyAll(authorAddress: authorAddress, messageId: messageId, quotedText: quotedText)
             }
 
         case .editDraft(let messageId):

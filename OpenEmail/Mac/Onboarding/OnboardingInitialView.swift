@@ -6,7 +6,6 @@ struct OnboardingInitialView: View {
     @Binding var onboardingPage: OnboardingPage
 
     @State private var viewModel = OnboardingInitialViewModel()
-    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         VStack(alignment: .leading, spacing: .Spacing.large) {
@@ -56,13 +55,6 @@ struct OnboardingInitialView: View {
         .frame(maxHeight: .infinity)
         .padding(.Spacing.default)
         .padding(.bottom, .Spacing.xSmall)
-        .background {
-            if colorScheme == .light {
-                Color.white
-            } else {
-                Color.clear
-            }
-        }
         .blur(radius: viewModel.isCheckingEmailAddress ? 3 : 0)
         .overlay {
             if viewModel.isCheckingEmailAddress {

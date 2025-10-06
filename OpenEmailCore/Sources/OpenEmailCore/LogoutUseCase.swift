@@ -1,17 +1,16 @@
 import Foundation
 import Logging
 import OpenEmailPersistence
-import OpenEmailCore
 import Utils
 
-class LogoutUseCase {
+public class LogoutUseCase {
     private let keysStore: KeysStoring
 
-    init(keyStore: KeysStoring = standardKeyStore()) {
+    public init(keyStore: KeysStoring = standardKeyStore()) {
         self.keysStore = keyStore
     }
 
-    func logout() {
+    public func logout() {
         let defaults = UserDefaults.standard
         guard let registeredEmailAddress = defaults.registeredEmailAddress else { return }
 

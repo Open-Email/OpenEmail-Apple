@@ -41,6 +41,8 @@ public struct MessageThread: Identifiable, Equatable, Hashable {
     public var readers: [String] {
         return messages.reduce(into: Set<String>()) { readers, message in
             message.readers.forEach { readers.insert($0) }
+            readers.insert(message.author)
         }.sorted()
     }
+    
 }

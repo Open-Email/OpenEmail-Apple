@@ -34,7 +34,9 @@ class ProfileEditorViewModel {
     }
 
     func loadProfile() async throws {
-        guard let localUser = LocalUser.current else { return }
+        guard let localUser = LocalUser.current else {
+            return
+        }
         isLoadingProfile = true
         profile = try await client.fetchProfile(address: localUser.address, force: true)
         isLoadingProfile = false

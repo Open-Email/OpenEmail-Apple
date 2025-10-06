@@ -4,7 +4,6 @@ import OpenEmailModel
 struct AttachmentItemView: View {
     let item: AttachmentItem
     let isDraft: Bool
-    let isMessageDeleted: Bool
 
     let onDownload: (Attachment) -> Void
 
@@ -40,7 +39,7 @@ struct AttachmentItemView: View {
 
             Spacer()
             if attachmentNotDownloaded, let attachment = item.attachment {
-                if let downloadInfo = attachmentsManager.downloadInfos[attachment.id], !isMessageDeleted {
+                if let downloadInfo = attachmentsManager.downloadInfos[attachment.id] {
                     if let error = downloadInfo.progress.error {
                         HStack {
                             ErrorIcon().help(error.localizedDescription)
@@ -90,14 +89,15 @@ struct AttachmentItemView: View {
         localUserAddress: "mickey@mouse.com",
         attachment: .init(id: "123", parentMessageId: "1", fileMessageIds: ["2"], filename: "hello.jpg", size: 123, mimeType: ""),
         isAvailable: false,
+        isDraft: false,
         formattedFileSize: "123 kB",
         icon: .defaultFileIcon,
         draftFileUrl: nil
     )
 
     VStack(spacing: 8) {
-        AttachmentItemView(item: item, isDraft: false, isMessageDeleted: false, onDownload: { _ in })
-        AttachmentItemView(item: item, isDraft: false, isMessageDeleted: false, onDownload: { _ in })
+        AttachmentItemView(item: item, isDraft: false, onDownload: { _ in })
+        AttachmentItemView(item: item, isDraft: false, onDownload: { _ in })
     }
     .padding()
 }
@@ -107,11 +107,12 @@ struct AttachmentItemView: View {
         localUserAddress: "mickey@mouse.com",
         attachment: .init(id: "123", parentMessageId: "1", fileMessageIds: ["2"], filename: "hello.jpg", size: 123, mimeType: ""),
         isAvailable: true,
+        isDraft: false,
         formattedFileSize: "123 kB",
         icon: .defaultFileIcon,
         draftFileUrl: nil
     )
 
-    AttachmentItemView(item: item, isDraft: false, isMessageDeleted: false, onDownload: { _ in })
+    AttachmentItemView(item: item, isDraft: false, onDownload: { _ in })
         .padding()
 }

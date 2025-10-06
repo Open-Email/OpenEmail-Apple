@@ -91,7 +91,7 @@ struct OpenEmailButtonStyle: ButtonStyle {
                     .fontWeight(.medium)
                     .foregroundColor(foregroundColor)
                     .background(backgroundColor)
-                    .cornerRadius(10)
+                    .cornerRadius(.CornerRadii.default)
                     .overlay(
                         RoundedRectangle(cornerRadius: .CornerRadii.default)
                             .stroke(strokeColor, lineWidth: strokeWidth)

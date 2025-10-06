@@ -42,7 +42,11 @@ extension CGFloat {
 
     enum CornerRadii {
         /// 10px
-        static let `default`: CGFloat = 10
+        static let `default`: CGFloat =  if #available(macOS 26.0, *) {
+            20
+        } else {
+            10
+        }
 
         /// 5px
         static let small: CGFloat = 5

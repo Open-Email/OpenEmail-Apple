@@ -17,8 +17,12 @@ struct MessagesListView: View {
     }
     
     var body: some View {
-        @Bindable var navigationState = navigationState
-        List(selection: $navigationState.selectedMessageThreads) {
+        List(selection: Binding<Set<MessageThread>> (
+            get: {
+                navigationState.selectedMessageThreads
+            },
+            set: { navigationState.selectedMessageThreads = $0 }
+        )) {
             Color.clear.frame(height: .Spacing.xxxSmall)
             ForEach(viewModel.threads) { messageThread in
                 MessageListItemView(
@@ -44,6 +48,8 @@ struct MessagesListView: View {
                     .tint(.accentColor)
                 }
             }
+            
+            Color.clear.frame(height: 100)
            
         }
         .frame(idealWidth: 200)
@@ -56,22 +62,6 @@ struct MessagesListView: View {
         .contextMenu(
             forSelectionType: MessageThread.self,
             menu: { threads in
-//                if (navigationState.selectedScope == .trash) {
-//                    AsyncButton("Restore") {
-//                        await viewModel.markAsDeleted(threads: threads, isDeleted: false)
-//                        navigationState.clearSelection()
-//                    }
-//                    AsyncButton("Delete permanently") {
-//                        await viewModel
-//                            .deletePermanently(threads: threads)
-//                        navigationState.clearSelection()
-//                    }
-//                } else {
-//                    AsyncButton("Delete") {
-//                        await viewModel.markAsDeleted(threads: threads, isDeleted: true)
-//                        navigationState.clearSelection()
-//                    }
-//                }
                 AsyncButton("Delete") {
                     await viewModel.markAsDeleted(threads: threads, isDeleted: true)
                     navigationState.clearSelection()

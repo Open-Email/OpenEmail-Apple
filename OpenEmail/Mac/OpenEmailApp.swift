@@ -19,27 +19,27 @@ struct OpenEmailApp: App {
         SyncService.shared.setupPublishers()
     }
 
-    private var hasCompletedOnboarding: Bool {
-        registeredEmailAddress != nil
-    }
-
     var body: some Scene {
         Window("Message Viewer", id: WindowIDs.main) {
-            if hasCompletedOnboarding {
-                ContentView()
-                    .frame( maxWidth: .infinity, maxHeight: .infinity)
-                    .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
-                        closeAllWindowOnTerminate()
-                    }
-            } else {
-                OnboardingView()
-            }
+            ContentView()
+                .frame( maxWidth: .infinity, maxHeight: .infinity)
+                .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
+                    closeAllWindowOnTerminate()
+                }
         }
         .defaultSize(width: 1000, height: 800)
         .environment(navigationState)
         .windowToolbarStyle(.unified(showsTitle: false))
         .windowResizability(.automatic)
         .commands {
+            
+            CommandGroup(replacing: .newItem) {
+                Button("New Message") {
+                    openWindow(id: WindowIDs.compose, value: ComposeAction.newMessage(id: UUID(), authorAddress: registeredEmailAddress!, readerAddress: nil))
+                }.keyboardShortcut(.init("N", modifiers: .command))
+                    .disabled(registeredEmailAddress == nil)
+            }
+            
             CommandGroup(replacing: .singleWindowList) {
                 Button("Message Viewer") {
                     openWindow(id: WindowIDs.main)

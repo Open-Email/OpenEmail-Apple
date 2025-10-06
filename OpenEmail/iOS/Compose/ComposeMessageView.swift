@@ -37,24 +37,19 @@ struct ComposeMessageView: View {
     @State private var videoPickerItems: [PhotosPickerItem] = []
     @State private var bodyText: String = ""
 
-    private var onClose: ((ComposeResult) -> Void)?
-
-    init(action: ComposeAction, onClose: ((ComposeResult) -> Void)? = nil) {
+    init(action: ComposeAction) {
         viewModel = ComposeMessageViewModel(action: action)
-        self.onClose = onClose
     }
 
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading) {
-                if viewModel.canBroadcast {
-                    Toggle("Broadcast", isOn: $viewModel.isBroadcast)
-                        .font(.subheadline)
-                        .tint(Color.accentColor)
-                        .foregroundStyle(.secondary)
-                        .padding(.vertical, .Spacing.xSmall)
-                    Divider()
-                }
+                Toggle("Broadcast", isOn: $viewModel.isBroadcast)
+                    .font(.subheadline)
+                    .tint(Color.accentColor)
+                    .foregroundStyle(.secondary)
+                    .padding(.vertical, .Spacing.xSmall)
+                Divider()
                 
                 if !viewModel.isBroadcast {
                     ReadersView(isEditable: true, readers: $viewModel.readers, tickedReaders: .constant([]), hasInvalidReader: $hasInvalidReader, pendingText: $pendingEmailAddress)
@@ -103,7 +98,6 @@ struct ComposeMessageView: View {
                     Button("Cancel") {
                         viewModel.updateDraft()
                         dismiss()
-                        onClose?(.cancel)
                     }
                     .disabled(viewModel.isSending)
                 }
@@ -211,7 +205,6 @@ struct ComposeMessageView: View {
             await syncService.synchronize()
         }
         dismiss()
-        onClose?(.sent)
     }
 }
 
