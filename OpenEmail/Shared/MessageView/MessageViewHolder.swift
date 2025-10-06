@@ -125,15 +125,13 @@ struct MessageHeader: View {
                 
                 VStack(alignment: .leading, spacing: .Spacing.xxSmall) {
                     if let author = author {
-                        HStack {
-                            ProfileTagView(
-                                profile: author,
-                                isSelected: false,
-                                automaticallyShowProfileIfNotInContacts: false,
-                                canRemoveReader: false,
-                                showsActionButtons: true,
-                            ).id(author.address)
-                        }
+                        ProfileTagView(
+                            profile: author,
+                            isSelected: false,
+                            automaticallyShowProfileIfNotInContacts: false,
+                            canRemoveReader: false,
+                            showsActionButtons: true,
+                        ).id(author.address)
                     }
                 }
             }

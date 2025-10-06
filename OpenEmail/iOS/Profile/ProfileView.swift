@@ -34,6 +34,7 @@ struct ProfileView: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: 400)
                 
+                Spacer().frame(height: .Spacing.default)
                 ProfileAttributesView(
                     profile: Binding<Profile>(
                         get: { viewModel.profile },
