@@ -27,145 +27,160 @@ struct ContentView: View {
         NotificationCenter.default.publisher(for: .didUpdateNotifications)
     ).eraseToAnyPublisher()
     
+    private var hasCompletedOnboarding: Bool {
+        registeredEmailAddress != nil
+    }
+    
     var body: some View {
-        NavigationSplitView {
-            ZStack {
-                VStack(spacing: .zero) {
-                    MessagesListView(searchText: $searchText)
-                    Spacer()
-                }
-                
-                VStack(spacing: .zero) {
-                    Spacer()
-                    Group {
-                        if #available(macOS 26.0, *) {
-                            Button {
-                                openWindow(id: WindowIDs.profileEditor)
-                            } label: {
-                                HStack(spacing: .Spacing.small) {
-                                    ProfileImageView(
-                                        emailAddress: registeredEmailAddress,
-                                        size: .tiny
+        Group {
+            if hasCompletedOnboarding {
+                NavigationSplitView {
+                    ZStack {
+                        VStack(spacing: .zero) {
+                            MessagesListView(searchText: $searchText)
+                                .searchable(
+                                text: $searchText,
+                                placement: SearchFieldPlacement.sidebar
+                            )
+                            Spacer()
+                        }
+                        
+                        VStack(spacing: .zero) {
+                            Spacer()
+                            Group {
+                                if #available(macOS 26.0, *) {
+                                    Button {
+                                        openWindow(id: WindowIDs.profileEditor)
+                                    } label: {
+                                        HStack(spacing: .Spacing.small) {
+                                            ProfileImageView(
+                                                emailAddress: registeredEmailAddress,
+                                                size: .tiny
+                                            )
+                                            if let name = profileName {
+                                                Text(name)
+                                                    .lineLimit(1)
+                                                    .truncationMode(.tail)
+                                                    .font(.caption2)
+                                            }
+                                        }
+                                    }
+                                    .padding(.horizontal, .Spacing.small)
+                                    .padding(.vertical, .Spacing.xSmall)
+                                    .glassEffect(Glass.regular, in: RoundedRectangle(cornerRadius: .CornerRadii.default))
+                                    .buttonStyle(.plain)
+                                    .clipShape(
+                                        RoundedRectangle(cornerRadius: .CornerRadii.default)
                                     )
-                                    if let name = profileName {
-                                        Text(name)
-                                            .lineLimit(1)
-                                            .truncationMode(.tail)
-                                            .font(.caption2)
+                                    .padding(.Spacing.small)
+                                } else {
+                                    Button {
+                                        openWindow(id: WindowIDs.profileEditor)
+                                    } label: {
+                                        HStack(spacing: .Spacing.small) {
+                                            ProfileImageView(
+                                                emailAddress: registeredEmailAddress,
+                                                size: .tiny
+                                            )
+                                            if let name = profileName {
+                                                Text(name)
+                                                    .lineLimit(1)
+                                                    .truncationMode(.tail)
+                                                    .font(.caption2)
+                                            }
+                                        }
+                                    }
+                                    .padding(.horizontal, .Spacing.small)
+                                    .padding(.vertical, .Spacing.xSmall)
+                                    .background {
+                                        RoundedRectangle(cornerRadius: .CornerRadii.default)
+                                            .fill(.themeViewBackground)
+                                            .stroke(.actionButtonOutline, lineWidth: 1)
+                                            .shadow(color: .actionButtonOutline, radius: 5)
+                                    }
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: .CornerRadii.default)
+                                            .stroke(.actionButtonOutline, lineWidth: 1)
+                                    )
+                                    .buttonStyle(.plain)
+                                    .padding(.Spacing.small)
+                                    
+                                }
+                            }.frame(maxWidth: .infinity)
+                                .background {
+                                    if #available(macOS 26.0, *) {
+                                        VStack {
+                                            Spacer()
+                                            LinearGradient(colors: [Color.clear,
+                                                                    .themeViewBackground],
+                                                           startPoint: .top,
+                                                           endPoint: .bottom)
+                                        }
+                                        
+                                    } else {
+                                        RoundedRectangle(cornerRadius: .CornerRadii.default)
+                                            .fill(.thinMaterial)
                                     }
                                 }
-                            }
-                            .padding(.horizontal, .Spacing.small)
-                            .padding(.vertical, .Spacing.xSmall)
-                            .glassEffect(Glass.regular, in: RoundedRectangle(cornerRadius: .CornerRadii.default))
-                            .buttonStyle(.plain)
-                            .clipShape(
-                                RoundedRectangle(cornerRadius: .CornerRadii.default)
-                            )
-                            .padding(.Spacing.small)
-                        } else {
-                            Button {
-                                openWindow(id: WindowIDs.profileEditor)
-                            } label: {
-                                HStack(spacing: .Spacing.small) {
-                                    ProfileImageView(
-                                        emailAddress: registeredEmailAddress,
-                                        size: .tiny
-                                    )
-                                    if let name = profileName {
-                                        Text(name)
-                                            .lineLimit(1)
-                                            .truncationMode(.tail)
-                                            .font(.caption2)
-                                    }
-                                }
-                            }
-                            .padding(.horizontal, .Spacing.small)
-                            .padding(.vertical, .Spacing.xSmall)
-                            .background {
-                                RoundedRectangle(cornerRadius: .CornerRadii.default)
-                                    .fill(.themeViewBackground)
-                                    .stroke(.actionButtonOutline, lineWidth: 1)
-                                    .shadow(color: .actionButtonOutline, radius: 5)
-                            }
-                            .overlay(
-                                RoundedRectangle(cornerRadius: .CornerRadii.default)
-                                    .stroke(.actionButtonOutline, lineWidth: 1)
-                            )
-                            .buttonStyle(.plain)
-                            .padding(.Spacing.small)
+                        }
+                    }
+                } detail: {
+                    VStack {
+                        if navigationState.selectedMessageThreads.isEmpty {
+                            Image(.logo)
+                                .saturation(0.0)
+                                .opacity(0.25)
+                                .frame(height: 32, alignment: .leading)
                             
+                        } else {
+                            messagesDetailView
                         }
-                    }.frame(maxWidth: .infinity)
-                        .background {
-                            if #available(macOS 26.0, *) {
-                                VStack {
-                                    Spacer()
-                                    LinearGradient(colors: [Color.clear,
-                                                            .themeViewBackground],
-                                                   startPoint: .top,
-                                                   endPoint: .bottom)
-                                }
+                    }
+                    .frame(minWidth: 300, idealWidth: 650)
+                    .toolbar {
+                        ToolbarItem(placement: .navigation) {
+                            Button {
+                                guard let registeredEmailAddress else { return }
                                 
-                            } else {
-                                RoundedRectangle(cornerRadius: .CornerRadii.default)
-                                    .fill(.thinMaterial)
+                                openWindow(id: WindowIDs.compose, value: ComposeAction.newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: nil))
+                                
+                            } label: {
+                                Image(systemName: "square.and.pencil")
                             }
                         }
+                        ToolbarItemGroup(placement: .automatic) {
+                            
+                            AsyncButton {
+                                await triggerSync()
+                            } label: {
+                                SyncProgressView()
+                            }
+                            .disabled(syncService.isSyncing)
+                            
+                            Button {
+                                showAddContactView = true
+                            } label: {
+                                Image(systemName: "person.badge.plus")
+                            }
+                            Button {
+                                openWindow(id: WindowIDs.contacts)
+                            } label: {
+                                Image(systemName: "person.3")
+                            }
+                        }
+                    }
                 }
+            } else {
+                OnboardingView()
+                    .frame(maxWidth: 400).background {
+                        RoundedRectangle(cornerRadius: .CornerRadii.default)
+                            .fill(.themeViewBackground)
+                            .stroke(.actionButtonOutline, lineWidth: 1)
+                            .shadow(color: .actionButtonOutline, radius: 5)
+                    }.padding(.vertical, .Spacing.xSmall)
             }
-            
-        }  detail: {
-            VStack {
-                if navigationState.selectedMessageThreads.isEmpty {
-                    Image(.logo)
-                        .saturation(0.0)
-                        .opacity(0.25)
-                        .frame(height: 32, alignment: .leading)
-                    
-                } else {
-                    messagesDetailView
-                }
-            }
-            .frame(minWidth: 300, idealWidth: 650)
-            .toolbar {
-                ToolbarItem(placement: .navigation) {
-                    Button {
-                        guard let registeredEmailAddress else { return }
-                        
-                        openWindow(id: WindowIDs.compose, value: ComposeAction.newMessage(id: UUID(), authorAddress: registeredEmailAddress, readerAddress: nil))
-                        
-                    } label: {
-                        Image(systemName: "square.and.pencil")
-                    }
-                }
-                ToolbarItemGroup(placement: .automatic) {
-                    
-                    AsyncButton {
-                        await triggerSync()
-                    } label: {
-                        SyncProgressView()
-                    }
-                    .disabled(syncService.isSyncing)
-                    
-                    Button {
-                        showAddContactView = true
-                    } label: {
-                        Image(systemName: "person.badge.plus")
-                    }
-                    Button {
-                        openWindow(id: WindowIDs.contacts)
-                    } label: {
-                        Image(systemName: "person.3")
-                    }
-                }
-            }
+           
         }
-        
-        .searchable(
-            text: $searchText,
-            placement: SearchFieldPlacement.sidebar
-        )
         .sheet(isPresented: $showAddContactView) {
             ContactsAddressInputView { address in
                 contactsListViewModel.onAddressSearch(address: address)

@@ -94,7 +94,9 @@ struct MessageThreadView: View {
                         }
                         .overlay(
                             RoundedRectangle(cornerRadius: .CornerRadii.default)
+                                .fill(.themeViewBackground)
                                 .stroke(.actionButtonOutline, lineWidth: 1)
+                                .shadow(color: .actionButtonOutline, radius: 5)
                         )
                         .padding(.horizontal, .Spacing.default)
                         .padding(.bottom, .Spacing.default)
