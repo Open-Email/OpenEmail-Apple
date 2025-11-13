@@ -14,6 +14,10 @@ public struct MessageThread: Identifiable, Equatable, Hashable {
         self.messages = messages
     }
     
+    public var subject: String? {
+        return messages.first?.subject
+    }
+    
     public var id: String {
         return subjectId
     }

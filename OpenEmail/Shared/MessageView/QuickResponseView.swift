@@ -60,55 +60,7 @@ struct QuickResponseView: View {
             }
             
             HStack {
-                TextField("Subject:", text: $viewModel.editSubject)
-                    .font(.title3)
-                    .textFieldStyle(.plain)
-                
-                AsyncButton {
-                    do {
-                        try await pendingMessageStore
-                            .storePendingMessage(
-                                PendingMessage(
-                                    id: UUID().uuidString,
-                                    authoredOn: Date(),
-                                    readers: viewModel.messageThread?.readers
-                                        .filter { $0 != registeredEmailAddress } ?? [],
-                                    draftAttachmentUrls: viewModel.attachedFileItems.map { $0.url },
-                                    subject: viewModel.editSubject.trimmingCharacters(in: .whitespacesAndNewlines),
-                                    subjectId: viewModel.messageThread?.subjectId ?? "",
-                                    body: viewModel.editBody.trimmingCharacters(in: .whitespacesAndNewlines),
-                                    isBroadcast: false
-                                )
-                            )
-                    } catch {
-                        Log.error("Could not save pending message")
-                    }
-                    
-                    viewModel.clear()
-                    
-                    Task.detached(priority: .userInitiated) {
-                        await syncService.synchronize()
-                    }
-                } label: {
-                    Image(systemName: "paperplane.fill")
-                }.buttonStyle(.borderless)
-                    .foregroundColor(.accentColor)
-                    .disabled(
-                        viewModel.editSubject.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
-                        viewModel.editBody.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                    )
-            }.padding(.horizontal, .Spacing.xSmall)
-                .padding(.vertical, .Spacing.xxSmall)
-            
-            RoundedRectangle(cornerRadius: .CornerRadii.default)
-                .frame(height: 1)
-            
-                .foregroundColor(.actionButtonOutline)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, .Spacing.xSmall)
-            
-            HStack {
-                TextField("Body:", text: $viewModel.editBody, axis: .vertical)
+                TextField("Reply:", text: $viewModel.editBody, axis: .vertical)
                     .font(.body)
                     .lineLimit(nil)
                     .textFieldStyle(.plain)
@@ -130,6 +82,39 @@ struct QuickResponseView: View {
                     Image(systemName: "paperclip")
                     
                 }.buttonStyle(.borderless)
+                
+                AsyncButton {
+                    do {
+                        try await pendingMessageStore
+                            .storePendingMessage(
+                                PendingMessage(
+                                    id: UUID().uuidString,
+                                    authoredOn: Date(),
+                                    readers: viewModel.messageThread?.readers
+                                        .filter { $0 != registeredEmailAddress } ?? [],
+                                    draftAttachmentUrls: viewModel.attachedFileItems.map { $0.url },
+                                    subject: viewModel.messageThread?.subject ?? "",
+                                    subjectId: viewModel.messageThread?.subjectId ?? "",
+                                    body: viewModel.editBody.trimmingCharacters(in: .whitespacesAndNewlines),
+                                    isBroadcast: false
+                                )
+                            )
+                    } catch {
+                        Log.error("Could not save pending message")
+                    }
+                    
+                    viewModel.clear()
+                    
+                    Task.detached(priority: .userInitiated) {
+                        await syncService.synchronize()
+                    }
+                } label: {
+                    Image(systemName: "paperplane.fill")
+                }.buttonStyle(.borderless)
+                    .foregroundColor(.accentColor)
+                    .disabled(
+                        viewModel.editBody.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    )
             }.padding(.horizontal, .Spacing.xSmall)
                 .padding(.vertical, .Spacing.xxSmall)
         }

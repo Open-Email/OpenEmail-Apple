@@ -39,7 +39,6 @@ struct MessageThreadView: View {
                                 if let pending = message as? PendingMessage {
                                     MessageViewHolder(
                                         viewModel: viewModel,
-                                        subject: pending.displayedSubject,
                                         authoredOn: pending.formattedAuthoredOnDate,
                                         authorAddress: registeredEmailAddress ?? "",
                                         messageBody: pending.body ?? "",
@@ -50,7 +49,6 @@ struct MessageThreadView: View {
                                 else if let message = message as? Message {
                                     MessageViewHolder(
                                         viewModel: viewModel,
-                                        subject: message.displayedSubject,
                                         authoredOn: message.formattedAuthoredOnDate,
                                         authorAddress: message.author,
                                         messageBody: message.body ?? "",
@@ -77,7 +75,7 @@ struct MessageThreadView: View {
                         )
                         
                         .padding(.Spacing.small)
-                        .glassEffect(Glass.regular, in: RoundedRectangle(cornerRadius: .CornerRadii.default))
+                        .glassEffect(in: .rect(cornerRadius: .CornerRadii.default))
                         .padding(.horizontal, 10)
                         .padding(.vertical, 8)
                     } else {

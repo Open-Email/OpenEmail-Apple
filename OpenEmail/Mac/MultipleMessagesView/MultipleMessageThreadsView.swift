@@ -4,7 +4,7 @@ import OpenEmailModel
 import Logging
 import OpenEmailCore
 
-struct MultipleMessagesView: View {
+struct MultipleMessageThreadsView: View {
     @Environment(NavigationState.self) private var navigationState
 
     @Injected(\.messagesStore) private var messagesStore
@@ -23,7 +23,7 @@ struct MultipleMessagesView: View {
 }
 
 #Preview {
-    MultipleMessagesView()
+    MultipleMessageThreadsView()
         .frame(width: 500, height: 600)
         .environment(NavigationState())
 }

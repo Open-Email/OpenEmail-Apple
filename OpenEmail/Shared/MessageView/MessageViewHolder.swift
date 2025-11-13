@@ -12,7 +12,6 @@ import MarkdownUI
 struct MessageViewHolder: View {
     let viewModel: MessageThreadViewModel
     
-    let subject: String
     let authoredOn: String
     let authorAddress: String
     let messageBody: String
@@ -21,7 +20,6 @@ struct MessageViewHolder: View {
     var body: some View {
         VStack(alignment: .leading, spacing: .Spacing.large) {
             MessageHeader(
-                subject: subject,
                 authoredOn: authoredOn,
                 authorAddress: authorAddress
             )
@@ -101,40 +99,30 @@ struct MessageHeader: View {
     @State var author: Profile?
     @State var readers: [Profile] = []
     
-    let subject: String
     let authoredOn: String
     let authorAddress: String
     
     var body: some View {
-        VStack(alignment: .leading) {
-            HStack(spacing: .Spacing.xSmall) {
-                Text(subject)
-                    .font(.title3)
-                    .textSelection(.enabled)
-                    .bold()
-                
-                Spacer()
-                
-                Text(authoredOn)
-                    .foregroundStyle(.secondary)
-                    .font(.subheadline)
-            }
+        HStack(spacing: .Spacing.xxSmall) {
+            ProfileImageView(emailAddress: authorAddress, size: .medium)
             
-            HStack(spacing: .Spacing.xxSmall) {
-                ProfileImageView(emailAddress: authorAddress, size: .medium)
-                
-                VStack(alignment: .leading, spacing: .Spacing.xxSmall) {
-                    if let author = author {
-                        ProfileTagView(
-                            profile: author,
-                            isSelected: false,
-                            automaticallyShowProfileIfNotInContacts: false,
-                            canRemoveReader: false,
-                            showsActionButtons: true,
-                        ).id(author.address)
-                    }
+            VStack(alignment: .leading, spacing: .Spacing.xxSmall) {
+                if let author = author {
+                    ProfileTagView(
+                        profile: author,
+                        isSelected: false,
+                        automaticallyShowProfileIfNotInContacts: false,
+                        canRemoveReader: false,
+                        showsActionButtons: true,
+                    ).id(author.address)
                 }
             }
+            
+            Spacer()
+            
+            Text(authoredOn)
+                .foregroundStyle(.secondary)
+                .font(.subheadline)
         }
         .task {
             if let address = EmailAddress(authorAddress) {

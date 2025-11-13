@@ -61,18 +61,17 @@ struct ContentView: View {
                                                 Text(name)
                                                     .lineLimit(1)
                                                     .truncationMode(.tail)
-                                                    .font(.caption2)
+                                                    .font(.body)
                                             }
                                         }
                                     }
+                                    
+                                    .buttonStyle(.glass)
+                                    .clipShape(RoundedRectangle(cornerRadius: .CornerRadii.default))
                                     .padding(.horizontal, .Spacing.small)
                                     .padding(.vertical, .Spacing.xSmall)
-                                    .glassEffect(Glass.regular, in: RoundedRectangle(cornerRadius: .CornerRadii.default))
-                                    .buttonStyle(.plain)
-                                    .clipShape(
-                                        RoundedRectangle(cornerRadius: .CornerRadii.default)
-                                    )
-                                    .padding(.Spacing.small)
+                                        
+                                        
                                 } else {
                                     Button {
                                         openWindow(id: WindowIDs.profileEditor)
@@ -239,7 +238,7 @@ struct ContentView: View {
     @ViewBuilder
     private var messagesDetailView: some View {
         if navigationState.selectedMessageThreads.count > 1 {
-            MultipleMessagesView()
+            MultipleMessageThreadsView()
         } else {
             MessageThreadView(
                 messageViewModel: $messageThreadViewModel,

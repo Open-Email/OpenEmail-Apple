@@ -236,7 +236,7 @@
 		5BF25D312D71E4FD00720F54 /* PersonalProfileAttributesEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF25D232D71C94100720F54 /* PersonalProfileAttributesEditorView.swift */; };
 		5BFDAF492D43CD2900335189 /* OpenEmailTextFieldLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1C37872D3A5A220017D57D /* OpenEmailTextFieldLabel.swift */; };
 		5BFDDAEA2B51731C009DDCDA /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = 5BFDDAE92B51731C009DDCDA /* Logging */; };
-		5BFDDAED2B51A408009DDCDA /* MultipleMessagesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BFDDAEC2B51A408009DDCDA /* MultipleMessagesView.swift */; };
+		5BFDDAED2B51A408009DDCDA /* MultipleMessageThreadsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BFDDAEC2B51A408009DDCDA /* MultipleMessageThreadsView.swift */; };
 		9D0775822D9AFB9500C2A2E0 /* ArrayExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0775812D9AFB8100C2A2E0 /* ArrayExtensions.swift */; };
 		9D0775832D9AFB9500C2A2E0 /* ArrayExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0775812D9AFB8100C2A2E0 /* ArrayExtensions.swift */; };
 		9D0A38562DA8319C00F4BB73 /* DeleteAccountUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */; };
@@ -424,7 +424,7 @@
 		5BF25D272D71C94100720F54 /* ConfigurationProfileAttributesEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationProfileAttributesEditorView.swift; sourceTree = "<group>"; };
 		5BF25D2F2D71E3BD00720F54 /* OpenEmailTextEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenEmailTextEditor.swift; sourceTree = "<group>"; };
 		5BFDDAE82B51720C009DDCDA /* Logging */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Logging; sourceTree = "<group>"; };
-		5BFDDAEC2B51A408009DDCDA /* MultipleMessagesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipleMessagesView.swift; sourceTree = "<group>"; };
+		5BFDDAEC2B51A408009DDCDA /* MultipleMessageThreadsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipleMessageThreadsView.swift; sourceTree = "<group>"; };
 		9D0775812D9AFB8100C2A2E0 /* ArrayExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayExtensions.swift; sourceTree = "<group>"; };
 		9D0A38552DA8319600F4BB73 /* DeleteAccountUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountUseCase.swift; sourceTree = "<group>"; };
 		9D31B6F62E4B8043008AEADC /* MultiReadersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiReadersView.swift; sourceTree = "<group>"; };
@@ -1056,7 +1056,7 @@
 		5BFDDAEB2B51A3F3009DDCDA /* MultipleMessagesView */ = {
 			isa = PBXGroup;
 			children = (
-				5BFDDAEC2B51A408009DDCDA /* MultipleMessagesView.swift */,
+				5BFDDAEC2B51A408009DDCDA /* MultipleMessageThreadsView.swift */,
 			);
 			path = MultipleMessagesView;
 			sourceTree = "<group>";
@@ -1292,7 +1292,7 @@
 				5B3046592C6BABC100B33157 /* Message+Display.swift in Sources */,
 				5B5390D42B7F62E000387B6F /* String+Truncating.swift in Sources */,
 				5B8C60E62D0365E400FEF5F1 /* OpenEmailTextEditor.swift in Sources */,
-				5BFDDAED2B51A408009DDCDA /* MultipleMessagesView.swift in Sources */,
+				5BFDDAED2B51A408009DDCDA /* MultipleMessageThreadsView.swift in Sources */,
 				5B141C2E2C134A4B00597F70 /* TimeInterval+Extension.swift in Sources */,
 				5BE2CFA02D4D0E9800E9DB1A /* Modify.swift in Sources */,
 				5BA2D65A2CC26D38004783B7 /* Spacings.swift in Sources */,
